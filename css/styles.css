@@ -1,5 +1,5 @@
 /* ============================================================
-   RESET E CONFIGURAÇÕES GERAIS
+    RESET E CONFIGURAÇÕES GERAIS
    ============================================================ */
 * {
     margin: 0;
@@ -19,7 +19,7 @@ body {
 }
 
 /* ============================================================
-   CABEÇALHO (NAVBAR)
+    CABEÇALHO (NAVBAR)
    ============================================================ */
 .main-header {
     background: #fff;
@@ -36,7 +36,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0 1.5625rem; /* 25px de margem lateral */
+    padding: 0 1.5625rem;
 }
 
 .header-left, .header-right {
@@ -57,7 +57,7 @@ body {
 }
 
 .main-logo {
-    height: 2.8125rem; /* 45px */
+    height: 2.8125rem;
     width: auto;
 }
 
@@ -83,17 +83,24 @@ body {
     box-shadow: 0 0 0 0.2rem rgba(255, 71, 87, 0.1);
 }
 
-/* Menu do Usuário */
-.user-menu {
+/* Menu do Usuário & Dropdown */
+.user-dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.user-menu-trigger {
     display: flex;
     align-items: center;
     gap: 0.625rem;
     cursor: pointer;
+    padding: 0.5rem;
 }
 
 .user-name {
     font-size: 0.875rem;
     font-weight: 600;
+    color: #333;
 }
 
 .user-icon img {
@@ -104,30 +111,49 @@ body {
     object-fit: cover;
 }
 
-/* Botões Estilizados */
-.btn-painel {
-    background-color: #ff4757;
-    color: white;
-    border: none;
-    padding: 0.5rem 1rem;
+.dropdown-content {
+    display: none;
+    position: absolute;
+    right: 0;
+    background-color: white;
+    min-width: 10rem;
+    box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.1);
     border-radius: 0.5rem;
-    cursor: pointer;
-    font-weight: 600;
-    font-size: 0.8125rem;
+    z-index: 1000;
+    list-style: none;
+    padding: 0.5rem 0;
+    margin: 0;
 }
 
-.btn-login {
-    background: transparent;
-    border: 0.0625rem solid #ff4757;
-    color: #ff4757;
-    padding: 0.5rem 1.25rem;
-    border-radius: 0.5rem;
-    font-weight: 600;
+.user-dropdown:hover .dropdown-content {
+    display: block;
+}
+
+.dropdown-content li a, 
+.dropdown-content li button {
+    color: #333;
+    padding: 0.75rem 1rem;
+    text-decoration: none;
+    display: block;
+    font-size: 0.9rem;
+    width: 100%;
+    text-align: left;
+    border: none;
+    background: none;
     cursor: pointer;
+}
+
+.dropdown-content li:hover {
+    background-color: #f1f1f1;
+}
+
+.dropdown-content li button {
+    color: #ff4757;
+    font-weight: 600;
 }
 
 /* ============================================================
-   VITRINE DE RESTAURANTES (GRID)
+    VITRINE DE RESTAURANTES (GRID)
    ============================================================ */
 .grid-restaurantes {
     display: grid;
@@ -181,24 +207,25 @@ body {
 }
 
 /* ============================================================
-   TELA DE LOGIN
+    TELA DE LOGIN, PERFIL E PAINEL
    ============================================================ */
-.login-screen {
+.login-screen, .perfil-screen {
     min-height: calc(100vh - 5rem);
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 1.5rem;
+    padding: 2rem 1.5rem;
 }
 
 .login-container {
     width: 100%;
-    max-width: 25rem;
+    max-width: 37.5rem;
     padding: 2.5rem 2rem;
     background: white;
     border-radius: 1rem;
     box-shadow: 0 0.625rem 1.875rem rgba(0,0,0,0.08);
     text-align: center;
+    margin: 0 auto !important;
 }
 
 .login-header h2 {
@@ -212,7 +239,10 @@ body {
     margin-bottom: 2rem;
 }
 
-.login-form input {
+/* ============================================================
+    ESTRUTURA DE FORMULÁRIO
+   ============================================================ */
+.login-form input, select {
     width: 100%;
     padding: 0.875rem;
     margin-bottom: 1rem;
@@ -220,8 +250,36 @@ body {
     border-radius: 0.5rem;
     outline: none;
     font-size: 0.9375rem;
+    transition: 0.3s;
 }
 
+.login-form input:focus, select:focus {
+    border-color: #ff4757;
+}
+
+.login-form label {
+    display: block;
+    text-align: left;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #666;
+    margin-bottom: 0.25rem;
+    margin-top: 0.5rem;
+}
+
+.form-row {
+    display: flex;
+    gap: 0.625rem;
+    width: 100%;
+}
+
+.form-group {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Botões */
 .btn-principal {
     width: 100%;
     padding: 0.875rem;
@@ -231,11 +289,14 @@ body {
     font-size: 1rem;
     cursor: pointer;
     margin-bottom: 0.75rem;
+    transition: 0.3s;
 }
 
 .btn-entrar { background-color: #ff4757; color: white; }
 .btn-google { background-color: #4285F4; color: white; }
+.btn-secundario { background-color: #333; color: white; margin-top: 0.5rem; }
 
+/* Divisores */
 .divider {
     margin: 1.5rem 0;
     color: #ccc;
@@ -247,25 +308,272 @@ body {
 .divider::before, .divider::after {
     content: "";
     flex: 1;
-    height: 1px;
+    height: 0.0625rem;
     background: #eee;
     margin: 0 0.625rem;
 }
 
-.user-menu {
+/* ============================================================
+    NOVO: PAINEL DO LOJISTA (DASHBOARD)
+   ============================================================ */
+.container-dashboard {
+    width: 100%;
+    max-width: 60rem; /* 960px */
+    margin: 0 auto;
+    padding: 2rem 0;
+}
+
+/* Card de Status */
+.status-card-top {
+    background: #fff;
+    border: 0.125rem solid #ffeef0;
+    border-radius: 1.25rem;
+    padding: 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2.5rem;
+}
+
+.status-info h2 { font-size: 1.25rem; margin: 0; }
+.status-info p { font-size: 0.875rem; color: #777; margin: 0.3rem 0 0; }
+
+.badge-loja {
+    background: #e6f7ee;
+    color: #27ae60;
+    padding: 0.5rem 1rem;
+    border-radius: 1.25rem;
+    font-weight: bold;
+    font-size: 0.75rem;
+    margin-right: 0.8rem;
+    text-transform: uppercase;
+}
+
+.btn-status-toggle {
+    background: #fff;
+    border: 0.125rem solid #ff4757;
+    color: #ff4757;
+    padding: 0.5rem 1.5rem;
+    border-radius: 1.25rem;
+    cursor: pointer;
+    font-weight: 600;
+    transition: 0.3s;
+}
+
+.btn-status-toggle:hover {
+    background: #ff4757;
+    color: #fff;
+}
+
+/* Grid de Módulos */
+.dash-instruction {
+    text-align: center;
+    color: #a4b0be;
+    font-size: 0.75rem;
+    letter-spacing: 0.1rem;
+    margin-bottom: 2rem;
+    text-transform: uppercase;
+    font-weight: 700;
+}
+
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(13.75rem, 1fr));
+    gap: 1.5rem;
+}
+
+.card-modulo {
+    background: #fff;
+    border: 0.125rem solid #ffeef0;
+    border-radius: 1.25rem;
+    padding: 2.5rem 1rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.card-modulo:hover {
+    transform: translateY(-0.3125rem);
+    border-color: #ffcad1;
+    box-shadow: 0 0.625rem 1.25rem rgba(255, 71, 87, 0.05);
+}
+
+.icon-circle {
+    width: 3.75rem;
+    height: 3.75rem;
+    background: #ffeef0;
+    border-radius: 50%;
     display: flex;
     align-items: center;
-    gap: 0.625rem;
+    justify-content: center;
+    margin: 0 auto 1.25rem;
+    color: #ff4757;
+    font-size: 1.5rem;
+}
+
+/* Fundo escurecido e desfoque */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(5px); /* Efeito de desfoque do print */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+}
+
+/* Caixa do Modal */
+.modal-content {
+    background: #fff;
+    width: 90%;
+    max-width: 550px;
+    border-radius: 20px;
+    padding: 1.5rem;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    animation: modalEntrada 0.3s ease-out;
+}
+
+@keyframes modalEntrada {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 1rem;
+    margin-bottom: 1rem;
+}
+
+.close-modal {
+    background: #f0f0f0;
+    border: none;
+    font-size: 1.5rem;
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
     cursor: pointer;
-    transition: opacity 0.2s;
 }
 
-.user-menu:hover {
-    opacity: 0.8; /* Dá um feedback visual ao passar o mouse */
+/* Estilo para a lista de horários dentro do modal */
+.row-horario {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
 }
 
-.user-name {
-    font-size: 0.875rem;
-    font-weight: 600;
-    color: #333; /* Garante que o link não fique azul */
+.row-horario input {
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-family: 'Poppins';
+}
+
+/* ============================================================
+    AJUSTES ADICIONAIS DO PAINEL (MODAL E STATUS)
+   ============================================================ */
+
+/* Garante que o Modal sobreponha até o Header (z-index do header é 1000) */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.6); /* Um pouco mais escuro para destaque */
+    backdrop-filter: blur(4px);
+    display: none; /* O JS muda para flex */
+    justify-content: center;
+    align-items: center;
+    z-index: 9999; /* Valor superior ao Header */
+    padding: 1rem;
+}
+
+/* Quando o modal não estiver com a classe hidden, ele DEVE ser flex */
+.modal-overlay:not(.hidden) {
+    display: flex !important;
+}
+
+/* Estilização interna dos inputs do Modal (Horários/Preços) */
+.modal-body {
+    max-height: 60vh;
+    overflow-y: auto;
+    padding-right: 5px;
+}
+
+.modal-body input[type="time"], 
+.modal-body input[type="text"], 
+.modal-body input[type="number"] {
+    padding: 0.6rem;
+    border: 1px solid #ddd;
+    border-radius: 0.5rem;
+    font-size: 0.9rem;
+}
+
+/* Estados do Badge de Status (Dinâmico via JS) */
+.badge-loja.aberta {
+    background: #e6f7ee;
+    color: #27ae60;
+}
+
+.badge-loja.fechada {
+    background: #ffeef0;
+    color: #ff4757;
+}
+
+/* Melhoria no botão de fechar (Hover) */
+.close-modal:hover {
+    background: #e2e2e2;
+    color: #ff4757;
+    transform: rotate(90deg);
+    transition: 0.2s;
+}
+
+/* Ajuste fino para os cards de configuração */
+.login-container.hidden {
+    display: none !important;
+}
+
+/* Estilo para as linhas de horários injetadas pelo JS */
+.row-horario {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid #f5f5f5;
+}
+
+.row-horario:last-child {
+    border-bottom: none;
+}
+
+.card-modulo h3 { font-size: 1.1rem; margin-bottom: 0.5rem; }
+.card-modulo p { font-size: 0.85rem; color: #747d8c; }
+
+/* Utilitários */
+.hidden { display: none !important; }
+
+/* ============================================================
+    RESPONSIVIDADE
+   ============================================================ */
+@media (max-width: 48rem) {
+    .form-row { flex-direction: column; gap: 0; }
+    
+    .status-card-top {
+        flex-direction: column;
+        text-align: center;
+        gap: 1.5rem;
+    }
+
+    .dashboard-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+    }
 }

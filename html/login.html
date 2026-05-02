@@ -4,47 +4,93 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nordgo Food | Login</title>
-    <!-- Importando o CSS unificado -->
     <link rel="stylesheet" href="../css/styles.css">
-    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        .hidden { display: none; }
+        .login-container { max-width: 450px; }
+        .form-cadastro-completo { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .full-width { grid-column: span 2; }
+    </style>
 </head>
 <body>
-    <main class="login-screen">
-        <div class="login-container">
-            <header class="login-header">
-                <h2>Bem-vindo ao Nordgo</h2>
-                <p>Identifique-se para continuar</p>
-            </header>
 
-            <div class="login-form">
-                <!-- IDs mantidos para funcionar com a lógica do app.js -->
-                <input type="text" id="nome" placeholder="Seu nome completo">
-                <input type="email" id="email" placeholder="Seu e-mail">
-                <input type="password" id="senha" placeholder="Sua senha">
-                
-                <button id="btn-login" class="btn-principal btn-entrar">
-                    Entrar
-                </button>
-                
-                <button id="btn-cadastrar" class="btn-principal" style="background: #2ecc71; color: white;">
-                    Criar Nova Conta
-                </button>
-
-                <div class="divider">ou</div>
-
-                <button id="btn-google" class="btn-principal btn-google">
-                    Entrar com Google
+    <header class="main-header">
+        <div class="header-container">
+            <!-- Esquerda: Botão Voltar -->
+            <div class="header-left">
+                <button onclick="window.location.href='../index.html'" class="btn-back">
+                    <i class="fa-solid fa-arrow-left"></i>
+                    <span>Voltar</span>
                 </button>
             </div>
+
+            <!-- Centro: Logo -->
+            <div class="header-center">
+                <img src="../assets/images/nordgo-logo.png" alt="NordGo Food" class="main-logo" onclick="window.location.href='../index.html'">
+            </div>
+
+            <!-- Direita: Área do Usuário (Preenchida pelo app.js) -->
+            <div class="header-right">
+                <!-- O app.js injetará o menu aqui -->
+            </div>
+        </div>
+    </header>
+
+    <main class="login-screen">
+        <div class="login-container">
             
-            <p style="font-size: 0.8rem; margin-top: 1rem; color: #888;">
-                * Donos de estabelecimentos devem criar conta como cliente primeiro.
-            </p>
+            <!-- TELA DE LOGIN -->
+            <div id="section-login">
+                <header class="login-header">
+                    <h2>Bem-vindo</h2>
+                    <p>Acesse sua conta</p>
+                </header>
+                <div class="login-form">
+                    <input type="email" id="email" placeholder="E-mail">
+                    <input type="password" id="senha" placeholder="Senha">
+                    <button id="btn-login" class="btn-principal btn-entrar">Entrar</button>
+                    
+                    <div class="divider">ou</div>
+                    
+                    <button id="btn-google" class="btn-principal btn-google">Entrar com Google</button>
+                    
+                    <div style="margin-top: 20px; text-align: center;">
+                        <p style="font-size: 0.9rem;">Não tem uma conta ainda? 
+                            <a href="#" id="link-ir-cadastro" style="color: #5D3FD3; font-weight: 600;">Cadastre-se já!</a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TELA DE CADASTRO COMPLETO -->
+            <div id="section-cadastro" class="hidden">
+                <header class="login-header">
+                    <h2>Crie sua conta</h2>
+                    <p>Preencha seus dados de entrega</p>
+                </header>
+                <div class="login-form form-cadastro-completo">
+                    <input type="text" id="reg-nome" class="full-width" placeholder="Nome Completo">
+                    <input type="email" id="reg-email" class="full-width" placeholder="E-mail">
+                    <input type="password" id="reg-senha" class="full-width" placeholder="Senha">
+                    
+                    <input type="text" id="reg-telefone" class="full-width" placeholder="Telefone / WhatsApp">
+                    
+                    <input type="text" id="reg-cep" placeholder="CEP">
+                    <input type="text" id="reg-bairro" placeholder="Bairro">
+                    
+                    <input type="text" id="reg-rua" class="full-width" placeholder="Rua / Avenida">
+                    
+                    <input type="text" id="reg-numero" placeholder="Número">
+                    <input type="text" id="reg-obs" placeholder="Complemento/Obs">
+                    
+                    <button id="btn-cadastrar-final" class="btn-principal full-width" style="background: #2ecc71; color: white;">Finalizar Cadastro</button>
+                    <button id="btn-voltar-login" class="btn-principal full-width" style="background: #eee; color: #333;">Voltar</button>
+                </div>
+            </div>
+
         </div>
     </main>
-
-    <!-- ATUALIZADO: Agora aponta para o app.js unificado -->
     <script type="module" src="../js/app.js"></script>
 </body>
 </html>
