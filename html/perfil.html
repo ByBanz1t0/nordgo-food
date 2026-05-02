@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meu Perfil | Nordgo Food</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Reaproveitando o Header -->
+    <header class="main-header">
+        <div class="header-container">
+            <div class="header-left">
+                <a href="../index.html">
+                    <img src="../assets/images/nordgo-logo.png" alt="NordGo" class="main-logo">
+                </a>
+            </div>
+            <div class="header-right">
+                <!-- Preenchido pelo app.js -->
+            </div>
+        </div>
+    </header>
+
+    <main class="container" style="margin-top: 2rem;">
+        <div class="login-container" style="max-width: 37.5rem; margin: 0 auto; text-align: left;">
+            <header class="login-header" style="text-align: center;">
+                <h2>Meu Perfil</h2>
+                <p>Gerencie suas informações pessoais</p>
+            </header>
+
+            <div class="perfil-info" style="margin-top: 1.5rem;">
+                <div style="text-align: center; margin-bottom: 1.5rem;">
+                    <img id="perfil-foto" src="https://via.placeholder.com/100" style="width: 6.25rem; height: 6.25rem; border-radius: 50%; object-fit: cover; border: 3px solid #ff4757;">
+                </div>
+
+                <div class="login-form">
+                    <label>Nome Completo</label>
+                    <!-- Removido o 'readonly' do nome -->
+                    <input type="text" id="perfil-nome" placeholder="Seu nome">
+
+                    <label>E-mail</label>
+                    <!-- O e-mail é bom manter readonly por segurança, 
+                        pois é o login principal do Firebase -->
+                    <input type="email" id="perfil-email" readonly style="background: #f4f4f4; cursor: not-allowed;">
+
+                    <label>Tipo de Conta</label>
+                    <input type="text" id="perfil-tipo" readonly style="background: #f4f4f4; cursor: not-allowed;">
+
+                    <button id="btn-salvar-perfil" class="btn-principal" style="background-color: #2ecc71; color: white;">
+                        Salvar Alterações
+                    </button>
+                    
+                    <button id="btn-logout" class="btn-principal" style="background-color: #333; color: white; margin-top: 1rem;">
+                        Sair da Conta
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script type="module" src="../js/app.js"></script>
+</body>
+</html>

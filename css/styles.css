@@ -1,0 +1,271 @@
+/* ============================================================
+   RESET E CONFIGURAÇÕES GERAIS
+   ============================================================ */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
+}
+
+html {
+    font-size: 100%; /* 1rem = 16px */
+}
+
+body {
+    background-color: #f7f7f7;
+    color: #333;
+    line-height: 1.6;
+}
+
+/* ============================================================
+   CABEÇALHO (NAVBAR)
+   ============================================================ */
+.main-header {
+    background: #fff;
+    padding: 0.625rem 0; 
+    box-shadow: 0 0.125rem 0.5rem rgba(0,0,0,0.06);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.header-container {
+    max-width: 87.5rem; /* 1400px */
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 1.5625rem; /* 25px de margem lateral */
+}
+
+.header-left, .header-right {
+    flex: 1;
+    display: flex;
+    align-items: center;
+}
+
+.header-center {
+    flex: 2;
+    display: flex;
+    justify-content: center;
+}
+
+.header-right {
+    justify-content: flex-end;
+    gap: 1rem;
+}
+
+.main-logo {
+    height: 2.8125rem; /* 45px */
+    width: auto;
+}
+
+/* Barra de Busca */
+.search-bar {
+    width: 100%;
+    max-width: 31.25rem;
+}
+
+.search-bar input {
+    width: 100%;
+    padding: 0.75rem 1.25rem;
+    border-radius: 0.5rem;
+    border: 0.0625rem solid #e2e2e2;
+    background-color: #f5f5f5;
+    outline: none;
+    transition: 0.3s ease;
+}
+
+.search-bar input:focus {
+    border-color: #ff4757;
+    background-color: #fff;
+    box-shadow: 0 0 0 0.2rem rgba(255, 71, 87, 0.1);
+}
+
+/* Menu do Usuário */
+.user-menu {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    cursor: pointer;
+}
+
+.user-name {
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.user-icon img {
+    width: 2.1875rem;
+    height: 2.1875rem;
+    border-radius: 50%;
+    background: #eee;
+    object-fit: cover;
+}
+
+/* Botões Estilizados */
+.btn-painel {
+    background-color: #ff4757;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.8125rem;
+}
+
+.btn-login {
+    background: transparent;
+    border: 0.0625rem solid #ff4757;
+    color: #ff4757;
+    padding: 0.5rem 1.25rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+/* ============================================================
+   VITRINE DE RESTAURANTES (GRID)
+   ============================================================ */
+.grid-restaurantes {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(17.5rem, 1fr));
+    gap: 1.25rem;
+    padding: 2rem 1.5625rem;
+    max-width: 87.5rem;
+    margin: 0 auto;
+}
+
+.card-loja {
+    border-radius: 0.75rem;
+    overflow: hidden;
+    box-shadow: 0 0.25rem 0.5rem rgba(0,0,0,0.1);
+    cursor: pointer;
+    transition: transform 0.2s ease;
+    background: white;
+}
+
+.card-loja:hover {
+    transform: translateY(-0.3125rem);
+}
+
+.card-loja .banner {
+    height: 7.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.card-loja img {
+    width: 5rem;
+    height: 5rem;
+    border-radius: 50%;
+    border: 0.1875rem solid white;
+    object-fit: cover;
+}
+
+.card-loja .info {
+    padding: 1rem;
+}
+
+.card-loja h3 {
+    font-size: 1.125rem;
+    margin-bottom: 0.25rem;
+}
+
+.card-loja p {
+    font-size: 0.875rem;
+    color: #666;
+}
+
+/* ============================================================
+   TELA DE LOGIN
+   ============================================================ */
+.login-screen {
+    min-height: calc(100vh - 5rem);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+}
+
+.login-container {
+    width: 100%;
+    max-width: 25rem;
+    padding: 2.5rem 2rem;
+    background: white;
+    border-radius: 1rem;
+    box-shadow: 0 0.625rem 1.875rem rgba(0,0,0,0.08);
+    text-align: center;
+}
+
+.login-header h2 {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.login-header p {
+    font-size: 0.875rem;
+    color: #777;
+    margin-bottom: 2rem;
+}
+
+.login-form input {
+    width: 100%;
+    padding: 0.875rem;
+    margin-bottom: 1rem;
+    border: 0.0625rem solid #ddd;
+    border-radius: 0.5rem;
+    outline: none;
+    font-size: 0.9375rem;
+}
+
+.btn-principal {
+    width: 100%;
+    padding: 0.875rem;
+    border: none;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    margin-bottom: 0.75rem;
+}
+
+.btn-entrar { background-color: #ff4757; color: white; }
+.btn-google { background-color: #4285F4; color: white; }
+
+.divider {
+    margin: 1.5rem 0;
+    color: #ccc;
+    font-size: 0.75rem;
+    display: flex;
+    align-items: center;
+}
+
+.divider::before, .divider::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: #eee;
+    margin: 0 0.625rem;
+}
+
+.user-menu {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+
+.user-menu:hover {
+    opacity: 0.8; /* Dá um feedback visual ao passar o mouse */
+}
+
+.user-name {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #333; /* Garante que o link não fique azul */
+}

@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nordgo Food | Login</title>
+    <!-- Importando o CSS unificado -->
+    <link rel="stylesheet" href="../css/styles.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <main class="login-screen">
+        <div class="login-container">
+            <header class="login-header">
+                <h2>Bem-vindo ao Nordgo</h2>
+                <p>Identifique-se para continuar</p>
+            </header>
+
+            <div class="login-form">
+                <!-- IDs mantidos para funcionar com a lógica do app.js -->
+                <input type="text" id="nome" placeholder="Seu nome completo">
+                <input type="email" id="email" placeholder="Seu e-mail">
+                <input type="password" id="senha" placeholder="Sua senha">
+                
+                <button id="btn-login" class="btn-principal btn-entrar">
+                    Entrar
+                </button>
+                
+                <button id="btn-cadastrar" class="btn-principal" style="background: #2ecc71; color: white;">
+                    Criar Nova Conta
+                </button>
+
+                <div class="divider">ou</div>
+
+                <button id="btn-google" class="btn-principal btn-google">
+                    Entrar com Google
+                </button>
+            </div>
+            
+            <p style="font-size: 0.8rem; margin-top: 1rem; color: #888;">
+                * Donos de estabelecimentos devem criar conta como cliente primeiro.
+            </p>
+        </div>
+    </main>
+
+    <!-- ATUALIZADO: Agora aponta para o app.js unificado -->
+    <script type="module" src="../js/app.js"></script>
+</body>
+</html>
