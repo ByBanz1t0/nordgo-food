@@ -1,0 +1,1268 @@
+/* ============================================================
+    RESET E CONFIGURAÇÕES GERAIS
+   ============================================================ */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
+}
+
+html {
+    font-size: 100%; /* Base: 16px */
+}
+
+body {
+    background-color: #f7f7f7;
+    color: #333;
+    line-height: 1.6;
+    overflow-x: hidden;
+}
+
+.container {
+    max-width: 75rem; /* 1400px */
+    margin: 0 auto;
+    padding: 0 1.5rem; /* ~24px */
+}
+
+/* Container fixo no canto */
+.toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* Estilo da Notificação */
+.toast {
+    min-width: 250px;
+    padding: 15px 20px;
+    border-radius: 8px;
+    color: white;
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 500;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    animation: slideIn 0.3s ease-out forwards;
+}
+
+/* Tipos de Notificação */
+.toast.success { background-color: #27ae60; }
+.toast.error { background-color: #e74c3c; }
+.toast.info { background-color: #3498db; }
+
+/* Animações */
+@keyframes slideIn {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes fadeOut {
+    to { opacity: 0; transform: translateY(-10px); }
+}
+
+/* ============================================================
+    CABEÇALHO (NAVBAR)
+   ============================================================ */
+.main-header {
+    background: #fff;
+    padding: 0.625rem 0; /* 10px */
+    box-shadow: 0 0.125rem 0.5rem rgba(0,0,0,0.06);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.header-container {
+    max-width: 75rem;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 1.5rem;
+}
+
+.header-left, .header-right {
+    flex: 1;
+    display: flex;
+    align-items: center;
+}
+
+.header-center {
+    flex: 2;
+    display: flex;
+    justify-content: center;
+}
+
+.header-right {
+    justify-content: flex-end;
+    gap: 1rem;
+}
+
+.main-logo {
+    height: 2.8125rem; /* 45px */
+    width: auto;
+}
+
+/* Barra de Busca */
+.search-bar {
+    width: 100%;
+    max-width: 31.25rem; /* 500px */
+}
+
+.search-bar input {
+    width: 100%;
+    padding: 0.75rem 1.25rem;
+    border-radius: 0.5rem; /* 8px */
+    border: 0.0625rem solid #e2e2e2;
+    background-color: #f5f5f5;
+    outline: none;
+    transition: 0.3s ease;
+}
+
+.search-bar input:focus {
+    border-color: #ff4757;
+    background-color: #fff;
+    box-shadow: 0 0 0 0.2rem rgba(255, 71, 87, 0.1);
+}
+
+.main-header .btn-login {
+    background: #27ae60;
+    color: white;
+    border: none;
+    padding: 0.5rem 1.2rem; /* Reduzi o padding */
+    border-radius: 0.5rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.3s;
+    width: auto; /* IMPORTANTE: Garante que ele não fique gigante */
+    font-size: 0.85rem; /* Fonte mais equilibrada para o menu */
+    white-space: nowrap;
+}
+
+.login-form .btn-principal {
+    width: 100%; 
+    margin-top: 1rem;
+    padding: 0.875rem; /* Padding consistente com os inputs */
+}
+
+.login-form input,
+.login-form select,
+.login-form textarea {
+    width: 100%;
+    /* 48px / 16 = 3rem */
+    height: 3rem; 
+    padding: 0 0.9375rem; /* 15px */
+    border: 0.0625rem solid #ddd; /* 1px */
+    border-radius: 0.5rem; /* 8px */
+    font-size: 0.875rem; /* 14px */
+    color: #333;
+    box-sizing: border-box; 
+    transition: all 0.3s ease;
+}
+
+.login-form textarea {
+    height: auto;
+    min-height: 6rem; /* 96px */
+    padding: 0.75rem 0.9375rem; /* 12px 15px */
+}
+
+.user-name {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #333;
+}
+
+/* ============================================================
+    ESTILOS DA PÁGINA DE LOGIN / CADASTRO
+   ============================================================ */
+
+.hidden { display: none !important; }
+
+.login-screen {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: calc(100vh - 5rem); /* Desconta o header */
+    padding: 2rem 1.5rem;
+    background-color: #f7f7f7;
+}
+
+.login-container {
+    width: 100%;
+    max-width: 30rem; /* Aprox 450px */
+    background: #fff;
+    padding: 2.5rem;
+    border-radius: 1rem;
+    box-shadow: 0 0.5rem 1.5rem rgba(0,0,0,0.08);
+}
+
+.login-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.login-header h2 {
+    font-size: 1.75rem;
+    color: #1a1a1a;
+}
+
+.login-header p {
+    color: #666;
+    font-size: 0.95rem;
+}
+
+/* Formulários e Grid */
+.login-form input[type="email"],
+.login-form input[type="password"],
+.login-form input[type="text"] {
+    width: 100%;
+    padding: 0.875rem;
+    margin-bottom: 0.75rem;
+    border: 0.0625rem solid #ddd;
+    border-radius: 0.5rem;
+    font-size: 0.9rem;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.login-form input:focus {
+    border-color: #ff4757;
+}
+
+.grid-cadastro {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem; /* Ajustado para bater com o padrão de 12px */
+}
+
+.full-width {
+    grid-column: span 2;
+}
+
+/* Estilo para o link de "Esqueci minha senha" */
+#btn-esqueci-senha {
+    font-size: 0.8rem;
+    color: #ff4757;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+#btn-esqueci-senha:hover {
+    color: #b91c1c !important; /* Um tom mais escuro de vermelho ao passar o mouse */
+    text-decoration: underline !important;
+}
+
+/* Estilo para o botão de "Voltar" no cadastro */
+.btn-secondary {
+    background-color: #6c757d;
+    border: none;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background-color: #5a6268;
+}
+
+/* Responsividade para o Grid de Cadastro em celulares */
+@media (max-width: 37.5rem) { /* 600px */
+    .grid-cadastro {
+        grid-template-columns: 1fr;
+    }
+    .full-width {
+        grid-column: span 1;
+    }
+}
+
+/* Feedback visual de erro nos inputs (opcional) */
+input.input-error {
+    border: 2px solid #e63946;
+    animation: shake 0.2s ease-in-out 0s 2;
+}
+
+@keyframes shake {
+    0% { margin-left: 0rem; }
+    25% { margin-left: 0.5rem; }
+    75% { margin-left: -0.5rem; }
+    100% { margin-left: 0rem; }
+}
+
+/* --- LOGIN-LOJA / CADASTRO DE VENDEDOR --- */
+
+/* Overlay de carregamento (Impede o flicker antes de verificar se é dono) */
+.loader-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+}
+
+.loader-content {
+    text-align: center;
+    color: var(--cor-principal); /* Certifique-se de ter essa cor definida no :root */
+}
+
+.loader-content i {
+    font-size: 3rem;
+    margin-bottom: 15px;
+}
+
+/* Badge de Vendedor */
+.badge-vendedor {
+    background: #e3f2fd;
+    color: #1976d2;
+    display: inline-block;
+    padding: 0.375rem 1rem; /* 6px 16px */
+    border-radius: 3.125rem; /* 50px */
+    font-size: 0.75rem; /* 12px */
+    font-weight: 600;
+    margin-bottom: 0.75rem; /* 12px */
+}
+
+/* Grid de Cadastro para organizar os campos */
+.grid-cadastro {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.9375rem; /* 15px */
+}
+
+.grid-cadastro .full-width {
+    grid-column: span 2;
+}
+
+/* Títulos das Seções no Formulário */
+.grid-cadastro h3 {
+    font-size: 1rem;
+    color: #444;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 8px;
+    margin-top: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.grid-cadastro h3 i {
+    color: var(--cor-principal);
+}
+
+/* Ajustes para Textarea */
+#loja-descricao {
+    resize: none;
+    font-family: inherit;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+}
+
+/* --- ESTILIZAÇÃO DO SELECT (CATEGORIAS) --- */
+
+#loja-categoria {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-color: #fff;
+    /* Ícone de seta customizado */
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23d35400' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 1rem; /* 16px */
+    cursor: pointer;
+    padding-right: 2.5rem; /* 40px */
+}
+
+/* Efeito ao passar o mouse */
+#loja-categoria:hover {
+    border-color: var(--cor-principal);
+}
+
+/* Efeito ao clicar/focar */
+#loja-categoria:focus, 
+.login-form input:focus {
+    outline: none;
+    border-color: var(--cor-principal);
+    /* Brilho suave usando rem para o espalhamento */
+    box-shadow: 0 0 0 0.1875rem rgba(211, 84, 0, 0.1); 
+}
+/* Estilizando as opções (limitado pelo navegador, mas ajuda no espaçamento) */
+#loja-categoria option {
+    padding: 10px;
+    background-color: #fff;
+    color: #333;
+}
+
+/* Ajuste para o placeholder (primeira opção) ficar cinza */
+#loja-categoria:invalid,
+#loja-categoria option[value=""] {
+    color: #999;
+}
+
+/* Responsividade para telas pequenas (Celular) */
+@media (max-width: 600px) {
+    .grid-cadastro {
+        grid-template-columns: 1fr; /* Uma coluna no mobile */
+    }
+    
+    .grid-cadastro .full-width {
+        grid-column: span 1;
+    }
+}
+
+/* Classe utilitária para esconder elementos */
+.hidden {
+    display: none !important;
+}
+
+/* Botão de Sucesso (Verde) */
+.btn-success {
+    background-color: #28a745 !important;
+    color: white;
+    border: none;
+    transition: background 0.3s ease;
+}
+
+.btn-success:hover {
+    background-color: #218838 !important;
+}
+
+/* Botões Auxiliares */
+.btn-success { background: #2ecc71 !important; color: #fff; }
+.btn-secondary { background: #eee !important; color: #333 !important; }
+
+.divider {
+    text-align: center;
+    margin: 1.5rem 0;
+    position: relative;
+    color: #999;
+    font-size: 0.85rem;
+}
+
+.form-footer {
+    margin-top: 1.5rem;
+    text-align: center;
+    font-size: 0.9rem;
+}
+
+.form-footer a {
+    color: #ff4757;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+/* Responsividade do Header na tela de Login */
+.btn-back {
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #333;
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+
+.btn-back:hover { color: #ff4757; }
+
+/* Container do Menu do Usuário */
+.user-menu-container {
+    position: relative;
+    display: inline-block;
+    cursor: pointer;
+    padding: 0.5rem 1rem;
+}
+
+.user-name-display {
+    font-weight: 600;
+    color: #333;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* O Menu Suspenso (Escondido por padrão) */
+.dropdown-content {
+    display: none;
+    position: absolute;
+    right: 0;
+    top: 100%;
+    background-color: #fff;
+    min-width: 10rem;
+    box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.1);
+    border-radius: 0.5rem;
+    z-index: 1000;
+    overflow: hidden;
+    border: 1px solid #eee;
+}
+
+/* Itens do Menu */
+.dropdown-content a, .dropdown-content button {
+    color: #333;
+    padding: 0.75rem 1rem;
+    text-decoration: none;
+    display: block;
+    font-size: 0.9rem;
+    width: 100%;
+    text-align: left;
+    border: none;
+    background: none;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.dropdown-content a:hover, .dropdown-content button:hover {
+    background-color: #f8f9fa;
+    color: #ff4757;
+}
+
+/* Mostrar ao passar o mouse */
+.user-menu-container:hover .dropdown-content {
+    display: block;
+}
+
+/* Estilo do botão de Sair (Logout) */
+.btn-logout-menu {
+    border-top: 1px solid #eee !important;
+    color: #ff4757 !important;
+}
+
+/* Container do Perfil */
+.profile-page {
+    max-width: 600px;
+    margin: 2rem auto;
+    padding: 2rem;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.form-section {
+    border-bottom: 1px solid #eee;
+    padding-bottom: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.form-section h3 {
+    font-size: 1.1rem;
+    color: var(--cor-primaria, #e63946); /* Cor do NordGo */
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Ajuste das linhas duplas (CEP/Bairro e Número/Obs) */
+.form-row {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 1rem;
+}
+
+.form-group {
+    flex: 1;
+}
+
+/* Estilização dos Botões */
+.action-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.recovery-area {
+    text-align: right;
+    margin: -0.5rem 0 1rem 0;
+}
+
+.btn-principal, .btn-secundario, .btn-perigo {
+    width: 100%;
+    padding: 14px;
+    border: none;
+    border-radius: 8px;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-size: 1rem;
+}
+
+/* Botão Salvar (Verde ou Cor Primária) */
+.btn-principal {
+    background-color: #27ae60;
+    color: white;
+}
+
+.btn-principal:hover {
+    background-color: #219150;
+}
+
+/* Botão Sair (Cinza) */
+.btn-secundario {
+    background-color: #ecf0f1;
+    color: #2c3e50;
+}
+
+.btn-secundario:hover {
+    background-color: #bdc3c7;
+}
+
+/* Botão Excluir (Vermelho) */
+.btn-perigo {
+    background-color: transparent;
+    color: #e74c3c;
+    border: 1px solid #e74c3c;
+}
+
+.btn-perigo:hover {
+    background-color: #e74c3c;
+    color: white;
+}
+
+/* ============================================================
+    ESTILIZAÇÃO DOS BOTÕES (LOGIN E GOOGLE)
+   ============================================================ */
+
+/* Botão Entrar (E-mail/Senha) */
+.btn-entrar {
+    background-color: #ff4757; /* Vermelho NordGo */
+    color: white;
+    border: none;
+    width: 100%;
+    padding: 0.875rem;
+    border-radius: 0.5rem;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.3s, transform 0.2s;
+    margin-top: 0.5rem;
+}
+
+.btn-entrar:hover {
+    background-color: #e84118;
+    transform: translateY(-1px);
+}
+
+.btn-entrar:active {
+    transform: translateY(0);
+}
+
+/* Botão Google */
+.btn-google {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    background-color: #ffffff;
+    color: #444;
+    border: 1px solid #ddd;
+    width: 100%;
+    padding: 0.875rem;
+    border-radius: 0.5rem;
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.3s, box-shadow 0.2s;
+}
+
+.btn-google:hover {
+    background-color: #f8f9fa;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.btn-google i {
+    font-size: 1.1rem;
+    color: #4285F4; /* Azul padrão do Google */
+}
+
+/* Divisor "ou" */
+.divider {
+    display: flex;
+    align-items: center;
+    text-align: center;
+    margin: 1.5rem 0;
+    color: #999;
+}
+
+.divider::before,
+.divider::after {
+    content: '';
+    flex: 1;
+    border-bottom: 1px solid #eee;
+}
+
+.divider:not(:empty)::before {
+    margin-right: .75rem;
+}
+
+.divider:not(:empty)::after {
+    margin-left: .75rem;
+}
+
+/* ============================================================
+    HERO SECTION
+   ============================================================ */
+.hero {
+    background-color: #fff;
+    padding: 3rem 1.5rem;
+    text-align: center;
+    border-bottom: 0.0625rem solid #eee;
+}
+
+.hero h2 {
+    font-size: 2rem;
+    color: #1a1a1a;
+    margin-bottom: 0.5rem;
+}
+
+.hero p {
+    color: #666;
+    font-size: 1.1rem;
+}
+
+/* ============================================================
+    SLIDER DE CATEGORIAS
+   ============================================================ */
+.categorias-slider {
+    display: flex;
+    gap: 0.75rem; /* 12px */
+    overflow-x: auto;
+    padding: 1.25rem 0; /* 20px */
+    scroll-behavior: smooth;
+    scrollbar-width: none; 
+}
+
+.categorias-slider::-webkit-scrollbar {
+    display: none;
+}
+
+.cat-item {
+    flex: 0 0 auto;
+    padding: 0.625rem 1.375rem; /* 10px 22px */
+    background: #fff;
+    border-radius: 1.875rem; /* 30px */
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    border: 0.0625rem solid #e2e2e2;
+    box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.02);
+}
+
+.cat-item:hover {
+    background: #ff4757;
+    color: white;
+    border-color: #ff4757;
+    transform: translateY(-0.125rem); /* -2px */
+}
+
+/* ============================================================
+    GRID DE LOJAS (RESTAURANTES)
+   ============================================================ */
+.section-title {
+    margin-top: 2rem;
+    font-size: 1.5rem;
+    color: #1a1a1a;
+}
+
+.grid-lojas {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr));
+    gap: 1.5rem;
+    padding: 1.5rem 0 4rem;
+}
+
+.card-loja {
+    background: white;
+    border-radius: 1rem; /* 16px */
+    overflow: hidden;
+    box-shadow: 0 0.25rem 0.75rem rgba(0,0,0,0.05);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 0.0625rem solid #f0f0f0;
+}
+
+.card-loja:hover {
+    transform: translateY(-0.375rem); /* -6px */
+    box-shadow: 0 0.5rem 1.25rem rgba(0,0,0,0.1);
+}
+
+.banner-loja {
+    height: 7.5rem; /* 120px */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.logo-loja {
+    width: 5rem; /* 80px */
+    height: 5rem;
+    border-radius: 50%;
+    border: 0.25rem solid white;
+    object-fit: cover;
+    background: white;
+    box-shadow: 0 0.125rem 0.5rem rgba(0,0,0,0.1);
+}
+
+.info-loja {
+    padding: 1.2rem;
+}
+
+.info-loja h3 {
+    margin: 0;
+    font-size: 1.15rem;
+    color: #2d3436;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.info-loja p {
+    margin: 0.375rem 0 0;
+    font-size: 0.85rem;
+    color: #636e72;
+}
+
+/* Badge de Proximidade */
+.badge-proximo {
+    background: #2ecc71;
+    color: white;
+    font-size: 0.65rem;
+    padding: 0.1875rem 0.5rem; /* 3px 8px */
+    border-radius: 0.25rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03125rem;
+}
+
+/* Estado de Carregamento */
+.loading {
+    padding: 2rem;
+    text-align: center;
+    color: #999;
+    font-style: italic;
+    grid-column: 1 / -1;
+}
+
+/* ============================================================
+   PAINEL DO LOJISTA (PERFIL-LOJA.HTML) - REM VERSION
+   ============================================================ */
+
+/* Cabeçalho do Painel */
+
+/* --- Estilos para o Painel de Loja (Perfil-loja.html) --- */
+
+/* Zona de Perigo para Exclusão */
+.danger-zone {
+    margin-top: 30px;
+    padding: 20px;
+    border: 1px dashed #e74c3c;
+    border-radius: 8px;
+    background-color: #fff5f5;
+    text-align: center;
+}
+
+.danger-text {
+    color: #e74c3c;
+    font-size: 0.85rem;
+    margin-bottom: 15px;
+    line-height: 1.4;
+}
+
+/* Botão de Excluir */
+.btn-excluir {
+    background-color: #e74c3c;
+    color: #ffffff;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    width: 100%;
+    font-weight: 600;
+    font-family: 'Poppins', sans-serif;
+    transition: background 0.3s ease, transform 0.2s ease;
+}
+
+.btn-excluir:hover {
+    background-color: #c0392b;
+}
+
+.btn-excluir:active {
+    transform: scale(0.98);
+}
+
+/* Utilitários para os Modais */
+.placeholder-text {
+    text-align: center;
+    color: #666;
+    padding: 20px;
+    font-style: italic;
+}
+
+.btn-blue {
+    background-color: #3498db !important;
+}
+
+.btn-blue:hover {
+    background-color: #2980b9 !important;
+}
+
+/* Ajuste fino para a linha separadora se desejar usar */
+hr {
+    border: 0;
+    border-top: 1px solid #eee;
+    margin: 20px 0;
+}
+
+.admin-header {
+    background: #fff;
+    padding: 0.9375rem 1.25rem;
+    box-shadow: 0 0.125rem 0.625rem rgba(0,0,0,0.05);
+    margin-bottom: 1.875rem;
+}
+
+.container-admin {
+    max-width: 68.75rem;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+}
+
+.btn-voltar {
+    text-decoration: none;
+    color: #666;
+    font-size: 0.9rem;
+    padding: 0.5rem 0.9375rem;
+    border-radius: 1.25rem;
+    background: #f1f1f1;
+    transition: 0.3s;
+}
+
+.btn-voltar:hover {
+    background: #e5e5e5;
+    color: #333;
+}
+
+/* Dashboard Grid */
+.dashboard-container {
+    max-width: 68.75rem;
+    margin: 0 auto;
+    padding: 0 1.25rem;
+}
+
+.grid-dashboard {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(17.5rem, 1fr));
+    gap: 1.5625rem;
+}
+
+.card-dash {
+    background: #fff;
+    padding: 2.5rem 1.25rem;
+    border-radius: 1.25rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    border: 0.0625rem solid #f0f0f0;
+}
+
+.card-dash:hover {
+    transform: translateY(-0.5rem);
+    box-shadow: 0 0.9375rem 1.875rem rgba(0,0,0,0.08);
+    border-color: #ff4757;
+}
+
+.card-dash i {
+    font-size: 3rem;
+    color: #ff4757;
+    margin-bottom: 1.25rem;
+    display: block;
+}
+
+.card-dash h3 {
+    margin-bottom: 0.625rem;
+    color: #2f3542;
+}
+
+.card-dash p {
+    color: #747d8c;
+    font-size: 0.9rem;
+}
+
+/* Container do Seletor de Cor */
+.color-picker-container {
+    display: flex;
+    align-items: center;
+    gap: 1rem; /* Aumentei um pouco o espaço */
+    background: #f9f9f9;
+    padding: 0.4rem 0.8rem;
+    border: 0.125rem solid #f1f1f1;
+    border-radius: 0.75rem;
+    width: 100%;
+    max-width: 18rem;
+}
+
+/* O círculo/quadrado da cor */
+input[type="color"] {
+    -webkit-appearance: none;
+    border: none;
+    width: 2.5rem;
+    height: 2.5rem;
+    cursor: pointer;
+    background: none;
+    padding: 0;
+}
+
+input[type="color"]::-webkit-color-swatch-wrapper {
+    padding: 0;
+}
+
+input[type="color"]::-webkit-color-swatch {
+    border: 0.125rem solid #eee;
+    border-radius: 0.25rem; /* Deixei redondo para parecer um seletor moderno */
+    box-shadow: inset 0 0 0 0.125rem #fff;
+}
+
+#valor-hex {
+    font-family: 'Courier New', Courier, monospace;
+    font-weight: 700;
+    color: #2f3542;
+    font-size: 1.3rem;
+    letter-spacing: 0.0625rem;
+}
+
+/* O campo de texto Hexadecimal */
+#edit-tema-hex {
+    border: none !important; /* Remove a borda padrão para parecer um campo único */
+    background: transparent !important;
+    font-family: 'Courier New', Courier, monospace; /* Fonte mono para códigos */
+    font-weight: bold;
+    color: #2f3542;
+    font-size: 1.1rem;
+    text-transform: uppercase;
+    width: 100%;
+}
+
+/* EFEITO DE SOBREPOSIÇÃO (MODAL) COM DESFOQUE */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.45);
+    backdrop-filter: blur(0.625rem);
+    -webkit-backdrop-filter: blur(0.625rem);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.4s ease;
+    z-index: 9999;
+    overflow: hidden;
+}
+
+.modal-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.modal-content {
+    background: #fff;
+    width: 95%;
+    max-width: 34.375rem;
+    max-height: 90vh;
+    border-radius: 1.5625rem;
+    padding: 1.875rem;
+    position: relative;
+    overflow-y: auto;
+    transform: translateY(1.875rem);
+    transition: all 0.4s ease;
+    box-shadow: 0 1.25rem 3.125rem rgba(0,0,0,0.2);
+}
+
+.modal-overlay.active .modal-content {
+    transform: translateY(0);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5625rem;
+    padding-bottom: 0.9375rem;
+    border-bottom: 0.125rem solid #f1f1f1;
+}
+
+.modal-header h2 {
+    font-size: 1.3rem;
+    color: #2f3542;
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+}
+
+.btn-fechar {
+    background: #f1f1f1;
+    border: none;
+    width: 2.1875rem;
+    height: 2.1875rem;
+    border-radius: 50%;
+    font-size: 1.2rem;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: 0.3s;
+}
+
+.btn-fechar:hover {
+    background: #ff4757;
+    color: white;
+}
+
+/* Formulário dentro do Modal */
+.modal-body .input-group {
+    margin-bottom: 1.25rem;
+}
+
+.modal-body label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: #57606f;
+}
+
+.modal-body input, 
+.modal-body select, 
+.modal-body textarea {
+    width: 100%;
+    padding: 0.75rem 0.9375rem;
+    border: 0.125rem solid #f1f1f1;
+    border-radius: 0.75rem;
+    font-family: inherit;
+    font-size: 1rem;
+    transition: 0.3s;
+    background: #f9f9f9;
+}
+
+.modal-body input:focus {
+    outline: none;
+    border-color: #ff4757;
+    background: #fff;
+}
+
+.input-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+}
+
+.btn-salvar {
+    width: 100%;
+    padding: 0.9375rem;
+    background: #2ed573;
+    color: white;
+    border: none;
+    border-radius: 0.75rem;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.3s;
+    margin-top: 0.625rem;
+}
+
+.btn-salvar:hover {
+    background: #26af5e;
+    transform: scale(1.02);
+}
+
+/* Responsividade para Celulares */
+@media (max-width: 37.5rem) {
+    .input-row {
+        grid-template-columns: 1fr;
+    }
+    .modal-content {
+        padding: 1.25rem;
+    }
+}
+
+
+/* ============================================================
+   ESTILIZAÇÃO DA BARRA DE ROLAGEM (SCROLLBAR)
+   ============================================================ */
+
+/* Para o conteúdo interno do modal */
+.modal-content::-webkit-scrollbar {
+    width: 0.3rem; /* Barra bem fina */
+}
+
+.modal-content::-webkit-scrollbar-track {
+    background: transparent;
+    /* Adiciona uma margem para a barra não encostar nas quinas arredondadas */
+    margin: 1rem; 
+}
+
+.modal-content::-webkit-scrollbar-thumb {
+    background: #d1d8e0;
+    border-radius: 1rem;
+}
+
+.modal-content::-webkit-scrollbar-thumb:hover {
+    background: #ff4757; /* Ganha a cor do seu tema ao passar o mouse */
+}
+
+/* Suporte para Firefox */
+.modal-content {
+    background: #fff;
+    width: 95%;
+    max-width: 34.375rem;
+    
+    /* Define uma altura máxima para que o cartão não suma da tela */
+    max-height: 85vh; 
+    
+    /* Habilita a rolagem APENAS dentro do cartão branco */
+    overflow-y: auto; 
+    overflow-x: hidden;
+    
+    border-radius: 1.5625rem;
+    padding: 1.875rem;
+    position: relative;
+    transform: translateY(1.875rem);
+    transition: all 0.4s ease;
+    box-shadow: 0 1.25rem 3.125rem rgba(0,0,0,0.2);
+}
+/* ============================================================
+    RESPONSIVIDADE
+   ============================================================ */
+@media (max-width: 48rem) { /* 768px */
+    .header-center {
+        display: none; 
+    }
+    
+    .hero h2 { font-size: 1.5rem; }
+    
+    .grid-lojas {
+        grid-template-columns: 1fr;
+    }
+}
+

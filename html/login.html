@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nordgo Food | Login</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div id="toast-container" class="toast-container"></div>
+    
+    <header class="main-header">
+        <div class="header-container">
+            <div class="header-left">
+                <button onclick="window.location.href='../index.html'" class="btn-back">
+                    <i class="fa-solid fa-arrow-left"></i>
+                    <span>Voltar</span>
+                </button>
+            </div>
+            <div class="header-center">
+                <img src="../assets/images/nordgo-logo.png" alt="NordGo Food" class="main-logo" onclick="window.location.href='../index.html'">
+            </div>
+            <div class="header-right"></div>
+        </div>
+    </header>
+
+    <main class="login-screen">
+        <div class="login-container">
+            
+            <!-- SEÇÃO DE LOGIN -->
+            <div id="section-login">
+                <header class="login-header">
+                    <h2>Bem-vindo</h2>
+                    <p>Acesse sua conta</p>
+                </header>
+                <div class="login-form">
+                    <input type="email" id="email" placeholder="E-mail">
+                    <input type="password" id="senha" placeholder="Senha">
+                    
+                    <div class="recovery-area">
+                        <a href="#" id="btn-esqueci-senha">Esqueceu a senha?</a>
+                    </div>
+
+                    <button id="btn-login" class="btn-principal btn-entrar">Entrar</button>
+                    
+                    <div class="divider">ou</div>
+                    
+                    <button id="btn-google" class="btn-principal btn-google">
+                        <i class="fa-brands fa-google"></i> Entrar com Google
+                    </button>
+                    
+                    <div class="form-footer">
+                        <p>Não tem uma conta ainda? 
+                            <a href="#" id="link-ir-cadastro">Cadastre-se já!</a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SEÇÃO DE CADASTRO -->
+            <div id="section-cadastro" class="hidden">
+                <header class="login-header">
+                    <h2>Crie sua conta</h2>
+                    <p>Preencha seus dados de entrega</p>
+                </header>
+                <div class="login-form grid-cadastro">
+                    <input type="text" id="reg-nome" class="full-width" placeholder="Nome Completo">
+                    <input type="email" id="reg-email" class="full-width" placeholder="E-mail">
+                    <input type="password" id="reg-senha" class="full-width" placeholder="Senha (Mín. 8 caracteres, A-Z, 123, !@#)">
+                    
+                    <!-- Campos de CPF e Telefone com máscaras -->
+                    <input type="text" id="reg-cpf" placeholder="CPF (000.000.000-00)" maxlength="14">
+                    <input type="text" id="reg-telefone" placeholder="Telefone / WhatsApp" maxlength="15">
+                    
+                    <input type="text" id="reg-cep" placeholder="CEP" maxlength="9">
+                    <input type="text" id="reg-bairro" placeholder="Bairro">
+                    
+                    <input type="text" id="reg-rua" class="full-width" placeholder="Rua / Avenida">
+                    
+                    <input type="text" id="reg-numero" placeholder="Número">
+                    <input type="text" id="reg-obs" placeholder="Complemento/Obs">
+                    
+                    <button id="btn-cadastrar-final" class="btn-principal full-width btn-success">Finalizar Cadastro</button>
+                    <button id="btn-voltar-login" class="btn-principal full-width btn-secondary">Voltar</button>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <script type="module">
+        import { auth, db, mostrarNotificacao } from '../js/firebase-config.js';
+        import { 
+            signInWithEmailAndPassword, 
+            createUserWithEmailAndPassword, 
+            GoogleAuthProvider, 
+            signInWithPopup,
+            sendPasswordResetEmail
+        } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
+        import { doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
+
+        const sectionLogin = document.getElementById('section-login');
+        const sectionCadastro = document.getElementById('section-cadastro');
+
+        // --- MÁSCARAS ---
+        const aplicarMascaraCPF = (v) => {
+            v = v.replace(/\D/g, "");
+            v = v.replace(/(\d{3})(\d)/, "$1.$2");
+            v = v.replace(/(\d{3})(\d)/, "$1.$2");
+            v = v.replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+            return v;
+        };
+
+        const aplicarMascaraTel = (v) => {
+            v = v.replace(/\D/g, "");
+            v = v.replace(/^(\d{2})(\d)/g, "($1) $2");
+            v = v.replace(/(\d)(\d{4})$/, "$1-$2");
+            return v;
+        };
+
+        document.getElementById('reg-cpf').oninput = (e) => e.target.value = aplicarMascaraCPF(e.target.value);
+        document.getElementById('reg-telefone').oninput = (e) => e.target.value = aplicarMascaraTel(e.target.value);
+
+        const validarSenhaForte = (senha) => {
+            const regex = /^(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*])(?=.{8,})/;
+            return regex.test(senha);
+        };
+
+        // Alternância de Telas
+        document.getElementById('link-ir-cadastro').onclick = (e) => {
+            e.preventDefault();
+            sectionLogin.classList.add('hidden');
+            sectionCadastro.classList.remove('hidden');
+        };
+
+        document.getElementById('btn-voltar-login').onclick = () => {
+            sectionCadastro.classList.add('hidden');
+            sectionLogin.classList.remove('hidden');
+        };
+
+        // Lógica de Login
+        document.getElementById('btn-login').onclick = async () => {
+            const email = document.getElementById('email').value.trim();
+            const senha = document.getElementById('senha').value;
+
+            if(!email || !senha) {
+                mostrarNotificacao("Preencha todos os campos.", "error");
+                return;
+            }
+
+            try {
+                await signInWithEmailAndPassword(auth, email, senha);
+                mostrarNotificacao("Login realizado com sucesso!");
+                setTimeout(() => window.location.href = '../index.html', 1000);
+            } catch (error) {
+                mostrarNotificacao("E-mail ou senha incorretos.", "error");
+            }
+        };
+
+        // Cadastro de Novo Usuário
+        document.getElementById('btn-cadastrar-final').onclick = async () => {
+            const campos = {
+                nome: document.getElementById('reg-nome').value.trim(),
+                email: document.getElementById('reg-email').value.trim(),
+                senha: document.getElementById('reg-senha').value,
+                cpfCliente: document.getElementById('reg-cpf').value.trim(), // Campo solicitado
+                telefoneCliente: document.getElementById('reg-telefone').value.trim(),
+                bairroCliente: document.getElementById('reg-bairro').value.trim(),
+                cepCliente: document.getElementById('reg-cep').value.trim(),
+                ruaCliente: document.getElementById('reg-rua').value.trim(),
+                nCliente: document.getElementById('reg-numero').value.trim(),
+                observacaoCliente: document.getElementById('reg-obs').value.trim()
+            };
+
+            if(!campos.nome || !campos.email || !campos.senha || !campos.cpfCliente) {
+                mostrarNotificacao("Nome, E-mail, Senha e CPF são obrigatórios.", "error");
+                return;
+            }
+
+            if (!validarSenhaForte(campos.senha)) {
+                mostrarNotificacao("A senha deve ter 8+ caracteres, maiúscula, número e símbolo.", "error");
+                return;
+            }
+
+            try {
+                const userCred = await createUserWithEmailAndPassword(auth, campos.email, campos.senha);
+                
+                // Remove a senha do objeto antes de salvar no Firestore
+                const { senha, ...dadosParaSalvar } = campos;
+                
+                await setDoc(doc(db, "usuarios", userCred.user.uid), {
+                    ...dadosParaSalvar,
+                    tipo: "cliente",
+                    dataCriacao: new Date()
+                });
+
+                mostrarNotificacao("Conta criada com sucesso!");
+                setTimeout(() => window.location.href = '../index.html', 1500);
+            } catch (error) { 
+                if(error.code === 'auth/email-already-in-use') {
+                    mostrarNotificacao("Este e-mail já está cadastrado.", "error");
+                } else {
+                    mostrarNotificacao("Erro ao criar conta.", "error");
+                }
+            }
+        };
+
+        // Outros botões (Esqueci senha, Google) permanecem ativos como antes...
+        document.getElementById('btn-esqueci-senha').onclick = async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value.trim();
+            if (!email) { mostrarNotificacao("Informe seu e-mail.", "error"); return; }
+            try {
+                await sendPasswordResetEmail(auth, email);
+                mostrarNotificacao("E-mail de recuperação enviado!");
+            } catch (e) { mostrarNotificacao("Erro ao enviar e-mail.", "error"); }
+        };
+
+        document.getElementById('btn-google').onclick = async () => {
+            const provider = new GoogleAuthProvider();
+            try {
+                const result = await signInWithPopup(auth, provider);
+                const user = result.user;
+                const userDoc = await getDoc(doc(db, "usuarios", user.uid));
+                if (!userDoc.exists()) {
+                    await setDoc(doc(db, "usuarios", user.uid), {
+                        nome: user.displayName,
+                        email: user.email,
+                        tipo: "cliente",
+                        dataCriacao: new Date()
+                    });
+                }
+                window.location.href = '../index.html';
+            } catch (e) { mostrarNotificacao("Falha no login Google.", "error"); }
+        };
+    </script>
+</body>
+</html>

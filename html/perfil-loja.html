@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel da Loja | NordGo</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/styles.css">
+    <style>
+        /* CSS Adicional para o Preview da Logo */
+        .logo-preview-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        #preview-logo {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #ddd;
+            background: #f9f9f9;
+        }
+    </style>
+</head>
+<body>
+    
+    <header class="admin-header">
+        <div class="container-admin">
+            <a href="../index.html" class="btn-voltar">
+                <i class="fa-solid fa-arrow-left"></i> Sair do Painel
+            </a>
+            <h1 id="nome-loja-titulo">Minha Loja</h1>
+        </div>
+    </header>
+
+    <main class="dashboard-container">
+        <div class="grid-dashboard">
+            <div class="card-dash" onclick="window.abrirModal('modal-info')">
+                <i class="fa-solid fa-store"></i>
+                <h3>Informações</h3>
+                <p>Editar dados, endereço e contato</p>
+            </div>
+            
+            <div class="card-dash" onclick="window.abrirModal('modal-produtos')">
+                <i class="fa-solid fa-utensils"></i>
+                <h3>Produtos</h3>
+                <p>Gerenciar itens do cardápio</p>
+            </div>
+
+            <div class="card-dash" onclick="window.mostrarNotificacao('Em breve!', 'info')">
+                <i class="fa-solid fa-clock"></i>
+                <h3>Horários</h3>
+                <p>Definir períodos de funcionamento</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- MODAL DE INFORMAÇÕES DA LOJA -->
+    <div id="modal-info" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fa-solid fa-pen-to-square"></i> Editar Loja</h2>
+                <button class="btn-fechar" onclick="window.fecharModal('modal-info')">&times;</button>
+            </div>
+            
+            <form id="form-editar-loja" class="modal-body">
+                <!-- CAMPO DA LOGO -->
+                <div class="input-group">
+                    <label>Logo da Loja (URL ou Upload)</label>
+                    <div class="logo-preview-container">
+                        <img id="preview-logo" src="../img/default-logo.png" alt="Logo">
+                        <input type="text" id="edit-logo-url" placeholder="URL da imagem (logoUrl)">
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label>Nome da Loja</label>
+                    <input type="text" id="edit-nome" required>
+                </div>
+                
+                <div class="input-group">
+                    <label>Descrição</label>
+                    <input type="text" id="edit-descricao">
+                </div>
+
+                <div class="input-row">
+                    <div class="input-group">
+                        <label>Categoria</label>
+                        <select id="edit-categoria">
+                            <option value="">Carregando...</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label>CEP</label>
+                        <input type="text" id="edit-cep">
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label>Rua</label>
+                    <input type="text" id="edit-rua">
+                </div>
+
+                <div class="input-row">
+                    <div class="input-group">
+                        <label>Bairro</label>
+                        <input type="text" id="edit-bairro">
+                    </div>
+                    <div class="input-group">
+                        <label>Número</label>
+                        <input type="text" id="edit-numero">
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label>Cor do Tema</label>
+                    <div class="color-picker-container">
+                        <input type="color" id="edit-tema" value="#ff4757">
+                        <span id="valor-hex">#FF4757</span>
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn-salvar">Salvar Alterações</button>
+
+                <div class="danger-zone">
+                    <p class="danger-text">
+                        <i class="fa-solid fa-triangle-exclamation"></i> <strong>Atenção:</strong> Excluir a loja removerá todos os dados permanentemente.
+                    </p>
+                    <button type="button" id="btn-excluir-loja" class="btn-excluir">
+                        Excluir Minha Loja
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL DE PRODUTOS -->
+    <div id="modal-produtos" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fa-solid fa-utensils"></i> Gerenciar Produtos</h2>
+                <button class="btn-fechar" onclick="window.fecharModal('modal-produtos')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p class="placeholder-text">Seu cardápio aparecerá aqui em breve.</p>
+                <button class="btn-salvar btn-blue">+ Adicionar Novo Item</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { auth, db, mostrarNotificacao } from '../js/firebase-config.js';
+        import { doc, getDoc, updateDoc, deleteDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
+        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
+
+        let idLojaGlobal = "";
+
+        const inputCor = document.getElementById('edit-tema');
+        const displayHex = document.getElementById('valor-hex');
+        const editLogoUrl = document.getElementById('edit-logo-url');
+        const previewLogo = document.getElementById('preview-logo');
+
+        // Atualizar preview quando a URL mudar
+        editLogoUrl.addEventListener('input', () => {
+            previewLogo.src = editLogoUrl.value || '../img/default-logo.png';
+        });
+
+        if (inputCor && displayHex) {
+            inputCor.addEventListener('input', () => {
+                displayHex.innerText = inputCor.value.toUpperCase();
+            });
+        }
+
+        // --- FUNÇÃO PARA CARREGAR CATEGORIAS DO FIREBASE ---
+        async function carregarCategorias() {
+            const selectCat = document.getElementById('edit-categoria');
+            try {
+                const querySnapshot = await getDocs(collection(db, "categorias"));
+                selectCat.innerHTML = '<option value="">Selecione uma categoria</option>';
+                querySnapshot.forEach((doc) => {
+                    const cat = doc.data();
+                    const option = document.createElement('option');
+                    option.value = cat.nome;
+                    option.textContent = cat.nome;
+                    selectCat.appendChild(option);
+                });
+            } catch (error) {
+                console.error("Erro ao carregar categorias:", error);
+            }
+        }
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                try {
+                    const userSnap = await getDoc(doc(db, "usuarios", user.uid));
+                    if (userSnap.exists()) {
+                        const userData = userSnap.data();
+                        if (userData.loja) {
+                            idLojaGlobal = userData.loja;
+                            await carregarCategorias(); // Carrega a lista antes de puxar os dados da loja
+                            await carregarDadosLoja();
+                        } else {
+                            window.location.href = 'login-loja.html';
+                        }
+                    }
+                } catch (error) {
+                    console.error("Erro ao verificar vínculo da loja:", error);
+                }
+            } else {
+                window.location.href = 'login.html';
+            }
+        });
+
+        async function carregarDadosLoja() {
+            if (!idLojaGlobal) return;
+            try {
+                const lojaSnap = await getDoc(doc(db, "lojas", idLojaGlobal));
+                if (lojaSnap.exists()) {
+                    const d = lojaSnap.data();
+                    document.getElementById('nome-loja-titulo').innerText = d.nome || "Minha Loja";
+                    document.getElementById('edit-nome').value = d.nome || "";
+                    document.getElementById('edit-descricao').value = d.descricao || "";
+                    document.getElementById('edit-categoria').value = d.categoria || "";
+                    document.getElementById('edit-cep').value = d.cepLoja || "";
+                    document.getElementById('edit-rua').value = d.ruaLoja || "";
+                    document.getElementById('edit-bairro').value = d.bairroLoja || "";
+                    document.getElementById('edit-numero').value = d.numeroLoja || "";
+                    
+                    // Logo
+                    const urlLogo = d.logoUrl || '../img/default-logo.png';
+                    editLogoUrl.value = d.logoUrl || "";
+                    previewLogo.src = urlLogo;
+                    
+                    const corSalva = d.temaLoja || "#ff4757";
+                    inputCor.value = corSalva;
+                    displayHex.innerText = corSalva.toUpperCase();
+                }
+            } catch (error) {
+                console.error("Erro ao buscar dados:", error);
+            }
+        }
+
+        document.getElementById('form-editar-loja').onsubmit = async (e) => {
+            e.preventDefault();
+            if (!idLojaGlobal) return;
+            try {
+                const lojaRef = doc(db, "lojas", idLojaGlobal);
+                await updateDoc(lojaRef, {
+                    nome: document.getElementById('edit-nome').value,
+                    descricao: document.getElementById('edit-descricao').value,
+                    categoria: document.getElementById('edit-categoria').value,
+                    cepLoja: document.getElementById('edit-cep').value,
+                    ruaLoja: document.getElementById('edit-rua').value,
+                    bairroLoja: document.getElementById('edit-bairro').value,
+                    numeroLoja: document.getElementById('edit-numero').value,
+                    temaLoja: inputCor.value,
+                    logoUrl: editLogoUrl.value // Salva a URL da logo
+                });
+                mostrarNotificacao("Dados atualizados com sucesso!");
+                window.fecharModal('modal-info');
+                await carregarDadosLoja(); 
+            } catch (error) {
+                mostrarNotificacao("Erro ao salvar alterações.", "error");
+            }
+        };
+
+        document.getElementById('btn-excluir-loja').onclick = async () => {
+            const confirmacao = confirm("CUIDADO! Isso excluirá permanentemente sua loja e todos os dados vinculados. Deseja continuar?");
+            if (confirmacao && idLojaGlobal) {
+                try {
+                    await deleteDoc(doc(db, "lojas", idLojaGlobal));
+                    const userRef = doc(db, "usuarios", auth.currentUser.uid);
+                    await updateDoc(userRef, { loja: "" });
+                    mostrarNotificacao("Loja removida com sucesso!");
+                    setTimeout(() => { window.location.href = '../index.html'; }, 1500);
+                } catch (error) {
+                    mostrarNotificacao("Erro ao excluir loja.", "error");
+                }
+            }
+        };
+
+        window.abrirModal = (id) => {
+            document.getElementById(id)?.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        };
+
+        window.fecharModal = (id) => {
+            document.getElementById(id)?.classList.remove('active');
+            document.body.style.overflow = 'auto';
+        };
+
+        window.mostrarNotificacao = mostrarNotificacao;
+    </script>
+</body>
+</html>

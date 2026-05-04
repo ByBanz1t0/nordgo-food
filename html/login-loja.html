@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Venda na Nordgo | Nordgo Food</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div id="toast-container" class="toast-container"></div>
+
+    <header class="main-header">
+        <div class="header-container">
+            <div class="header-left">
+                <button onclick="window.location.href='../index.html'" class="btn-back">
+                    <i class="fa-solid fa-arrow-left"></i>
+                    <span>Sair</span>
+                </button>
+            </div>
+            <div class="header-center">
+                <img src="../assets/images/nordgo-logo.png" alt="NordGo Food" class="main-logo">
+            </div>
+            <div class="header-right"></div>
+        </div>
+    </header>
+
+    <main class="container">
+        <div id="loader-overlay" class="loader-overlay">
+            <div class="loader-content">
+                <i class="fa-solid fa-circle-notch fa-spin"></i>
+                <p>Validando acesso de parceiro...</p>
+            </div>
+        </div>
+
+        <div id="section-criar-loja" class="login-container profile-page hidden">
+            <header class="login-header">
+                <div class="badge-vendedor">Nova Loja</div>
+                <h2>Seja um parceiro Nordgo</h2>
+                <p>Configure os dados iniciais do seu estabelecimento</p>
+            </header>
+
+            <div class="login-form grid-cadastro">
+                <h3 class="full-width"><i class="fa-solid fa-store"></i> Informações Básicas</h3>
+                
+                <input type="text" id="loja-nome" class="full-width" placeholder="Nome da Loja (Ex: Ninkos Cookies)">
+                
+                <input type="text" id="loja-cpf-cnpj" placeholder="CPF ou CNPJ" maxlength="18">
+                
+                <select id="loja-categoria">
+                    <option value="">Selecione uma Categoria</option>
+                    <!-- Categorias carregadas via JS -->
+                </select>
+
+                <textarea id="loja-descricao" class="full-width" placeholder="Descrição curta da loja" rows="2"></textarea>
+
+                <h3 class="full-width" style="margin-top: 15px;"><i class="fa-solid fa-location-dot"></i> Endereço da Loja</h3>
+                
+                <input type="text" id="loja-cep" placeholder="CEP" maxlength="9">
+                <input type="text" id="loja-bairro" placeholder="Bairro">
+                <input type="text" id="loja-rua" class="full-width" placeholder="Rua / Avenida">
+                <input type="text" id="loja-numero" placeholder="Número">
+                <input type="text" id="loja-complemento" placeholder="Complemento (Opcional)">
+
+                <button id="btn-finalizar-loja" class="btn-principal full-width btn-success" style="margin-top: 20px;">
+                    <i class="fa-solid fa-rocket"></i> Criar minha loja
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <script type="module">
+        import { auth, db, mostrarNotificacao } from '../js/firebase-config.js';
+        import { doc, getDoc, getDocs, updateDoc, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
+        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
+
+        const overlay = document.getElementById('loader-overlay');
+        const containerCadastro = document.getElementById('section-criar-loja');
+        const selectCategoria = document.getElementById('loja-categoria');
+
+        // --- MÁSCARA CPF / CNPJ ---
+        document.getElementById('loja-cpf-cnpj').oninput = (e) => {
+            let v = e.target.value.replace(/\D/g, "");
+            if (v.length <= 11) { // CPF
+                v = v.replace(/(\d{3})(\d)/, "$1.$2");
+                v = v.replace(/(\d{3})(\d)/, "$1.$2");
+                v = v.replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+            } else { // CNPJ
+                v = v.replace(/^(\d{2})(\d)/, "$1.$2");
+                v = v.replace(/^(\d{2})\.(\d{3})(\d)/, "$1.$2.$3");
+                v = v.replace(/\.(\d{3})(\d)/, ".$1/$2");
+                v = v.replace(/(\d{4})(\d)/, "$1-$2");
+            }
+            e.target.value = v;
+        };
+
+        // --- BUSCAR CATEGORIAS DO BANCO ---
+        async function carregarCategorias() {
+            try {
+                const querySnapshot = await getDocs(collection(db, "categorias"));
+                querySnapshot.forEach((doc) => {
+                    const opt = document.createElement('option');
+                    opt.value = doc.data().nome; 
+                    opt.textContent = doc.data().nome;
+                    selectCategoria.appendChild(opt);
+                });
+            } catch (e) { console.error("Erro ao carregar categorias:", e); }
+        }
+
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) { window.location.href = 'login.html'; return; }
+
+            try {
+                const userDoc = await getDoc(doc(db, "usuarios", user.uid));
+                const userData = userDoc.data();
+
+                // CORREÇÃO: Verifica se já existe um ID de loja vinculado ao usuário
+                if (userData?.loja) {
+                    window.location.href = 'perfil-loja.html';
+                    return; 
+                }
+
+                await carregarCategorias();
+                overlay.classList.add('hidden');
+                containerCadastro.classList.remove('hidden');
+
+            } catch (error) {
+                console.error("Erro no Auth:", error);
+                mostrarNotificacao("Erro ao validar acesso.", "error");
+            }
+        });
+
+        // --- SALVAR COM ID ALEATÓRIO E VÍNCULO ---
+        document.getElementById('btn-finalizar-loja').onclick = async () => {
+            const user = auth.currentUser;
+            
+            const dadosLoja = {
+                nome: document.getElementById('loja-nome').value.trim(),
+                cpfCnpj: document.getElementById('loja-cpf-cnpj').value.trim(),
+                categoria: selectCategoria.value,
+                descricao: document.getElementById('loja-descricao').value.trim(),
+                cepLoja: document.getElementById('loja-cep').value.trim(),
+                bairroLoja: document.getElementById('loja-bairro').value.trim(),
+                ruaLoja: document.getElementById('loja-rua').value.trim(),
+                numeroLoja: document.getElementById('loja-numero').value.trim(),
+                complementoLoja: document.getElementById('loja-complemento').value.trim(),
+                donoUid: user.uid,
+                status: "pendente",
+                criadoEm: new Date(),
+                temaLoja: "#ff4757" // Cor padrão inicial
+            };
+
+            if (!dadosLoja.nome || !dadosLoja.cpfCnpj || !dadosLoja.categoria) {
+                mostrarNotificacao("Preencha Nome, Documento e Categoria.", "error");
+                return;
+            }
+
+            try {
+                // 1. Usa addDoc para criar um ID ALEATÓRIO para a loja
+                const lojaRef = await addDoc(collection(db, "lojas"), dadosLoja);
+                
+                // 2. Atualiza o documento do usuário com o NOVO ID da loja
+                await updateDoc(doc(db, "usuarios", user.uid), { 
+                    tipo: "dono",
+                    loja: lojaRef.id 
+                });
+
+                mostrarNotificacao("Loja criada com sucesso!");
+                setTimeout(() => window.location.href = 'perfil-loja.html', 1500);
+            } catch (e) {
+                console.error("Erro ao criar loja:", e);
+                mostrarNotificacao("Erro ao salvar os dados da loja.", "error");
+            }
+        };
+    </script>
+</body>
+</html>

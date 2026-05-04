@@ -5,31 +5,29 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NordGo | Sua Vitrine de Sabores</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <!-- Font Awesome para os ícones do menu -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
+    <!-- Container para as notificações -->
+    <div id="toast-container" class="toast-container"></div>
     <header class="main-header">
         <div class="header-container">
-            
             <div class="header-left">
                 <a href="index.html">
                     <img src="assets/images/nordgo-logo.png" alt="NordGo" class="main-logo">
                 </a>
             </div>
-
             <div class="header-center">
                 <div class="search-bar">
-                    <input type="text" placeholder="Busque por um restaurante...">
+                    <input type="text" id="input-busca" placeholder="Busque por um restaurante...">
                 </div>
             </div>
-
-            <!-- O app.js vai preencher esta div automaticamente baseado no login -->
-            <div class="header-right">
-                <div class="user-menu">
-                    <span class="user-name">Carregando...</span>
-                </div>
+            <!-- A ID 'user-area' é onde o firebase-config.js injetará o menu ou o botão entrar -->
+            <div class="header-right" id="user-area">
+                <div class="loading-small">...</div>
             </div>
-
         </div>
     </header>
 
@@ -39,13 +37,125 @@
     </section>
 
     <main class="container">
-        <!-- O app.js vai renderizar os cards aqui dentro -->
-        <div id="lista-restaurantes" class="grid-restaurantes">
-            <div class="loading">Carregando restaurantes...</div>
+        <!-- Slider de Categorias -->
+        <div id="categorias-container" class="categorias-slider">
+            <div class="loading">Carregando categorias...</div>
+        </div>
+
+        <h2 class="section-title">Explorar Lojas</h2>
+        <div id="lista-lojas" class="grid-lojas">
+            <div class="loading">Buscando lojas disponíveis...</div>
         </div>
     </main>
 
-    <!-- ATUALIZADO: Agora aponta para o arquivo unificado app.js -->
-    <script type="module" src="js/app.js"></script>
+    <!-- Script Principal -->
+    <script type="module">
+        import { auth, db, mostrarNotificacao} from '../js/firebase-config.js';
+        import { collection, getDocs, doc, getDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
+        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
+
+        let bairroUsuario = "";
+
+        // --- LÓGICA DE REDIRECIONAMENTO DA LOJA ---
+        // Tornamos a função global para que o menu injetado possa acessá-la
+        window.irParaMinhaLoja = async function() {
+            const user = auth.currentUser;
+            if (!user) {
+                window.location.href = 'html/login.html';
+                return;
+            }
+
+            try {
+                // Verificamos se existe uma loja onde o ID do documento é o UID do usuário
+                const lojaSnap = await getDoc(doc(db, "lojas", user.uid));
+                
+                if (lojaSnap.exists()) {
+                    window.location.href = 'html/perfil-loja.html';
+                } else {
+                    window.location.href = 'html/login-loja.html';
+                }
+            } catch (e) {
+                console.error("Erro ao verificar loja:", e);
+                window.location.href = 'html/login-loja.html';
+            }
+        };
+
+        // Inicialização: Monitoramos a auth
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                try {
+                    const userSnap = await getDoc(doc(db, "usuarios", user.uid));
+                    if (userSnap.exists()) {
+                        const dados = userSnap.data();
+                        bairroUsuario = dados.bairro || dados.bairroCliente || "";
+                    }
+                } catch (e) {
+                    console.error("Erro ao obter bairro do usuário:", e);
+                }
+            }
+            renderizarCategorias();
+            renderizarLojas();
+        });
+
+        // --- FUNÇÕES DE RENDERIZAÇÃO ---
+        async function renderizarCategorias() {
+            const container = document.getElementById('categorias-container');
+            try {
+                const q = query(collection(db, "categorias"), orderBy("nome", "asc"));
+                const querySnapshot = await getDocs(q);
+                container.innerHTML = "";
+
+                querySnapshot.forEach((doc) => {
+                    const cat = doc.data();
+                    const div = document.createElement('div');
+                    div.className = 'cat-item';
+                    div.innerText = cat.nome;
+                    div.onclick = () => console.log("Filtrar por:", cat.slug);
+                    container.appendChild(div);
+                });
+            } catch (e) { 
+                container.innerHTML = "Erro ao carregar categorias.";
+            }
+        }
+
+        async function renderizarLojas() {
+            const lista = document.getElementById('lista-lojas');
+            try {
+                const querySnapshot = await getDocs(collection(db, "lojas"));
+                lista.innerHTML = "";
+
+                let lojas = [];
+                querySnapshot.forEach(doc => lojas.push({ id: doc.id, ...doc.data() }));
+
+                lojas.sort((a, b) => {
+                    const aPerto = a.bairroLoja?.trim().toLowerCase() === bairroUsuario?.trim().toLowerCase() && bairroUsuario !== "" ? 1 : 0;
+                    const bPerto = b.bairroLoja?.trim().toLowerCase() === bairroUsuario?.trim().toLowerCase() && bairroUsuario !== "" ? 1 : 0;
+                    return bPerto - aPerto;
+                });
+
+                lojas.forEach(d => {
+                    const eDoBairro = d.bairroLoja?.trim().toLowerCase() === bairroUsuario?.trim().toLowerCase() && bairroUsuario !== "";
+                    
+                    lista.innerHTML += `
+                        <div class="card-loja" onclick="window.location.href='html/cardapio.html?loja=${d.id}'">
+                            <div class="banner-loja" style="background-color: ${d.temaLoja || '#ff4757'}">
+                                <img src="${d.logoLoja || 'assets/images/default-store.png'}" class="logo-loja">
+                            </div>
+                            <div class="info-loja">
+                                <h3>
+                                    ${d.nome} 
+                                    ${eDoBairro ? '<span class="badge-proximo">Perto</span>' : ''}
+                                </h3>
+                                <p>${d.categoria} • ${d.bairroLoja || 'Centro'}</p>
+                            </div>
+                        </div>`;
+                });
+
+                if (lojas.length === 0) lista.innerHTML = "<p>Nenhuma loja encontrada.</p>";
+            } catch (e) { 
+                lista.innerHTML = "<p>Erro ao carregar lojas.</p>";
+            }
+        }
+    </script>
 </body>
 </html>
