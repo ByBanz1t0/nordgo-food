@@ -8,7 +8,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="../css/styles.css">
     <style>
-        /* CSS Adicional para o Preview da Logo */
         .logo-preview-container {
             display: flex;
             align-items: center;
@@ -23,6 +22,13 @@
             border: 2px solid #ddd;
             background: #f9f9f9;
         }
+        /* Ajuste para o skeleton no título */
+        .skeleton-titulo {
+            width: 200px;
+            height: 30px;
+            border-radius: 4px;
+            display: inline-block;
+        }
     </style>
 </head>
 <body>
@@ -32,29 +38,16 @@
             <a href="../index.html" class="btn-voltar">
                 <i class="fa-solid fa-arrow-left"></i> Sair do Painel
             </a>
-            <h1 id="nome-loja-titulo">Minha Loja</h1>
+            <h1 id="nome-loja-titulo"><span class="skeleton skeleton-titulo"></span></h1>
         </div>
     </header>
 
     <main class="dashboard-container">
-        <div class="grid-dashboard">
-            <div class="card-dash" onclick="window.abrirModal('modal-info')">
-                <i class="fa-solid fa-store"></i>
-                <h3>Informações</h3>
-                <p>Editar dados, endereço e contato</p>
-            </div>
-            
-            <div class="card-dash" onclick="window.abrirModal('modal-produtos')">
-                <i class="fa-solid fa-utensils"></i>
-                <h3>Produtos</h3>
-                <p>Gerenciar itens do cardápio</p>
-            </div>
-
-            <div class="card-dash" onclick="window.mostrarNotificacao('Em breve!', 'info')">
-                <i class="fa-solid fa-clock"></i>
-                <h3>Horários</h3>
-                <p>Definir períodos de funcionamento</p>
-            </div>
+        <div class="grid-dashboard" id="grid-main">
+            <!-- Skeletons iniciais -->
+            <div class="skeleton-card" style="height: 160px;"></div>
+            <div class="skeleton-card" style="height: 160px;"></div>
+            <div class="skeleton-card" style="height: 160px;"></div>
         </div>
     </main>
 
@@ -67,7 +60,6 @@
             </div>
             
             <form id="form-editar-loja" class="modal-body">
-                <!-- CAMPO DA LOGO -->
                 <div class="input-group">
                     <label>Logo da Loja (URL ou Upload)</label>
                     <div class="logo-preview-container">
@@ -152,18 +144,40 @@
     </div>
 
     <script type="module">
-        import { auth, db, mostrarNotificacao } from './js/firebase-config.js';
+        import { auth, db, mostrarNotificacao } from '../js/firebase-config.js';
         import { doc, getDoc, updateDoc, deleteDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
         import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
 
         let idLojaGlobal = "";
+        const gridMain = document.getElementById('grid-main');
+        const tituloLoja = document.getElementById('nome-loja-titulo');
 
         const inputCor = document.getElementById('edit-tema');
         const displayHex = document.getElementById('valor-hex');
         const editLogoUrl = document.getElementById('edit-logo-url');
         const previewLogo = document.getElementById('preview-logo');
 
-        // Atualizar preview quando a URL mudar
+        // --- FUNÇÃO PARA INJETAR CONTEÚDO REAL ---
+        function renderizarDashboard() {
+            gridMain.innerHTML = `
+                <div class="card-dash" onclick="window.abrirModal('modal-info')">
+                    <i class="fa-solid fa-store"></i>
+                    <h3>Informações</h3>
+                    <p>Editar dados, endereço e contato</p>
+                </div>
+                <div class="card-dash" onclick="window.abrirModal('modal-produtos')">
+                    <i class="fa-solid fa-utensils"></i>
+                    <h3>Produtos</h3>
+                    <p>Gerenciar itens do cardápio</p>
+                </div>
+                <div class="card-dash" onclick="window.mostrarNotificacao('Em breve!', 'info')">
+                    <i class="fa-solid fa-clock"></i>
+                    <h3>Horários</h3>
+                    <p>Definir períodos de funcionamento</p>
+                </div>
+            `;
+        }
+
         editLogoUrl.addEventListener('input', () => {
             previewLogo.src = editLogoUrl.value || '../img/default-logo.png';
         });
@@ -174,7 +188,6 @@
             });
         }
 
-        // --- FUNÇÃO PARA CARREGAR CATEGORIAS DO FIREBASE ---
         async function carregarCategorias() {
             const selectCat = document.getElementById('edit-categoria');
             try {
@@ -200,8 +213,9 @@
                         const userData = userSnap.data();
                         if (userData.loja) {
                             idLojaGlobal = userData.loja;
-                            await carregarCategorias(); // Carrega a lista antes de puxar os dados da loja
+                            await carregarCategorias();
                             await carregarDadosLoja();
+                            renderizarDashboard(); // Substitui skeletons pelos cards reais
                         } else {
                             window.location.href = 'login-loja.html';
                         }
@@ -220,7 +234,7 @@
                 const lojaSnap = await getDoc(doc(db, "lojas", idLojaGlobal));
                 if (lojaSnap.exists()) {
                     const d = lojaSnap.data();
-                    document.getElementById('nome-loja-titulo').innerText = d.nome || "Minha Loja";
+                    tituloLoja.innerText = d.nome || "Minha Loja";
                     document.getElementById('edit-nome').value = d.nome || "";
                     document.getElementById('edit-descricao').value = d.descricao || "";
                     document.getElementById('edit-categoria').value = d.categoria || "";
@@ -229,7 +243,6 @@
                     document.getElementById('edit-bairro').value = d.bairroLoja || "";
                     document.getElementById('edit-numero').value = d.numeroLoja || "";
                     
-                    // Logo
                     const urlLogo = d.logoUrl || '../img/default-logo.png';
                     editLogoUrl.value = d.logoUrl || "";
                     previewLogo.src = urlLogo;
@@ -257,7 +270,7 @@
                     bairroLoja: document.getElementById('edit-bairro').value,
                     numeroLoja: document.getElementById('edit-numero').value,
                     temaLoja: inputCor.value,
-                    logoUrl: editLogoUrl.value // Salva a URL da logo
+                    logoUrl: editLogoUrl.value 
                 });
                 mostrarNotificacao("Dados atualizados com sucesso!");
                 window.fecharModal('modal-info');
@@ -268,7 +281,7 @@
         };
 
         document.getElementById('btn-excluir-loja').onclick = async () => {
-            const confirmacao = confirm("CUIDADO! Isso excluirá permanentemente sua loja e todos os dados vinculados. Deseja continuar?");
+            const confirmacao = confirm("CUIDADO! Isso excluirá permanentemente sua loja. Deseja continuar?");
             if (confirmacao && idLojaGlobal) {
                 try {
                     await deleteDoc(doc(db, "lojas", idLojaGlobal));

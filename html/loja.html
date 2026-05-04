@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carregando Loja... | Nordgo Food</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="loja-detalhe">
+    <div id="toast-container" class="toast-container"></div>
+
+    <header class="main-header header-loja">
+        <div class="header-container">
+            <div class="header-left">
+                <button onclick="window.history.back()" class="btn-back">
+                    <i class="fa-solid fa-arrow-left"></i>
+                    <span>Voltar</span>
+                </button>
+            </div>
+            <div class="header-center">
+                <span id="header-nome-loja">Loja</span>
+            </div>
+            <div class="header-right">
+                <button class="btn-share"><i class="fa-solid fa-share-nodes"></i></button>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <!-- SKELETON -->
+        <div id="loja-skeleton">
+            <div class="loja-banner-sk skeleton"></div>
+            <div class="loja-info-header">
+                <div class="skeleton" style="width: 6.25rem; height: 6.25rem; border-radius: 50%; margin: -3.125rem auto 1rem;"></div>
+                <div class="skeleton" style="width: 12.5rem; height: 1.56rem; margin: 0 auto 0.62rem;"></div>
+            </div>
+        </div>
+
+        <!-- CONTEÚDO REAL -->
+        <div id="loja-content" class="hidden">
+            <section class="loja-hero">
+                <div class="loja-banner" id="loja-img-fundo"></div>
+                <div class="loja-perfil">
+                    <div class="loja-logo-container">
+                        <img id="detalhe-logo-loja" src="" alt="Logo" class="loja-logo-circular">
+                    </div>
+                    <h1 id="detalhe-nome-loja">Nome da Loja</h1>
+                    <p id="detalhe-categoria-loja" class="tag-categoria">Categoria</p>
+                    <div class="loja-meta">
+                        <span class="meta-item"><i class="fa-solid fa-star"></i> <span id="detalhe-avaliacao">0.0</span></span>
+                        <span class="divisor">•</span>
+                        <span class="meta-item" id="detalhe-tempo">-- min</span>
+                        <span class="divisor">•</span>
+                        <span class="meta-item" id="detalhe-frete">---</span>
+                    </div>
+                    <p id="detalhe-descricao" class="loja-desc"></p>
+                </div>
+            </section>
+
+            <section class="cardapio-section">
+                <div class="search-produtos">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="text" id="input-busca-produtos" placeholder="Buscar no cardápio...">
+                </div>
+
+                <!-- Mais Pedidos -->
+                <div id="container-mais-pedidos" class="hidden">
+                    <h2 class="titulo-sessao">Mais Pedidos</h2>
+                    <div id="lista-mais-pedidos" class="carrossel-horizontal"></div>
+                </div>
+
+                <!-- Cardápio por Categorias -->
+                <div id="cardapio-agrupado"></div>
+            </section>
+        </div>
+    </main>
+
+    <script type="module">
+        import { db } from '../js/firebase-config.js';
+        import { doc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
+
+        const params = new URLSearchParams(window.location.search);
+        const lojaId = params.get('loja') || params.get('id'); 
+
+        if (!lojaId) { window.location.href = '../index.html'; } 
+        else { carregarDadosLoja(); }
+
+        async function carregarDadosLoja() {
+            try {
+                const lojaRef = doc(db, "lojas", lojaId);
+                const lojaSnap = await getDoc(lojaRef);
+                if (!lojaSnap.exists()) { window.location.href = '../index.html'; return; }
+
+                const loja = lojaSnap.data();
+                renderizarDadosLoja(loja);
+
+                // Busca de Produtos
+                const produtosRef = collection(db, "produtos");
+                const q = query(produtosRef, where("lojaId", "==", lojaId));
+                const querySnapshot = await getDocs(q);
+                
+                if (!querySnapshot.empty) {
+                    const produtos = [];
+                    querySnapshot.forEach(doc => produtos.push({ id: doc.id, ...doc.data() }));
+                    renderizarCardapio(produtos);
+                }
+
+                document.getElementById('loja-skeleton').style.display = 'none';
+                document.getElementById('loja-content').classList.remove('hidden');
+            } catch (error) { console.error("Erro:", error); }
+        }
+
+        function renderizarDadosLoja(loja) {
+            document.title = `${loja.nome} | Nordgo Food`;
+            document.getElementById('header-nome-loja').innerText = loja.nome;
+            document.getElementById('detalhe-nome-loja').innerText = loja.nome;
+            document.getElementById('detalhe-categoria-loja').innerText = loja.categoria;
+            document.getElementById('detalhe-descricao').innerText = loja.descricao || "";
+            document.getElementById('detalhe-avaliacao').innerText = loja.avaliacao || "Novo";
+            document.getElementById('detalhe-tempo').innerText = `${loja.tempoEntrega || '20-30'} min`;
+            document.getElementById('detalhe-logo-loja').src = loja.logoLoja || '../assets/images/default-store.png'; 
+
+            const banner = document.getElementById('loja-img-fundo');
+            if (loja.bannerLoja) {
+                banner.style.backgroundImage = `url('${loja.bannerLoja}')`;
+            } else {
+                banner.style.backgroundColor = loja.temaLoja || '#ff4757';
+            }
+
+            const freteElem = document.getElementById('detalhe-frete');
+            freteElem.innerText = (!loja.frete || loja.frete == 0) ? "Frete Grátis" : parseFloat(loja.frete).toLocaleString('pt-br', { style: 'currency', currency: 'BRL' });
+        }
+
+        function renderizarCardapio(produtos) {
+            const containerMaisPedidos = document.getElementById('container-mais-pedidos');
+            const listaMaisPedidos = document.getElementById('lista-mais-pedidos');
+            const cardapioAgrupado = document.getElementById('cardapio-agrupado');
+
+            // 1. MAIS PEDIDOS (Destaque + Disponível)
+            const maisPedidos = produtos.filter(p => p.destaque === true);
+            if (maisPedidos.length > 0) {
+                containerMaisPedidos.classList.remove('hidden');
+                maisPedidos.forEach(p => {
+                    const indisponivel = p.disponibilidade === false;
+                    listaMaisPedidos.innerHTML += `
+                        <div class="produto-card-horizontal ${indisponivel ? 'prod-esgotado' : ''}">
+                            <div class="img-wrapper">
+                                <img src="${p.imagem || '../assets/images/placeholder.png'}" alt="${p.nome}">
+                                ${indisponivel ? '<span class="badge-esgotado">Esgotado</span>' : ''}
+                            </div>
+                            <div class="prod-info-h">
+                                <h4>${p.nome}</h4>
+                                <span class="preco">R$ ${p.preco.toLocaleString('pt-br', {minimumFractionDigits: 2})}</span>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+
+            // 2. AGRUPAMENTO POR CATEGORIA (Ordem Alfabética)
+            const categorias = {};
+            produtos.forEach(p => {
+                const cat = p.categoria || "Outros";
+                if (!categorias[cat]) categorias[cat] = [];
+                categorias[cat].push(p);
+            });
+
+            const nomesCategorias = Object.keys(categorias).sort();
+
+            nomesCategorias.forEach(catNome => {
+                const produtosDaCat = categorias[catNome].sort((a, b) => a.nome.localeCompare(b.nome));
+                
+                let htmlCategoria = `
+                    <div class="categoria-bloco">
+                        <h2 class="titulo-categoria">${catNome}</h2>
+                        <div class="produtos-lista-vertical">
+                `;
+
+                produtosDaCat.forEach(p => {
+                    const indisponivel = p.disponibilidade === false;
+                    htmlCategoria += `
+                        <div class="produto-item-lista ${indisponivel ? 'prod-esgotado' : ''}">
+                            <div class="prod-detalhes">
+                                <h3>${p.nome}</h3>
+                                <p>${p.descricao || ''}</p>
+                                <span class="preco">R$ ${p.preco.toLocaleString('pt-br', {minimumFractionDigits: 2})}</span>
+                                ${indisponivel ? '<span class="txt-esgotado">Esgotado no momento</span>' : ''}
+                            </div>
+                            <div class="prod-img-box">
+                                ${p.imagem ? `<img src="${p.imagem}" alt="${p.nome}">` : '<i class="fa-solid fa-utensils"></i>'}
+                            </div>
+                        </div>
+                    `;
+                });
+
+                htmlCategoria += `</div></div>`;
+                cardapioAgrupado.innerHTML += htmlCategoria;
+            });
+        }
+    </script>
+</body>
+</html>

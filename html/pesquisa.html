@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NordGo | Pesquisa</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body>
+    <div id="toast-container" class="toast-container"></div>
+    
+    <header class="main-header">
+        <div class="header-container">
+            <div class="header-left">
+                <a href="../index.html">
+                    <img src="../assets/images/nordgo-logo.png" alt="NordGo" class="main-logo">
+                </a>
+            </div>
+            <div class="header-center">
+                <div class="search-bar">
+                    <input type="text" id="input-busca-interna" placeholder="Pesquisar novamente...">
+                </div>
+            </div>
+            <div class="header-right" id="user-area">
+                <!-- Injetado via firebase-config.js -->
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="search-info">
+            <h2 id="titulo-pesquisa" class="section-title">Resultados da busca</h2>
+            <p id="subtitulo-pesquisa">Mostrando lojas encontradas</p>
+        </div>
+
+        <div id="lista-resultados" class="grid-lojas">
+            <!-- Skeletons serão injetados aqui via JS -->
+        </div>
+    </main>
+
+    <script type="module">
+        import { auth, db } from '../js/firebase-config.js';
+        import { collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
+
+        // 1. Capturar parâmetros da URL
+        const params = new URLSearchParams(window.location.search);
+        const categoriaFiltro = params.get('categoria');
+        const termoBusca = params.get('busca');
+
+        const listaResultados = document.getElementById('lista-resultados');
+        const titulo = document.getElementById('titulo-pesquisa');
+
+        // --- FUNÇÃO PARA GERAR SKELETONS ---
+        function injetarSkeletons() {
+            listaResultados.innerHTML = Array(4).fill(`
+                <div class="skeleton-card">
+                    <div class="skeleton skeleton-banner"></div>
+                    <div class="skeleton skeleton-text"></div>
+                    <div class="skeleton skeleton-text-sm"></div>
+                </div>
+            `).join('');
+        }
+
+        // 2. Lógica da Barra de Busca Interna
+        const inputInterno = document.getElementById('input-busca-interna');
+        inputInterno.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && inputInterno.value.trim() !== "") {
+                window.location.href = `pesquisa.html?busca=${encodeURIComponent(inputInterno.value.trim())}`;
+            }
+        });
+
+        // 3. Função Principal de Busca
+        async function executarBusca() {
+            injetarSkeletons(); // Ativa o loading visual imediatamente
+            
+            try {
+                // 1. Buscamos todas as lojas para filtrar no lado do cliente
+                const querySnapshot = await getDocs(collection(db, "lojas"));
+                let lojas = [];
+                querySnapshot.forEach(doc => lojas.push({ id: doc.id, ...doc.data() }));
+
+                // 2. Normalizamos os termos para comparação
+                const catUrl = categoriaFiltro ? categoriaFiltro.toLowerCase() : null;
+                const buscaUrl = termoBusca ? termoBusca.toLowerCase() : null;
+
+                // 3. Lógica de filtragem
+                if (catUrl) {
+                    titulo.innerText = `Categoria: ${categoriaFiltro}`;
+                    lojas = lojas.filter(loja => 
+                        (loja.categoria || "").toLowerCase().includes(catUrl)
+                    );
+                } else if (buscaUrl) {
+                    titulo.innerText = `Buscando por: "${termoBusca}"`;
+                    lojas = lojas.filter(loja => 
+                        (loja.nome || "").toLowerCase().includes(buscaUrl) || 
+                        (loja.categoria || "").toLowerCase().includes(buscaUrl)
+                    );
+                }
+
+                renderizarResultados(lojas);
+
+            } catch (e) {
+                console.error("Erro na busca:", e);
+                listaResultados.innerHTML = "<p>Erro ao carregar resultados.</p>";
+            }
+        }
+
+        function renderizarResultados(lojas) {
+            listaResultados.innerHTML = ""; // Limpa os skeletons
+            
+            if (lojas.length === 0) {
+                listaResultados.innerHTML = "<p class='placeholder-text'>Nenhuma loja encontrada para esta pesquisa.</p>";
+                return;
+            }
+
+            lojas.forEach(d => {
+                listaResultados.innerHTML += `
+                    <div class="card-loja" onclick="window.location.href='loja.html?loja=${d.id}'">
+                        <div class="banner-loja" style="background-color: ${d.temaLoja || '#ff4757'}">
+                            <img src="${d.logoLoja || '../assets/images/default-store.png'}" class="logo-loja">
+                        </div>
+                        <div class="info-loja">
+                            <h3>${d.nome}</h3>
+                            <p>${d.categoria} • ${d.bairroLoja || 'Centro'}</p>
+                        </div>
+                    </div>`;
+            });
+        }
+
+        executarBusca();
+    </script>
+</body>
+</html>

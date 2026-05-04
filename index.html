@@ -5,13 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NordGo | Sua Vitrine de Sabores</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
-    <!-- Font Awesome para os ícones do menu -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
-    <!-- Container para as notificações -->
     <div id="toast-container" class="toast-container"></div>
+    
     <header class="main-header">
         <div class="header-container">
             <div class="header-left">
@@ -24,7 +23,6 @@
                     <input type="text" id="input-busca" placeholder="Busque por um restaurante...">
                 </div>
             </div>
-            <!-- A ID 'user-area' é onde o firebase-config.js injetará o menu ou o botão entrar -->
             <div class="header-right" id="user-area">
                 <div class="loading-small">...</div>
             </div>
@@ -38,37 +36,56 @@
 
     <main class="container">
         <!-- Slider de Categorias -->
-        <div id="categorias-container" class="categorias-slider">
-            <div class="loading">Carregando categorias...</div>
-        </div>
+        <div id="categorias-container" class="categorias-slider"></div>
 
         <h2 class="section-title">Explorar Lojas</h2>
-        <div id="lista-lojas" class="grid-lojas">
-            <div class="loading">Buscando lojas disponíveis...</div>
-        </div>
+        <div id="lista-lojas" class="grid-lojas"></div>
     </main>
 
-    <!-- Script Principal -->
     <script type="module">
-        import { auth, db, mostrarNotificacao} from './js/firebase-config.js';
+        import { auth, db, mostrarNotificacao} from '../js/firebase-config.js';
         import { collection, getDocs, doc, getDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
         import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
 
         let bairroUsuario = "";
 
-        // --- LÓGICA DE REDIRECIONAMENTO DA LOJA ---
-        // Tornamos a função global para que o menu injetado possa acessá-la
+        // --- FUNÇÃO PARA GERAR SKELETONS ---
+        // Agora usando apenas as classes que você já colocou no styles.css
+        function injetarSkeletons() {
+            const catContainer = document.getElementById('categorias-container');
+            const lojasContainer = document.getElementById('lista-lojas');
+
+            catContainer.innerHTML = Array(6).fill('<div class="skeleton skeleton-cat"></div>').join('');
+
+            lojasContainer.innerHTML = Array(4).fill(`
+                <div class="skeleton-card">
+                    <div class="skeleton skeleton-banner"></div>
+                    <div class="skeleton skeleton-text"></div>
+                    <div class="skeleton skeleton-text-sm"></div>
+                </div>
+            `).join('');
+        }
+
+        // --- LÓGICA DA BARRA DE BUSCA ---
+        const inputBusca = document.getElementById('input-busca');
+        inputBusca.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                const valor = inputBusca.value.trim();
+                if (valor !== "") {
+                    window.location.href = `html/pesquisa.html?busca=${encodeURIComponent(valor)}`;
+                }
+            }
+        });
+
+        // --- LÓGICA DE REDIRECIONAMENTO ---
         window.irParaMinhaLoja = async function() {
             const user = auth.currentUser;
             if (!user) {
                 window.location.href = 'html/login.html';
                 return;
             }
-
             try {
-                // Verificamos se existe uma loja onde o ID do documento é o UID do usuário
                 const lojaSnap = await getDoc(doc(db, "lojas", user.uid));
-                
                 if (lojaSnap.exists()) {
                     window.location.href = 'html/perfil-loja.html';
                 } else {
@@ -80,7 +97,9 @@
             }
         };
 
-        // Inicialização: Monitoramos a auth
+        // Inicialização
+        injetarSkeletons();
+
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 try {
@@ -90,27 +109,29 @@
                         bairroUsuario = dados.bairro || dados.bairroCliente || "";
                     }
                 } catch (e) {
-                    console.error("Erro ao obter bairro do usuário:", e);
+                    console.error("Erro ao obter bairro:", e);
                 }
             }
             renderizarCategorias();
             renderizarLojas();
         });
 
-        // --- FUNÇÕES DE RENDERIZAÇÃO ---
         async function renderizarCategorias() {
             const container = document.getElementById('categorias-container');
             try {
                 const q = query(collection(db, "categorias"), orderBy("nome", "asc"));
                 const querySnapshot = await getDocs(q);
-                container.innerHTML = "";
+                container.innerHTML = ""; 
 
                 querySnapshot.forEach((doc) => {
                     const cat = doc.data();
                     const div = document.createElement('div');
                     div.className = 'cat-item';
                     div.innerText = cat.nome;
-                    div.onclick = () => console.log("Filtrar por:", cat.slug);
+                    div.onclick = () => {
+                        const termo = cat.slug || cat.nome;
+                        window.location.href = `html/pesquisa.html?categoria=${encodeURIComponent(termo)}`;
+                    };
                     container.appendChild(div);
                 });
             } catch (e) { 
@@ -122,7 +143,7 @@
             const lista = document.getElementById('lista-lojas');
             try {
                 const querySnapshot = await getDocs(collection(db, "lojas"));
-                lista.innerHTML = "";
+                lista.innerHTML = ""; 
 
                 let lojas = [];
                 querySnapshot.forEach(doc => lojas.push({ id: doc.id, ...doc.data() }));
@@ -135,17 +156,13 @@
 
                 lojas.forEach(d => {
                     const eDoBairro = d.bairroLoja?.trim().toLowerCase() === bairroUsuario?.trim().toLowerCase() && bairroUsuario !== "";
-                    
                     lista.innerHTML += `
-                        <div class="card-loja" onclick="window.location.href='html/cardapio.html?loja=${d.id}'">
+                        <div class="card-loja" onclick="window.location.href='html/loja.html?loja=${d.id}'">
                             <div class="banner-loja" style="background-color: ${d.temaLoja || '#ff4757'}">
                                 <img src="${d.logoLoja || 'assets/images/default-store.png'}" class="logo-loja">
                             </div>
                             <div class="info-loja">
-                                <h3>
-                                    ${d.nome} 
-                                    ${eDoBairro ? '<span class="badge-proximo">Perto</span>' : ''}
-                                </h3>
+                                <h3>${d.nome} ${eDoBairro ? '<span class="badge-proximo">Perto</span>' : ''}</h3>
                                 <p>${d.categoria} • ${d.bairroLoja || 'Centro'}</p>
                             </div>
                         </div>`;

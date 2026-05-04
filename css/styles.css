@@ -270,16 +270,6 @@ body {
     background-color: #5a6268;
 }
 
-/* Responsividade para o Grid de Cadastro em celulares */
-@media (max-width: 37.5rem) { /* 600px */
-    .grid-cadastro {
-        grid-template-columns: 1fr;
-    }
-    .full-width {
-        grid-column: span 1;
-    }
-}
-
 /* Feedback visual de erro nos inputs (opcional) */
 input.input-error {
     border: 2px solid #e63946;
@@ -407,17 +397,6 @@ input.input-error {
 #loja-categoria:invalid,
 #loja-categoria option[value=""] {
     color: #999;
-}
-
-/* Responsividade para telas pequenas (Celular) */
-@media (max-width: 600px) {
-    .grid-cadastro {
-        grid-template-columns: 1fr; /* Uma coluna no mobile */
-    }
-    
-    .grid-cadastro .full-width {
-        grid-column: span 1;
-    }
 }
 
 /* Classe utilitária para esconder elementos */
@@ -1196,16 +1175,6 @@ input[type="color"]::-webkit-color-swatch {
     transform: scale(1.02);
 }
 
-/* Responsividade para Celulares */
-@media (max-width: 37.5rem) {
-    .input-row {
-        grid-template-columns: 1fr;
-    }
-    .modal-content {
-        padding: 1.25rem;
-    }
-}
-
 
 /* ============================================================
    ESTILIZAÇÃO DA BARRA DE ROLAGEM (SCROLLBAR)
@@ -1251,18 +1220,417 @@ input[type="color"]::-webkit-color-swatch {
     transition: all 0.4s ease;
     box-shadow: 0 1.25rem 3.125rem rgba(0,0,0,0.2);
 }
+
+/* ============================================================
+    LOJA.HTML
+   ============================================================ */
+/* --- ESTILIZAÇÃO DA PÁGINA DA LOJA --- */
+
+/* Hero e Banner */
+.loja-hero {
+    position: relative;
+    width: 100%;
+    background-color: #fff;
+}
+
+.loja-banner {
+    width: 100%;
+    height: 12.5rem; /* 200px */
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    border-bottom: 0.0625rem solid #eee;
+}
+
+/* Container do Perfil (Logo + Nome) */
+.loja-perfil {
+    position: relative;
+    padding: 0 1rem 1.5rem;
+    margin-top: -3.125rem; /* Puxa o conteúdo para cima do banner (metade da logo) */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    background: transparent;
+}
+
+/* Logo Circular Sobreposta */
+.loja-logo-container {
+    width: 6.25rem; /* 100px */
+    height: 6.25rem; /* 100px */
+    background-color: #ffffff;
+    border-radius: 50%;
+    padding: 0.25rem; /* Efeito de borda branca ao redor da foto */
+    box-shadow: 0 0.25rem 0.625rem rgba(0, 0, 0, 0.15);
+    z-index: 5;
+    margin-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.loja-logo-circular {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 0.0625rem solid #f0f0f0;
+}
+
+/* Informações da Loja */
+#detalhe-nome-loja {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 0.25rem;
+}
+
+.tag-categoria {
+    font-size: 0.875rem;
+    color: #666;
+    background: #f1f2f6;
+    padding: 0.25rem 0.75rem;
+    border-radius: 1.25rem;
+    display: inline-block;
+    margin-bottom: 1rem;
+}
+
+.loja-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    color: #555;
+    margin-bottom: 1rem;
+}
+
+.loja-meta .fa-star {
+    color: #ffc107;
+}
+
+.divisor {
+    color: #ccc;
+}
+
+.loja-desc {
+    font-size: 0.9375rem;
+    color: #777;
+    line-height: 1.4;
+    max-width: 37.5rem;
+}
+
+/* Ajustes Extras para o Skeleton combinar */
+.loja-banner-sk {
+    width: 100%;
+    height: 12.5rem;
+}
+
+.loja-info-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 1rem;
+}
+
+/* Meta dados da Loja (Avaliação, Tempo, Frete) */
+.loja-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0.62rem 0;
+    font-size: 0.87rem;
+    color: #666;
+}
+
+.meta-item i {
+    color: #ffb142; /* Estrela Amarela */
+    margin-right: 0.18rem;
+}
+
+.divisor {
+    color: #ccc;
+}
+
+.frete-gratis {
+    color: #2ed573; /* Verde para destaque */
+    font-weight: 600;
+}
+
+/* Ajuste do Banner */
+.loja-banner {
+    width: 100%;
+    height: 11.25rem;
+    background-size: cover;
+    background-position: center;
+    border-radius: 0 0 1rem 1rem;
+}
+
+/* Imagem do Produto */
+.produto-img-container {
+    width: 5rem;
+    height: 5rem;
+    border-radius: 0.5rem;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.produto-img-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.img-placeholder {
+    width: 100%;
+    height: 100%;
+    background: #f5f5f5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ccc;
+    font-size: 1.5rem;
+}
+
+/* --- BARRA DE PESQUISA DE PRODUTOS --- */
+
+.cardapio-section {
+    padding: 1rem;
+    background-color: #fff;
+}
+
+.search-produtos {
+    display: flex;
+    align-items: center;
+    background-color: #f1f2f6;
+    padding: 0.75rem 1rem;
+    border-radius: 0.75rem; /* 12px */
+    margin-bottom: 1.5rem;
+    border: 0.0625rem solid transparent;
+    transition: all 0.3s ease;
+}
+
+/* Efeito de foco quando o usuário clica para digitar */
+.search-produtos:focus-within {
+    background-color: #fff;
+    border-color: #ff4757; /* Cor principal do seu tema */
+    box-shadow: 0 0.25rem 0.75rem rgba(255, 71, 87, 0.1);
+}
+
+.search-produtos i {
+    color: #a4b0be;
+    margin-right: 0.75rem;
+    font-size: 1rem;
+}
+
+.search-produtos input {
+    border: none;
+    background: transparent;
+    outline: none;
+    width: 100%;
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.9375rem; /* 15px */
+    color: #2f3542;
+}
+
+.search-produtos input::placeholder {
+    color: #a4b0be;
+}
+
+/* Título da seção abaixo da pesquisa */
+.titulo-sessao {
+    font-size: 1.125rem; /* 18px */
+    font-weight: 600;
+    color: #2f3542;
+    margin-bottom: 1rem;
+}
+
+/* Carrossel Mais Pedidos */
+.carrossel-horizontal {
+    display: flex;
+    overflow-x: auto;
+    gap: 1rem;
+    padding: 0.5rem 0 1.5rem;
+    scrollbar-width: none;
+}
+.carrossel-horizontal::-webkit-scrollbar { display: none; }
+
+.produto-card-horizontal {
+    min-width: 10rem;
+    max-width: 10rem;
+    background: #fff;
+    border-radius: 0.75rem;
+    border: 1px solid #eee;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.produto-card-horizontal .img-wrapper { position: relative; height: 7rem; }
+.produto-card-horizontal img { width: 100%; height: 100%; object-fit: cover; }
+
+/* Estilo para Itens Esgotados */
+.prod-esgotado {
+    opacity: 0.6;
+    filter: grayscale(0.5);
+    pointer-events: none; /* Impede clique se estiver desativado */
+}
+
+.badge-esgotado {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0,0,0,0.7);
+    color: white;
+    padding: 0.2rem 0.5rem;
+    border-radius: 0.25rem;
+    font-size: 0.7rem;
+}
+
+.txt-esgotado {
+    display: block;
+    color: #ff4757;
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-top: 0.25rem;
+}
+
+/* Blocos de Categoria */
+.categoria-bloco { margin-bottom: 2rem; }
+.titulo-categoria {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #f1f2f6;
+}
+
+.produto-item-lista {
+    display: flex;
+    justify-content: space-between;
+    padding: 1rem 0;
+    border-bottom: 1px solid #f8f9fa;
+    gap: 1rem;
+}
+
+.prod-detalhes { flex: 1; }
+.prod-img-box {
+    width: 5rem;
+    height: 5rem;
+    background: #f1f2f6;
+    border-radius: 0.5rem;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.prod-img-box img { width: 100%; height: 100%; object-fit: cover; }
+/* ============================================================
+    SKELETON
+   ============================================================ */
+/* Efeito de brilho animado */
+.skeleton {
+    background: #eee;
+    background: linear-gradient(110deg, #ececec 8%, #f5f5f5 18%, #ececec 33%);
+    border-radius: 8px;
+    background-size: 200% 100%;
+    animation: 1.5s shine linear infinite;
+    border: none !important;
+}
+
+@keyframes shine {
+    to {
+        background-position-x: -200%;
+    }
+}
+
+/* Formatos específicos para os skeletons */
+.skeleton-card {
+    height: 220px;
+    width: 100%;
+    margin-bottom: 20px;
+}
+
+.skeleton-text {
+    height: 20px;
+    width: 70%;
+    margin: 10px 0;
+}
+
+.skeleton-circle {
+    height: 60px;
+    width: 60px;
+    border-radius: 50%;
+}
+
 /* ============================================================
     RESPONSIVIDADE
    ============================================================ */
-@media (max-width: 48rem) { /* 768px */
-    .header-center {
-        display: none; 
+@media (max-width: 48rem) {
+    .header-container {
+        flex-wrap: wrap; /* Permite quebrar linha */
+        justify-content: space-between;
     }
-    
+
+    .header-center {
+        display: block; /* Volta a exibir */
+        order: 3; /* Move para baixo de tudo */
+        flex: 0 0 100%;
+        margin-top: 0.8rem;
+    }
+
+    .header-left, .header-right {
+        flex: 0 0 auto; /* Ajusta para não ocupar 100% */
+    }
+
+    .search-bar {
+        max-width: 100%; /* Ocupa a largura total no mobile */
+    }
+
     .hero h2 { font-size: 1.5rem; }
     
     .grid-lojas {
         grid-template-columns: 1fr;
     }
+    .dropdown-content a, .dropdown-content button {
+        padding: 1rem; /* Aumenta a área de toque */
+    }
 }
 
+@media (max-width: 30rem) { /* ~480px */
+    .form-row {
+        flex-direction: column; /* Empilha CEP/Bairro, etc */
+        gap: 0.5rem;
+    }
+    
+    .login-container {
+        padding: 1.5rem; /* Reduz padding interno para ganhar espaço */
+    }
+}
+
+@media (max-width: 25rem) { /* Celulares bem pequenos */
+    .modal-content {
+        padding: 1rem;
+        border-radius: 1rem;
+    }
+    
+    .modal-header h2 {
+        font-size: 1.1rem;
+    }
+}
+
+@media (max-width: 37.5rem) {
+    .input-row {
+        grid-template-columns: 1fr;
+    }
+    .modal-content {
+        padding: 1.25rem;
+    }
+
+    .grid-cadastro {
+        grid-template-columns: 1fr;
+    }
+    .full-width {
+        grid-column: span 1;
+    }
+}
