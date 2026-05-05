@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NordGo | Meu Carrinho</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body>
+    <header class="main-header">
+        <div class="header-container">
+            <a href="../index.html">
+                <img src="../assets/images/nordgo-logo.png" alt="NordGo" class="main-logo">
+            </a>
+            <h1 class="page-title">Meu Carrinho</h1>
+            <div id="user-area"></div>
+        </div>
+    </header>
+
+    <main class="container">
+        <div id="carrinho-vazio" class="hidden">
+            <i class="fa-solid fa-cart-shopping"></i>
+            <p>Seu carrinho está vazio.</p>
+            <a href="../index.html" class="btn-voltar">Bora pedir algo!</a>
+        </div>
+
+        <div id="conteudo-carrinho" class="carrinho-grid">
+            <!-- Lista de Produtos -->
+            <section class="itens-carrinho" id="lista-itens-carrinho">
+                <!-- Injetado via JS -->
+            </section>
+
+            <!-- Resumo do Pedido -->
+            <aside class="resumo-pedido">
+                <h3>Resumo</h3>
+                <div class="resumo-linha">
+                    <span>Subtotal</span>
+                    <span id="subtotal">R$ 0,00</span>
+                </div>
+                <div class="resumo-linha">
+                    <span>Taxa de Entrega</span>
+                    <span id="taxa-entrega">R$ 0,00</span>
+                </div>
+                <hr>
+                <div class="resumo-linha total">
+                    <span>Total</span>
+                    <span id="total-geral">R$ 0,00</span>
+                </div>
+                
+                <button id="btn-finalizar" class="btn-finalizar">
+                    Finalizar Pedido
+                </button>
+                <a href="javascript:history.back()" class="btn-continuar">Continuar Comprando</a>
+            </aside>
+        </div>
+    </main>
+
+    <script type="module" src="../js/carrinho.js"></script>
+</body>
+</html>
