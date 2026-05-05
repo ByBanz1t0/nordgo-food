@@ -180,12 +180,118 @@ body {
 }
 
 /* ============================================================
-    CARRINHO
-   ============================================================ */
-
-/* ============================================================
     CARRINHO E RESUMO DO PEDIDO
    ============================================================ */
+/* ============================================================
+    BOTÃO ADICIONAR E CARRINHO FLUTUANTE
+   ============================================================ */
+
+/* 1. Botão de Adicionar (nos Cards de Produto) */
+.btn-add-carrinho {
+    background-color: #ff4757; /* Vermelho NordGo */
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 6px rgba(255, 71, 87, 0.2);
+}
+
+.btn-add-carrinho:hover {
+    background-color: #ff6b81;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 71, 87, 0.3);
+}
+
+.btn-add-carrinho:active {
+    transform: scale(0.95);
+}
+
+.btn-add-carrinho i {
+    font-size: 0.9rem;
+}
+
+/* 2. Carrinho Flutuante (Fixado na parte inferior) */
+.carrinho-flutuante {
+    position: fixed;
+    bottom: 1.5rem;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 90%;
+    max-width: 31.25rem; /* ~500px */
+    background-color: #2ed573; /* Verde para destacar sucesso/compra */
+    color: white;
+    padding: 1rem 1.5rem;
+    border-radius: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 1000;
+    cursor: pointer;
+    box-shadow: 0 0.5rem 1.5rem rgba(46, 213, 115, 0.3);
+    animation: slideUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);[cite: 1]
+}
+
+.carrinho-flutuante:hover {
+    background-color: #26af5e;
+}
+
+/* Informações dentro do carrinho flutuante */
+.carrinho-info-esquerda {
+    display: flex;
+    align-items: center;
+    gap: 1rem;[cite: 1]
+}
+
+.badge-qtd-carrinho {
+    background: rgba(255, 255, 255, 0.2);
+    padding: 0.25rem 0.6rem;
+    border-radius: 0.5rem;
+    font-weight: 700;
+    font-size: 0.9rem;[cite: 1]
+}
+
+.carrinho-texto {
+    font-weight: 600;
+    font-size: 1rem;[cite: 1]
+}
+
+.carrinho-valor-total {
+    font-weight: 700;
+    font-size: 1.1rem;[cite: 1]
+}
+
+/* Animação para aparecer de baixo */
+@keyframes slideUp {
+    from {
+        bottom: -5rem;
+        opacity: 0;
+    }
+    to {
+        bottom: 1.5rem;
+        opacity: 1;
+    }
+}
+
+/* Esconder o carrinho flutuante quando estiver vazio (via JS controlando a classe) */
+.carrinho-flutuante.hidden {
+    display: none !important;[cite: 1]
+}
+
+/* Ajuste para não cobrir o conteúdo do rodapé em telas mobile */
+@media (max-width: 48rem) {
+    .carrinho-flutuante {
+        bottom: 1rem;
+        width: 95%;
+        padding: 0.875rem 1.25rem;[cite: 1]
+    }
+}
 
 /* Layout em Grid: Itens à esquerda, Resumo à direita */
 .carrinho-grid {
