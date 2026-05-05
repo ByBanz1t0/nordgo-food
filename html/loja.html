@@ -77,14 +77,15 @@
         </div>
     </main>
 
-    <!-- CARRINHO FLUTUANTE -->
-    <div id="floating-cart" class="floating-cart-rect hidden" onclick="window.location.href='carrinho.html'">
-        <div class="cart-icon-side">
-            <i class="fa-solid fa-cart-shopping"></i>
+    <!-- CARRINHO FLUTUANTE (Padronizado) -->
+    <div id="floating-cart" class="carrinho-flutuante hidden" onclick="window.location.href='carrinho.html'">
+        <div class="carrinho-info-esquerda">
+            <span id="cart-count" class="badge-qtd-carrinho">0</span>
+            <span class="carrinho-texto">Ver Carrinho</span>
         </div>
-        <div class="cart-info-side">
-            <span id="cart-float-total" class="cart-value-top">R$ 0,00</span>
-            <span id="cart-count" class="cart-count-bottom">0 itens</span>
+        <div class="carrinho-info-direita">
+            <span id="cart-float-total" class="carrinho-valor-total">R$ 0,00</span>
+            <i class="fa-solid fa-chevron-right" style="margin-left: 10px; font-size: 0.8rem;"></i>
         </div>
     </div>
 
@@ -127,7 +128,7 @@
                 document.getElementById('loja-skeleton').style.display = 'none';
                 document.getElementById('loja-content').classList.remove('hidden');
                 
-                // Inicializa o estado do carrinho ao carregar a página
+                // Inicializa o estado do carrinho
                 atualizarCarrinhoFlutuante();
 
             } catch (error) { 
