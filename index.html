@@ -6,6 +6,7 @@
     <title>NordGo | Sua Vitrine de Sabores</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Verifique se a pasta css está no mesmo diretório deste arquivo -->
     <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
@@ -20,6 +21,7 @@
             </div>
             <div class="header-center">
                 <div class="search-bar">
+                    <i class="fa-solid fa-magnifying-glass" style="margin-left: 10px; color: #999;"></i>
                     <input type="text" id="input-busca" placeholder="Busque por um estabelecimento...">
                 </div>
             </div>
@@ -42,14 +44,19 @@
         <div id="lista-lojas" class="grid-lojas"></div>
     </main>
 
-    <!-- CARRINHO FLUTUANTE (Formato Retangular Horizontal) -->
-    <div id="floating-cart" class="floating-cart-rect hidden" onclick="window.location.href='html/carrinho.html'">
-        <div class="cart-icon-side">
-            <i class="fa-solid fa-cart-shopping"></i>
+    <!-- 
+        CARRINHO FLUTUANTE 
+        Ajustado para usar a classe 'carrinho-flutuante' definida no CSS.
+        A classe 'hidden' será removida pelo cart-helper.js quando houver itens.
+    -->
+    <div id="floating-cart" class="carrinho-flutuante hidden" onclick="window.location.href='html/carrinho.html'">
+        <div class="carrinho-info-esquerda">
+            <span id="cart-count" class="badge-qtd-carrinho">0</span>
+            <span class="carrinho-texto">Ver Carrinho</span>
         </div>
-        <div class="cart-info-side">
-            <span id="cart-float-total" class="cart-value-top">R$ 0,00</span>
-            <span id="cart-count" class="cart-count-bottom">0 itens</span>
+        <div class="carrinho-info-direita">
+            <span id="cart-float-total" class="carrinho-valor-total">R$ 0,00</span>
+            <i class="fa-solid fa-chevron-right" style="margin-left: 10px; font-size: 0.8rem;"></i>
         </div>
     </div>
 
@@ -61,7 +68,6 @@
         import { auth, db, mostrarNotificacao } from './js/firebase-config.js';
         import { collection, getDocs, doc, getDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
         import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
-        // Importamos a função de atualização para garantir o estado inicial
         import { atualizarCarrinhoFlutuante } from './js/cart-helper.js';
 
         let bairroUsuario = "";
@@ -93,29 +99,10 @@
             }
         });
 
-        // --- LÓGICA DE REDIRECIONAMENTO ---
-        window.irParaMinhaLoja = async function() {
-            const user = auth.currentUser;
-            if (!user) {
-                window.location.href = 'html/login.html';
-                return;
-            }
-            try {
-                const lojaSnap = await getDoc(doc(db, "lojas", user.uid));
-                if (lojaSnap.exists()) {
-                    window.location.href = 'html/perfil-loja.html';
-                } else {
-                    window.location.href = 'html/login-loja.html';
-                }
-            } catch (e) {
-                console.error("Erro ao verificar loja:", e);
-                window.location.href = 'html/login-loja.html';
-            }
-        };
-
         // Inicialização
         injetarSkeletons();
-        // Chamada inicial para o carrinho
+        
+        // Chamada inicial para verificar o estado do carrinho no localStorage/DB
         atualizarCarrinhoFlutuante();
 
         onAuthStateChanged(auth, async (user) => {
@@ -166,6 +153,7 @@
                 let lojas = [];
                 querySnapshot.forEach(doc => lojas.push({ id: doc.id, ...doc.data() }));
 
+                // Ordenação por proximidade (Bairro)
                 lojas.sort((a, b) => {
                     const aPerto = a.bairroLoja?.trim().toLowerCase() === bairroUsuario?.trim().toLowerCase() && bairroUsuario !== "" ? 1 : 0;
                     const bPerto = b.bairroLoja?.trim().toLowerCase() === bairroUsuario?.trim().toLowerCase() && bairroUsuario !== "" ? 1 : 0;
@@ -177,7 +165,7 @@
                     lista.innerHTML += `
                         <div class="card-loja" onclick="window.location.href='html/loja.html?loja=${d.id}'">
                             <div class="banner-loja" style="background-color: ${d.temaLoja || '#ff4757'}">
-                                <img src="${d.logoLoja || 'assets/images/default-store.png'}" class="logo-loja">
+                                <img src="${d.logoLoja || 'assets/images/default-store.png'}" class="logo-loja" alt="Logo">
                             </div>
                             <div class="info-loja">
                                 <h3>${d.nome} ${eDoBairro ? '<span class="badge-proximo">Perto</span>' : ''}</h3>
