@@ -180,6 +180,114 @@ body {
 }
 
 /* ============================================================
+    CARRINHO
+   ============================================================ */
+/* --- Página de Carrinho --- */
+.carrinho-grid {
+    display: grid;
+    grid-template-columns: 1fr 22rem;
+    gap: 2rem;
+    margin-top: 2rem;
+}
+
+@media (max-width: 48rem) {
+    .carrinho-grid { grid-template-columns: 1fr; }
+}
+
+.itens-carrinho {
+    background: #fff;
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    box-shadow: 0 0.25rem 0.625rem rgba(0,0,0,0.05);
+}
+
+.item-no-carrinho {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 0;
+    border-bottom: 0.0625rem solid #eee;
+}
+
+.item-no-carrinho:last-child { border-bottom: none; }
+
+.img-item-carrinho {
+    width: 5rem;
+    height: 5rem;
+    border-radius: 0.5rem;
+    object-fit: cover;
+}
+
+.detalhes-item { flex: 1; }
+.detalhes-item h4 { font-size: 1.1rem; color: #2f3542; }
+.detalhes-item p { color: #2ed573; font-weight: 600; }
+
+.controles-quantidade {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.btn-qtd {
+    background: #f1f2f6;
+    border: none;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.btn-qtd:hover { background: #dfe4ea; }
+
+/* Resumo */
+.resumo-pedido {
+    background: #fff;
+    padding: 1.5rem;
+    border-radius: 0.75rem;
+    height: fit-content;
+    position: sticky;
+    top: 6rem;
+    box-shadow: 0 0.25rem 0.625rem rgba(0,0,0,0.05);
+}
+
+.resumo-linha {
+    display: flex;
+    justify-content: space-between;
+    margin: 0.75rem 0;
+    color: #57606f;
+}
+
+.resumo-linha.total {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #2f3542;
+    margin-top: 1rem;
+}
+
+.btn-finalizar {
+    width: 100%;
+    background: #ff4757;
+    color: white;
+    border: none;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    font-size: 1rem;
+    margin-top: 1.5rem;
+    cursor: pointer;
+}
+
+.btn-continuar {
+    display: block;
+    text-align: center;
+    margin-top: 1rem;
+    color: #747d8c;
+    text-decoration: none;
+    font-size: 0.9rem;
+}
+
+/* ============================================================
     ESTILOS DA PÁGINA DE LOGIN / CADASTRO
    ============================================================ */
 
