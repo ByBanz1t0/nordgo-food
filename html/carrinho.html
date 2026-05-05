@@ -9,54 +9,140 @@
     <link rel="stylesheet" href="../css/styles.css">
 </head>
 <body>
+    <div id="toast-container" class="toast-container"></div>
+
     <header class="main-header">
         <div class="header-container">
-            <a href="../index.html">
-                <img src="../assets/images/nordgo-logo.png" alt="NordGo" class="main-logo">
-            </a>
-            <h1 class="page-title">Meu Carrinho</h1>
-            <div id="user-area"></div>
+            <div class="header-left">
+                <a href="../index.html">
+                    <img src="../assets/images/nordgo-logo.png" alt="NordGo" class="main-logo">
+                </a>
+            </div>
+            <div class="header-right" id="user-area">
+                <!-- Área do usuário injetada via JS global -->
+            </div>
         </div>
     </header>
 
     <main class="container">
-        <div id="carrinho-vazio" class="hidden">
-            <i class="fa-solid fa-cart-shopping"></i>
-            <p>Seu carrinho está vazio.</p>
-            <a href="../index.html" class="btn-voltar">Bora pedir algo!</a>
+        <div class="search-info">
+            <h2 class="section-title">Meu Carrinho</h2>
         </div>
 
+        <!-- Mensagem exibida quando o localStorage está vazio -->
+        <div id="carrinho-vazio" class="hidden">
+            <i class="fa-solid fa-cart-shopping" style="font-size: 4rem; color: #dfe4ea; display: block; margin-bottom: 1.5rem;"></i>
+            <h3>Seu carrinho está vazio</h3>
+            <p>Escolha seus produtos favoritos para continuar.</p>
+            <a href="../index.html" class="btn-voltar" style="margin-top: 1rem; display: inline-block;">Ver lojas</a>
+        </div>
+
+        <!-- Estrutura principal do carrinho -->
         <div id="conteudo-carrinho" class="carrinho-grid">
-            <!-- Lista de Produtos -->
             <section class="itens-carrinho" id="lista-itens-carrinho">
-                <!-- Injetado via JS -->
+                <!-- Itens injetados dinamicamente -->
             </section>
 
-            <!-- Resumo do Pedido -->
             <aside class="resumo-pedido">
-                <h3>Resumo</h3>
+                <h3>Resumo do Pedido</h3>
                 <div class="resumo-linha">
                     <span>Subtotal</span>
                     <span id="subtotal">R$ 0,00</span>
                 </div>
                 <div class="resumo-linha">
-                    <span>Taxa de Entrega</span>
-                    <span id="taxa-entrega">R$ 0,00</span>
+                    <span>Taxa de entrega</span>
+                    <span id="taxa-entrega">R$ 5,00</span>
                 </div>
-                <hr>
                 <div class="resumo-linha total">
                     <span>Total</span>
                     <span id="total-geral">R$ 0,00</span>
                 </div>
                 
-                <button id="btn-finalizar" class="btn-finalizar">
-                    Finalizar Pedido
-                </button>
-                <a href="javascript:history.back()" class="btn-continuar">Continuar Comprando</a>
+                <button id="btn-finalizar" class="btn-finalizar">Finalizar Pedido</button>
+                <a href="javascript:history.back()" class="btn-continuar">Adicionar mais itens</a>
             </aside>
         </div>
     </main>
 
-    <script type="module" src="../js/carrinho.js"></script>
+    <script type="module">
+        import { db, auth } from '../js/firebase-config.js';
+
+        const listaItensHtml = document.getElementById('lista-itens-carrinho');
+        const subtotalHtml = document.getElementById('subtotal');
+        const totalGeralHtml = document.getElementById('total-geral');
+        const taxaEntrega = 5.00;
+
+        // Torna a função global para os botões inline (+ e -)
+        window.alterarQtd = function(index, delta) {
+            let carrinho = JSON.parse(localStorage.getItem('nordgo_carrinho')) || [];
+            
+            if (carrinho[index]) {
+                carrinho[index].quantidade += delta;
+
+                if (carrinho[index].quantidade <= 0) {
+                    carrinho.splice(index, 1);
+                }
+
+                localStorage.setItem('nordgo_carrinho', JSON.stringify(carrinho));
+                carregarCarrinho();
+            }
+        };
+
+        function carregarCarrinho() {
+            const itens = JSON.parse(localStorage.getItem('nordgo_carrinho')) || [];
+            
+            if (itens.length === 0) {
+                document.getElementById('carrinho-vazio').classList.remove('hidden');
+                document.getElementById('conteudo-carrinho').classList.add('hidden');
+                return;
+            } else {
+                document.getElementById('carrinho-vazio').classList.add('hidden');
+                document.getElementById('conteudo-carrinho').classList.remove('hidden');
+            }
+
+            renderizarItens(itens);
+            calcularTotais(itens);
+        }
+
+        function renderizarItens(itens) {
+            listaItensHtml.innerHTML = '';
+            itens.forEach((item, index) => {
+                listaItensHtml.innerHTML += `
+                    <div class="item-no-carrinho">
+                        <img src="${item.imagem || '../assets/images/placeholder.png'}" class="img-item-carrinho">
+                        <div class="detalhes-item">
+                            <h4>${item.nome}</h4>
+                            <p>R$ ${item.preco.toLocaleString('pt-br', {minimumFractionDigits: 2})}</p>
+                        </div>
+                        <div class="controles-quantidade">
+                            <button class="btn-qtd" onclick="alterarQtd(${index}, -1)">
+                                <i class="fa-solid fa-minus"></i>
+                            </button>
+                            <span>${item.quantidade}</span>
+                            <button class="btn-qtd" onclick="alterarQtd(${index}, 1)">
+                                <i class="fa-solid fa-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function calcularTotais(itens) {
+            const subtotal = itens.reduce((acc, item) => acc + (item.preco * item.quantidade), 0);
+            const total = subtotal + taxaEntrega;
+            
+            subtotalHtml.innerText = `R$ ${subtotal.toLocaleString('pt-br', {minimumFractionDigits: 2})}`;
+            totalGeralHtml.innerText = `R$ ${total.toLocaleString('pt-br', {minimumFractionDigits: 2})}`;
+        }
+
+        document.getElementById('btn-finalizar').addEventListener('click', () => {
+            // Lógica para o próximo passo (WhatsApp ou Checkout Firebase)
+            console.log("Iniciando finalização do pedido...");
+        });
+
+        // Inicializa ao carregar a página
+        carregarCarrinho();
+    </script>
 </body>
 </html>
