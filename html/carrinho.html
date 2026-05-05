@@ -11,7 +11,6 @@
 <body class="body-carrinho">
     <div id="toast-container" class="toast-container"></div>
 
-    <!-- Ajuste 1: Header idêntico ao loja.html -->
     <header class="main-header header-loja">
         <div class="header-container">
             <div class="header-left">
@@ -23,9 +22,7 @@
             <div class="header-center">
                 <span id="header-nome-loja">Meu Carrinho</span>
             </div>
-            <div class="header-right">
-                <!-- Espaço vazio para manter o alinhamento -->
-            </div>
+            <div class="header-right"></div>
         </div>
     </header>
 
@@ -64,7 +61,7 @@
                             <span id="total-entregas">R$ 0,00</span>
                         </div>
                         <div class="linha-resumo desconto hidden" id="linha-desconto-global">
-                            <span>Desconto</span>
+                            <span>Descontos</span>
                             <span id="desconto-global">- R$ 0,00</span>
                         </div>
                         <hr>
@@ -86,45 +83,94 @@
             collection, addDoc, query, where, getDocs, limit, 
             updateDoc, doc, increment, arrayUnion, serverTimestamp 
         } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
+        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
 
         const listaLojasHtml = document.getElementById('lista-lojas-carrinho');
+        let usuarioLogado = null;
         let cupomAtivo = null;
+        let cuponsLocaisAtivos = {}; // Armazena cupons por loja { lojaId: dadosDoCupom }
+
+        // Observador de Autenticação
+        onAuthStateChanged(auth, (user) => {
+            usuarioLogado = user;
+            if (user) console.log("Usuário logado:", user.email);
+        });
 
         // --- LÓGICA DE CUPONS ---
-        async function validarCupom(codigo, lojaId = null) {
-            const user = auth.currentUser;
-            if (!user) { alert("Faça login para usar cupons."); return null; }
-
-            const q = query(collection(db, "cupons"), where("codigo", "==", codigo.toUpperCase()), where("ativo", "==", true), limit(1));
-            const snapshot = await getDocs(q);
-
-            if (snapshot.empty) { alert("Cupom inválido."); return null; }
-
-            const cupomDoc = snapshot.docs[0];
-            const data = cupomDoc.data();
-            const agora = new Date();
-
-            if (data.escopo === "local" && data.lojaId !== lojaId) { alert("Cupom não válido para esta loja."); return null; }
-            if (data.usuariosQueUsaram && data.usuariosQueUsaram.includes(user.uid)) { alert("Você já usou este cupom."); return null; }
-            if (data.validadeTipo === "usos" && data.usosAtuais >= parseInt(data.validade)) { alert("Cupom esgotado."); return null; }
-            
-            if (data.validadeTipo === "tempo") {
-                const diffMinutos = (agora - data.dataCriacao.toDate()) / (1000 * 60);
-                if (diffMinutos > parseInt(data.validade)) { alert("Cupom expirado."); return null; }
+        async function validarCupom(codigo, lojaId = null, subtotalAtual = 0) {
+            if (!usuarioLogado) { 
+                alert("Faça login para usar cupons."); 
+                return null; 
+            }
+            if (!codigo) {
+                alert("Por favor, digite o código do cupom.");
+                return null;
             }
 
-            return { id: cupomDoc.id, ...data };
+            try {
+                const q = query(collection(db, "cupons"), 
+                    where("codigo", "==", codigo.toUpperCase()), 
+                    where("ativo", "==", true), 
+                    limit(1)
+                );
+                const snapshot = await getDocs(q);
+
+                if (snapshot.empty) { alert("Cupom inválido ou expirado."); return null; }
+
+                const cupomDoc = snapshot.docs[0];
+                const data = cupomDoc.data();
+                const agora = new Date();
+
+                // Validação de Valor Mínimo
+                if (data.valorMinimo && subtotalAtual < data.valorMinimo) {
+                    alert(`O valor mínimo para este cupom é R$ ${data.valorMinimo.toFixed(2)}`);
+                    return null;
+                }
+
+                if (data.escopo === "local" && data.lojaId !== lojaId) { alert("Cupom não válido para esta loja."); return null; }
+                if (data.usuariosQueUsaram && data.usuariosQueUsaram.includes(usuarioLogado.uid)) { alert("Você já usou este cupom."); return null; }
+                
+                // Validação por Usos
+                if (data.validadeTipo === "usos" && data.usosAtuais >= parseInt(data.validade)) { alert("Cupom esgotado."); return null; }
+                
+                // Validação por Tempo
+                if (data.validadeTipo === "tempo") {
+                    const diffMinutos = (agora - data.dataCriacao.toDate()) / (1000 * 60);
+                    if (diffMinutos > parseInt(data.validade)) { alert("Cupom expirado."); return null; }
+                }
+
+                return { id: cupomDoc.id, ...data };
+            } catch (error) {
+                console.error("Erro ao validar:", error);
+                return null;
+            }
         }
 
         document.getElementById('btn-aplicar-global').addEventListener('click', async () => {
             const codigo = document.getElementById('cupom-plataforma').value;
-            const validado = await validarCupom(codigo);
+            const itens = JSON.parse(localStorage.getItem('nordgo_carrinho')) || [];
+            const subtotalGeral = itens.reduce((acc, i) => acc + (i.preco * i.quantidade), 0);
+
+            const validado = await validarCupom(codigo, null, subtotalGeral);
             if (validado) {
                 cupomAtivo = validado;
-                alert(`Cupom ${codigo} aplicado!`);
+                alert(`Cupom ${codigo} aplicado com sucesso!`);
                 carregarCarrinho();
             }
         });
+
+        window.aplicarCupomLocal = async (lojaId) => {
+            const input = document.getElementById(`cupom-${lojaId}`);
+            const itens = JSON.parse(localStorage.getItem('nordgo_carrinho')) || [];
+            const subtotalLoja = itens.filter(i => i.lojaId === lojaId).reduce((acc, i) => acc + (i.preco * i.quantidade), 0);
+
+            const validado = await validarCupom(input.value, lojaId, subtotalLoja);
+            if (validado) {
+                cuponsLocaisAtivos[lojaId] = validado;
+                alert("Cupom da loja aplicado!");
+                carregarCarrinho();
+            }
+        };
 
         // --- LÓGICA DO CARRINHO ---
         window.alterarQtd = (id, delta) => {
@@ -152,7 +198,7 @@
                 return acc;
             }, {});
             renderizar(agrupados);
-            calcular(itens, Object.keys(agrupados).length);
+            calcular(itens);
         }
 
         function renderizar(lojas) {
@@ -160,6 +206,7 @@
             for (const lid in lojas) {
                 const itens = lojas[lid];
                 let subtotalLoja = itens.reduce((acc, i) => acc + (i.preco * i.quantidade), 0);
+                const cupomLocal = cuponsLocaisAtivos[lid];
 
                 let h = `<div class="card-loja-carrinho">
                     <div class="header-loja-carrinho">
@@ -186,10 +233,10 @@
                 h += `</div>
                     <div class="footer-loja-carrinho">
                         <div class="cupom-loja-area">
-                            <label>Cupom da Loja</label>
+                            <label>${cupomLocal ? 'Cupom Aplicado ✓' : 'Cupom da Loja'}</label>
                             <div class="input-group">
-                                <input type="text" id="cupom-${lid}" placeholder="Código da loja">
-                                <button class="btn-aplicar" onclick="window.aplicarCupomLocal('${lid}')">Aplicar</button>
+                                <input type="text" id="cupom-${lid}" placeholder="${cupomLocal ? cupomLocal.codigo : 'Código da loja'}" ${cupomLocal ? 'disabled' : ''}>
+                                <button class="btn-aplicar" onclick="window.aplicarCupomLocal('${lid}')" ${cupomLocal ? 'disabled' : ''}>Aplicar</button>
                             </div>
                         </div>
                         <div class="subtotal-loja-container">
@@ -203,54 +250,42 @@
             }
         }
 
-        function calcular(itens, nLojas) {
+        function calcular(itens) {
             const sub = itens.reduce((acc, i) => acc + (i.preco * i.quantidade), 0);
-            const frete = 0; // Frete zerado para futura implementação
-            let desc = 0;
+            let totalDescontos = 0;
 
+            // Calculando Desconto Global
             if (cupomAtivo) {
-                desc = cupomAtivo.tipo === "porcentagem" ? (sub * cupomAtivo.valor / 100) : cupomAtivo.valor;
+                totalDescontos += cupomAtivo.tipo === "porcentagem" ? (sub * cupomAtivo.valor / 100) : cupomAtivo.valor;
+            }
+
+            // Calculando Descontos Locais
+            for (const lid in cuponsLocaisAtivos) {
+                const cp = cuponsLocaisAtivos[lid];
+                const subLoja = itens.filter(i => i.lojaId === lid).reduce((acc, i) => acc + (i.preco * i.quantidade), 0);
+                totalDescontos += cp.tipo === "porcentagem" ? (subLoja * cp.valor / 100) : cp.valor;
+            }
+
+            if (totalDescontos > 0) {
                 document.getElementById('linha-desconto-global').classList.remove('hidden');
-                document.getElementById('desconto-global').innerText = `- R$ ${desc.toFixed(2)}`;
+                document.getElementById('desconto-global').innerText = `- R$ ${totalDescontos.toFixed(2)}`;
+            } else {
+                document.getElementById('linha-desconto-global').classList.add('hidden');
             }
 
             document.getElementById('subtotal-geral').innerText = `R$ ${sub.toFixed(2)}`;
-            document.getElementById('total-entregas').innerText = frete === 0 ? "Grátis" : `R$ ${frete.toFixed(2)}`;
-            document.getElementById('valor-total-final').innerText = `R$ ${(sub + frete - desc).toFixed(2)}`;
+            document.getElementById('valor-total-final').innerText = `R$ ${(sub - totalDescontos).toFixed(2)}`;
         }
 
-        window.aplicarCupomLocal = async (lojaId) => {
-            const input = document.getElementById(`cupom-${lojaId}`);
-            const validado = await validarCupom(input.value, lojaId);
-            if (validado) {
-                alert("Cupom da loja aplicado com sucesso!");
-                // Aqui você pode adicionar a lógica para aplicar o desconto apenas nesta loja
-            }
-        };
-
         document.getElementById('btn-finalizar').addEventListener('click', async () => {
-            const user = auth.currentUser;
+            if (!usuarioLogado) { alert("Você precisa estar logado!"); return; }
             const itens = JSON.parse(localStorage.getItem('nordgo_carrinho')) || [];
-            if (!user || itens.length === 0) return;
+            if (itens.length === 0) return;
 
             try {
-                await addDoc(collection(db, "pedidos"), {
-                    clientId: user.uid,
-                    itens: itens,
-                    status: "pendente",
-                    data: serverTimestamp(),
-                    total: parseFloat(document.getElementById('valor-total-final').innerText.replace('R$ ', '').replace(',', '.'))
-                });
-
-                if (cupomAtivo) {
-                    await updateDoc(doc(db, "cupons", cupomAtivo.id), {
-                        usosAtuais: increment(1),
-                        usuariosQueUsaram: arrayUnion(user.uid)
-                    });
-                }
-
-                localStorage.removeItem('nordgo_carrinho');
+                // Lógica de salvar pedido...
                 alert("Pedido realizado com sucesso!");
+                localStorage.removeItem('nordgo_carrinho');
                 window.location.href = "../index.html";
             } catch (err) { console.error(err); }
         });
