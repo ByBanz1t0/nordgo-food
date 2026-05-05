@@ -77,15 +77,33 @@
         </div>
     </main>
 
+    <!-- CARRINHO FLUTUANTE -->
+    <div id="floating-cart" class="floating-cart-rect hidden" onclick="window.location.href='carrinho.html'">
+        <div class="cart-icon-side">
+            <i class="fa-solid fa-cart-shopping"></i>
+        </div>
+        <div class="cart-info-side">
+            <span id="cart-float-total" class="cart-value-top">R$ 0,00</span>
+            <span id="cart-count" class="cart-count-bottom">0 itens</span>
+        </div>
+    </div>
+
+    <!-- Script de auxílio do Carrinho -->
+    <script type="module" src="../js/cart-helper.js"></script>
+
     <script type="module">
         import { db } from '../js/firebase-config.js';
         import { doc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
+        import { atualizarCarrinhoFlutuante } from '../js/cart-helper.js';
 
         const params = new URLSearchParams(window.location.search);
         const lojaId = params.get('loja') || params.get('id'); 
 
-        if (!lojaId) { window.location.href = '../index.html'; } 
-        else { carregarDadosLoja(); }
+        if (!lojaId) { 
+            window.location.href = '../index.html'; 
+        } else { 
+            carregarDadosLoja(); 
+        }
 
         async function carregarDadosLoja() {
             try {
@@ -96,7 +114,6 @@
                 const loja = lojaSnap.data();
                 renderizarDadosLoja(loja);
 
-                // Busca de Produtos
                 const produtosRef = collection(db, "produtos");
                 const q = query(produtosRef, where("lojaId", "==", lojaId));
                 const querySnapshot = await getDocs(q);
@@ -109,7 +126,13 @@
 
                 document.getElementById('loja-skeleton').style.display = 'none';
                 document.getElementById('loja-content').classList.remove('hidden');
-            } catch (error) { console.error("Erro:", error); }
+                
+                // Inicializa o estado do carrinho ao carregar a página
+                atualizarCarrinhoFlutuante();
+
+            } catch (error) { 
+                console.error("Erro:", error); 
+            }
         }
 
         function renderizarDadosLoja(loja) {
@@ -138,14 +161,18 @@
             const listaMaisPedidos = document.getElementById('lista-mais-pedidos');
             const cardapioAgrupado = document.getElementById('cardapio-agrupado');
 
-            // 1. MAIS PEDIDOS (Destaque + Disponível)
+            listaMaisPedidos.innerHTML = "";
+            cardapioAgrupado.innerHTML = "";
+
             const maisPedidos = produtos.filter(p => p.destaque === true);
             if (maisPedidos.length > 0) {
                 containerMaisPedidos.classList.remove('hidden');
                 maisPedidos.forEach(p => {
                     const indisponivel = p.disponibilidade === false;
+                    const acaoClique = indisponivel ? "" : `onclick="adicionarAoCarrinho('${p.id}', '${p.nome}', ${p.preco}, '${p.imagem || ''}', '${lojaId}')"`;
+                    
                     listaMaisPedidos.innerHTML += `
-                        <div class="produto-card-horizontal ${indisponivel ? 'prod-esgotado' : ''}">
+                        <div class="produto-card-horizontal ${indisponivel ? 'prod-esgotado' : ''}" ${acaoClique}>
                             <div class="img-wrapper">
                                 <img src="${p.imagem || '../assets/images/placeholder.png'}" alt="${p.nome}">
                                 ${indisponivel ? '<span class="badge-esgotado">Esgotado</span>' : ''}
@@ -159,7 +186,6 @@
                 });
             }
 
-            // 2. AGRUPAMENTO POR CATEGORIA (Ordem Alfabética)
             const categorias = {};
             produtos.forEach(p => {
                 const cat = p.categoria || "Outros";
@@ -180,8 +206,10 @@
 
                 produtosDaCat.forEach(p => {
                     const indisponivel = p.disponibilidade === false;
+                    const acaoClique = indisponivel ? "" : `onclick="adicionarAoCarrinho('${p.id}', '${p.nome}', ${p.preco}, '${p.imagem || ''}', '${lojaId}')"`;
+
                     htmlCategoria += `
-                        <div class="produto-item-lista ${indisponivel ? 'prod-esgotado' : ''}">
+                        <div class="produto-item-lista ${indisponivel ? 'prod-esgotado' : ''}" ${acaoClique}>
                             <div class="prod-detalhes">
                                 <h3>${p.nome}</h3>
                                 <p>${p.descricao || ''}</p>
