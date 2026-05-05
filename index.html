@@ -42,15 +42,31 @@
         <div id="lista-lojas" class="grid-lojas"></div>
     </main>
 
+    <!-- CARRINHO FLUTUANTE (Formato Retangular Horizontal) -->
+    <div id="floating-cart" class="floating-cart-rect hidden" onclick="window.location.href='html/carrinho.html'">
+        <div class="cart-icon-side">
+            <i class="fa-solid fa-cart-shopping"></i>
+        </div>
+        <div class="cart-info-side">
+            <span id="cart-float-total" class="cart-value-top">R$ 0,00</span>
+            <span id="cart-count" class="cart-count-bottom">0 itens</span>
+        </div>
+    </div>
+
+    <!-- Scripts do Firebase e Lógica de Negócio -->
+    <script type="module" src="./js/firebase-config.js"></script>
+    <script type="module" src="./js/cart-helper.js"></script>
+
     <script type="module">
-        import { auth, db, mostrarNotificacao} from './js/firebase-config.js';
+        import { auth, db, mostrarNotificacao } from './js/firebase-config.js';
         import { collection, getDocs, doc, getDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
         import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
+        // Importamos a função de atualização para garantir o estado inicial
+        import { atualizarCarrinhoFlutuante } from './js/cart-helper.js';
 
         let bairroUsuario = "";
 
         // --- FUNÇÃO PARA GERAR SKELETONS ---
-        // Agora usando apenas as classes que você já colocou no styles.css
         function injetarSkeletons() {
             const catContainer = document.getElementById('categorias-container');
             const lojasContainer = document.getElementById('lista-lojas');
@@ -99,6 +115,8 @@
 
         // Inicialização
         injetarSkeletons();
+        // Chamada inicial para o carrinho
+        atualizarCarrinhoFlutuante();
 
         onAuthStateChanged(auth, async (user) => {
             if (user) {
