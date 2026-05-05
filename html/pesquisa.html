@@ -34,9 +34,8 @@
             <p id="subtitulo-pesquisa">Buscando o melhor de Arapiraca para você...</p>
         </div>
 
-        <div id="lista-resultados" class="grid-lojas">
-            <!-- Conteúdo dinâmico via JS -->
-        </div>
+        <!-- O conteúdo será injetado dinamicamente aqui -->
+        <div id="lista-resultados"></div>
     </main>
 
     <script type="module">
@@ -52,13 +51,16 @@
         const subtitulo = document.getElementById('subtitulo-pesquisa');
 
         function injetarSkeletons() {
-            listaResultados.innerHTML = Array(4).fill(`
-                <div class="skeleton-card">
-                    <div class="skeleton skeleton-banner"></div>
-                    <div class="skeleton skeleton-text"></div>
-                    <div class="skeleton skeleton-text-sm"></div>
-                </div>
-            `).join('');
+            listaResultados.innerHTML = `
+                <div class="grid-lojas">
+                    ${Array(4).fill(`
+                        <div class="skeleton-card">
+                            <div class="skeleton skeleton-banner"></div>
+                            <div class="skeleton skeleton-text"></div>
+                            <div class="skeleton skeleton-text-sm"></div>
+                        </div>
+                    `).join('')}
+                </div>`;
         }
 
         const inputInterno = document.getElementById('input-busca-interna');
@@ -72,7 +74,6 @@
             injetarSkeletons();
             
             try {
-                // Busca paralela em lojas e produtos (agora na raiz)
                 const [snapshotLojas, snapshotProdutos] = await Promise.all([
                     getDocs(collection(db, "lojas")),
                     getDocs(collection(db, "produtos"))
@@ -124,22 +125,49 @@
                 return;
             }
 
-            subtitulo.innerText = `Encontramos ${resultados.length} resultados.`;
+            // 1. FILTRAR E ORDENAR
+            const lojasOrdenadas = resultados
+                .filter(item => item.tipo === 'loja')
+                .sort((a, b) => (b.avaliacao || 0) - (a.avaliacao || 0));
 
-            resultados.forEach(item => {
-                if (item.tipo === 'loja') {
-                    listaResultados.innerHTML += `
-                        <div class="card-loja" onclick="window.location.href='loja.html?loja=${item.id}'">
+            const produtosOrdenados = resultados
+                .filter(item => item.tipo === 'produto')
+                .sort((a, b) => (b.vendas || 0) - (a.vendas || 0));
+
+            // 2. RENDERIZAR LOJAS (CARROSSEL HORIZONTAL)
+            if (lojasOrdenadas.length > 0) {
+                const secaoLojas = document.createElement('div');
+                secaoLojas.innerHTML = `<h3 class="section-divider">Lojas em destaque</h3>`;
+                
+                const scrollContainer = document.createElement('div');
+                scrollContainer.className = 'horizontal-scroll-container';
+                
+                lojasOrdenadas.forEach(item => {
+                    scrollContainer.innerHTML += `
+                        <div class="card-loja scroll-item" onclick="window.location.href='loja.html?loja=${item.id}'">
                             <div class="banner-loja" style="background-color: ${item.temaLoja || '#ff4757'}">
                                 <img src="${item.logoLoja || '../assets/images/default-store.png'}" class="logo-loja">
                             </div>
                             <div class="info-loja">
                                 <h3>${item.nome} <span class="badge-tipo">Loja</span></h3>
-                                <p>${item.categoria} • ${item.bairroLoja || 'Arapiraca'}</p>
+                                <p><i class="fa-solid fa-star" style="color: #ffa502;"></i> ${item.avaliacao || '4.5'} • ${item.categoria}</p>
                             </div>
                         </div>`;
-                } else {
-                    listaResultados.innerHTML += `
+                });
+                secaoLojas.appendChild(scrollContainer);
+                listaResultados.appendChild(secaoLojas);
+            }
+
+            // 3. RENDERIZAR PRODUTOS (GRID VERTICAL)
+            if (produtosOrdenados.length > 0) {
+                const secaoProdutos = document.createElement('div');
+                secaoProdutos.innerHTML = `<h3 class="section-divider">Produtos mais pedidos</h3>`;
+                
+                const gridProdutos = document.createElement('div');
+                gridProdutos.className = 'grid-lojas';
+                
+                produtosOrdenados.forEach(item => {
+                    gridProdutos.innerHTML += `
                         <div class="card-loja produto-encontrado" onclick="window.location.href='loja.html?loja=${item.lojaId}'">
                             <div class="banner-loja">
                                 <img src="${item.imagem || '../assets/images/placeholder.png'}" class="logo-loja">
@@ -150,8 +178,12 @@
                                 <small>Ver na loja <i class="fa-solid fa-chevron-right"></i></small>
                             </div>
                         </div>`;
-                }
-            });
+                });
+                secaoProdutos.appendChild(gridProdutos);
+                listaResultados.appendChild(secaoProdutos);
+            }
+
+            subtitulo.innerText = `Encontramos ${lojasOrdenadas.length} lojas e ${produtosOrdenados.length} produtos.`;
         }
 
         executarBusca();
