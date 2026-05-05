@@ -20,7 +20,7 @@
             </div>
             <div class="header-center">
                 <div class="search-bar">
-                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <i class="fa-solid fa-magnifying-glass" style="margin-left: 10px; color: #999;"></i>
                     <input type="text" id="input-busca-interna" placeholder="Pesquisar lojas ou produtos...">
                 </div>
             </div>
@@ -37,24 +37,24 @@
         <div id="lista-resultados"></div>
     </main>
 
-    <!-- CARRINHO FLUTUANTE (Formato Retangular Horizontal) -->
-    <div id="floating-cart" class="floating-cart-rect hidden" onclick="window.location.href='carrinho.html'">
-        <div class="cart-icon-side">
-            <i class="fa-solid fa-cart-shopping"></i>
+    <!-- CARRINHO FLUTUANTE (Padronizado com o novo CSS) -->
+    <div id="floating-cart" class="carrinho-flutuante hidden" onclick="window.location.href='carrinho.html'">
+        <div class="carrinho-info-esquerda">
+            <span id="cart-count" class="badge-qtd-carrinho">0</span>
+            <span class="carrinho-texto">Ver Carrinho</span>
         </div>
-        <div class="cart-info-side">
-            <span id="cart-float-total" class="cart-value-top">R$ 0,00</span>
-            <span id="cart-count" class="cart-count-bottom">0 itens</span>
+        <div class="carrinho-info-direita">
+            <span id="cart-float-total" class="carrinho-valor-total">R$ 0,00</span>
+            <i class="fa-solid fa-chevron-right" style="margin-left: 10px; font-size: 0.8rem;"></i>
         </div>
     </div>
 
-    <!-- Scripts do Carrinho Helper -->
+    <!-- Scripts -->
     <script type="module" src="../js/cart-helper.js"></script>
 
     <script type="module">
         import { auth, db, mostrarNotificacao } from '../js/firebase-config.js';
         import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
-        // Importamos a função de atualização para garantir o estado inicial
         import { atualizarCarrinhoFlutuante } from '../js/cart-helper.js';
 
         const params = new URLSearchParams(window.location.search);
@@ -87,7 +87,7 @@
 
         async function executarBusca() {
             injetarSkeletons();
-            atualizarCarrinhoFlutuante(); // Inicializa o carrinho flutuante
+            atualizarCarrinhoFlutuante();
             
             try {
                 const [snapshotLojas, snapshotProdutos] = await Promise.all([
@@ -189,7 +189,8 @@
                         <div class="info-loja">
                             <h3 onclick="window.location.href='loja.html?loja=${item.lojaId}'">${item.nome} <span class="badge-tipo prod">Produto</span></h3>
                             <p>${item.categoria} • <span class="preco-busca">R$ ${item.preco.toLocaleString('pt-br', {minimumFractionDigits: 2})}</span></p>
-                            <button class="btn-add-search" onclick="adicionarAoCarrinho('${item.id}', '${item.nome}', ${item.preco}, '${item.imagem}', '${item.lojaId}')">
+                            <!-- Botão corrigido para a classe .btn-add-carrinho -->
+                            <button class="btn-add-carrinho" onclick="adicionarAoCarrinho('${item.id}', '${item.nome}', ${item.preco}, '${item.imagem}', '${item.lojaId}')">
                                 <i class="fa-solid fa-plus"></i> Adicionar
                             </button>
                         </div>`;
