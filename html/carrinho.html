@@ -11,7 +11,7 @@
 <body class="body-carrinho">
     <div id="toast-container" class="toast-container"></div>
 
-    <!-- Primeiro erro: Header idêntico ao loja.html -->
+    <!-- Ajuste 1: Header idêntico ao loja.html -->
     <header class="main-header header-loja">
         <div class="header-container">
             <div class="header-left">
@@ -61,7 +61,7 @@
                         </div>
                         <div class="linha-resumo">
                             <span>Total de entregas</span>
-                            <span id="total-entregas">R$ 0,00</span> <!-- Ajuste 4: Frete zerado -->
+                            <span id="total-entregas">R$ 0,00</span>
                         </div>
                         <div class="linha-resumo desconto hidden" id="linha-desconto-global">
                             <span>Desconto</span>
@@ -107,9 +107,10 @@
             if (data.escopo === "local" && data.lojaId !== lojaId) { alert("Cupom não válido para esta loja."); return null; }
             if (data.usuariosQueUsaram && data.usuariosQueUsaram.includes(user.uid)) { alert("Você já usou este cupom."); return null; }
             if (data.validadeTipo === "usos" && data.usosAtuais >= parseInt(data.validade)) { alert("Cupom esgotado."); return null; }
+            
             if (data.validadeTipo === "tempo") {
                 const diffMinutos = (agora - data.dataCriacao.toDate()) / (1000 * 60);
-                if (diffMinutos > parseInt(data.validade)) { alert("Cupom expirado por tempo."); return null; }
+                if (diffMinutos > parseInt(data.validade)) { alert("Cupom expirado."); return null; }
             }
 
             return { id: cupomDoc.id, ...data };
@@ -160,7 +161,6 @@
                 const itens = lojas[lid];
                 let subtotalLoja = itens.reduce((acc, i) => acc + (i.preco * i.quantidade), 0);
 
-                // Segundo erro corrigido: itens[0].nomeLoja garante o nome dinâmico da loja
                 let h = `<div class="card-loja-carrinho">
                     <div class="header-loja-carrinho">
                         <i class="fa-solid fa-store"></i> 
@@ -183,12 +183,14 @@
                     </div>`;
                 });
 
-                // Terceiro erro: Campo de cupom e subtotal da loja ao lado direito
                 h += `</div>
                     <div class="footer-loja-carrinho">
-                        <div class="campo-cupom-loja">
-                            <input type="text" placeholder="Cupom da loja" id="cupom-${lid}">
-                            <button class="btn-aplicar-loja">Aplicar</button>
+                        <div class="cupom-loja-area">
+                            <label>Cupom da Loja</label>
+                            <div class="input-group">
+                                <input type="text" id="cupom-${lid}" placeholder="Código da loja">
+                                <button class="btn-aplicar" onclick="window.aplicarCupomLocal('${lid}')">Aplicar</button>
+                            </div>
                         </div>
                         <div class="subtotal-loja-container">
                             <span class="label-sub">Subtotal Loja</span>
@@ -203,8 +205,7 @@
 
         function calcular(itens, nLojas) {
             const sub = itens.reduce((acc, i) => acc + (i.preco * i.quantidade), 0);
-            // Quarto erro: Frete zerado para implementação futura
-            const frete = 0; 
+            const frete = 0; // Frete zerado para futura implementação
             let desc = 0;
 
             if (cupomAtivo) {
@@ -217,6 +218,15 @@
             document.getElementById('total-entregas').innerText = frete === 0 ? "Grátis" : `R$ ${frete.toFixed(2)}`;
             document.getElementById('valor-total-final').innerText = `R$ ${(sub + frete - desc).toFixed(2)}`;
         }
+
+        window.aplicarCupomLocal = async (lojaId) => {
+            const input = document.getElementById(`cupom-${lojaId}`);
+            const validado = await validarCupom(input.value, lojaId);
+            if (validado) {
+                alert("Cupom da loja aplicado com sucesso!");
+                // Aqui você pode adicionar a lógica para aplicar o desconto apenas nesta loja
+            }
+        };
 
         document.getElementById('btn-finalizar').addEventListener('click', async () => {
             const user = auth.currentUser;
