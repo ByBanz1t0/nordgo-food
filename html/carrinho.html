@@ -23,7 +23,6 @@
     </header>
 
     <main class="container">
-        <!-- Carrinho Vazio -->
         <div id="carrinho-vazio" class="hidden">
             <div class="vazio-content">
                 <i class="fa-solid fa-cart-plus"></i>
@@ -34,22 +33,17 @@
         </div>
 
         <div id="conteudo-carrinho" class="carrinho-layout">
-            <!-- Coluna da Esquerda: Itens agrupados -->
-            <section class="coluna-itens" id="lista-lojas-carrinho">
-                <!-- Blocos de lojas e itens injetados aqui -->
-            </section>
+            <section class="coluna-itens" id="lista-lojas-carrinho"></section>
 
-            <!-- Coluna da Direita: Resumo Geral -->
             <aside class="coluna-resumo">
                 <div class="card-resumo">
                     <h3>Resumo Geral</h3>
                     
-                    <!-- Cupom da Plataforma -->
                     <div class="cupom-global-area">
                         <label>Cupom NordGo (Geral)</label>
                         <div class="input-group">
                             <input type="text" id="cupom-plataforma" placeholder="Código promocional">
-                            <button class="btn-aplicar">Aplicar</button>
+                            <button id="btn-aplicar-global" class="btn-aplicar">Aplicar</button>
                         </div>
                     </div>
 
@@ -63,7 +57,7 @@
                             <span id="total-entregas">R$ 0,00</span>
                         </div>
                         <div class="linha-resumo desconto hidden" id="linha-desconto-global">
-                            <span>Desconto Plataforma</span>
+                            <span>Desconto</span>
                             <span id="desconto-global">- R$ 0,00</span>
                         </div>
                         <hr>
@@ -73,9 +67,7 @@
                         </div>
                     </div>
 
-                    <button id="btn-finalizar" class="btn-finalizar-checkout">
-                        Finalizar Todos os Pedidos
-                    </button>
+                    <button id="btn-finalizar" class="btn-finalizar-checkout">Finalizar Pedido</button>
                 </div>
             </aside>
         </div>
@@ -83,106 +75,149 @@
 
     <script type="module">
         import { db, auth } from '../js/firebase-config.js';
-        import { collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
+        import { 
+            collection, addDoc, query, where, getDocs, limit, 
+            updateDoc, doc, increment, arrayUnion, serverTimestamp 
+        } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
 
         const listaLojasHtml = document.getElementById('lista-lojas-carrinho');
-        
-        // Função para agrupar itens por loja
-        function agruparPorLoja(itens) {
-            return itens.reduce((acc, item) => {
-                const lojaId = item.lojaId || 'outros';
-                if (!acc[lojaId]) acc[lojaId] = [];
-                acc[lojaId].push(item);
-                return acc;
-            }, {});
+        let cupomAtivo = null;
+
+        // --- LÓGICA DE CUPONS ---
+        async function validarCupom(codigo, lojaId = null) {
+            const user = auth.currentUser;
+            if (!user) { alert("Faça login para usar cupons."); return null; }
+
+            const q = query(collection(db, "cupons"), where("codigo", "==", codigo.toUpperCase()), where("ativo", "==", true), limit(1));
+            const snapshot = await getDocs(q);
+
+            if (snapshot.empty) { alert("Cupom inválido."); return null; }
+
+            const cupomDoc = snapshot.docs[0];
+            const data = cupomDoc.data();
+            const agora = new Date();
+
+            // Validação de Escopo
+            if (data.escopo === "local" && data.lojaId !== lojaId) { alert("Cupom não válido para esta loja."); return null; }
+            
+            // Validação de Uso Único
+            if (data.usuariosQueUsaram && data.usuariosQueUsaram.includes(user.uid)) { alert("Você já usou este cupom."); return null; }
+
+            // Validação de Limite (Usos ou Tempo)
+            if (data.validadeTipo === "usos" && data.usosAtuais >= parseInt(data.validade)) { alert("Cupom esgotado."); return null; }
+            if (data.validadeTipo === "tempo") {
+                const diffMinutos = (agora - data.dataCriacao.toDate()) / (1000 * 60);
+                if (diffMinutos > parseInt(data.validade)) { alert("Cupom expirado por tempo."); return null; }
+            }
+
+            return { id: cupomDoc.id, ...data };
         }
 
-        window.alterarQtd = function(produtoId, delta) {
-            let carrinho = JSON.parse(localStorage.getItem('nordgo_carrinho')) || [];
-            const index = carrinho.findIndex(p => p.id === produtoId);
-            
-            if (index !== -1) {
-                carrinho[index].quantidade += delta;
-                if (carrinho[index].quantidade <= 0) carrinho.splice(index, 1);
-                
-                localStorage.setItem('nordgo_carrinho', JSON.stringify(carrinho));
+        document.getElementById('btn-aplicar-global').addEventListener('click', async () => {
+            const codigo = document.getElementById('cupom-plataforma').value;
+            const validado = await validarCupom(codigo);
+            if (validado) {
+                cupomAtivo = validado;
+                alert(`Cupom ${codigo} aplicado!`);
+                carregarCarrinho();
+            }
+        });
+
+        // --- LÓGICA DO CARRINHO ---
+        window.alterarQtd = (id, delta) => {
+            let car = JSON.parse(localStorage.getItem('nordgo_carrinho')) || [];
+            const i = car.findIndex(p => p.id === id);
+            if (i !== -1) {
+                car[i].quantidade += delta;
+                if (car[i].quantidade <= 0) car.splice(i, 1);
+                localStorage.setItem('nordgo_carrinho', JSON.stringify(car));
                 carregarCarrinho();
             }
         };
 
         function carregarCarrinho() {
             const itens = JSON.parse(localStorage.getItem('nordgo_carrinho')) || [];
-            
             if (itens.length === 0) {
                 document.getElementById('carrinho-vazio').classList.remove('hidden');
                 document.getElementById('conteudo-carrinho').classList.add('hidden');
                 return;
             }
-
-            document.getElementById('carrinho-vazio').classList.add('hidden');
-            document.getElementById('conteudo-carrinho').classList.remove('hidden');
-
-            const lojasAgrupadas = agruparPorLoja(itens);
-            renderizarLojas(lojasAgrupadas);
-            calcularTotaisGerais(itens, Object.keys(lojasAgrupadas).length);
+            const agrupados = itens.reduce((acc, item) => {
+                const lid = item.lojaId || 'outros';
+                if (!acc[lid]) acc[lid] = [];
+                acc[lid].push(item);
+                return acc;
+            }, {});
+            renderizar(agrupados);
+            calcular(itens, Object.keys(agrupados).length);
         }
 
-        function renderizarLojas(lojas) {
+        function renderizar(lojas) {
             listaLojasHtml.innerHTML = '';
-            
-            for (const lojaId in lojas) {
-                const itensDaLoja = lojas[lojaId];
-                const nomeLoja = itensDaLoja[0].nomeLoja || "Loja"; // Ideal ter o nome da loja no objeto do item
-
-                let htmlLoja = `
-                    <div class="card-loja-carrinho" data-loja-id="${lojaId}">
-                        <div class="header-loja-carrinho">
-                            <i class="fa-solid fa-store"></i>
-                            <span>${nomeLoja}</span>
+            for (const lid in lojas) {
+                const itens = lojas[lid];
+                let h = `<div class="card-loja-carrinho">
+                    <div class="header-loja-carrinho"><i class="fa-solid fa-store"></i> <span>${itens[0].nomeLoja || 'Loja'}</span></div>`;
+                itens.forEach(item => {
+                    h += `<div class="item-carrinho-simples">
+                        <img src="${item.imagem || '../assets/images/placeholder.png'}">
+                        <div class="info-item"><h4>${item.nome}</h4><span>R$ ${item.preco.toFixed(2)}</span></div>
+                        <div class="controles-qtd-carrinho">
+                            <button onclick="alterarQtd('${item.id}', -1)"><i class="fa-solid fa-minus"></i></button>
+                            <span>${item.quantidade}</span>
+                            <button onclick="alterarQtd('${item.id}', 1)"><i class="fa-solid fa-plus"></i></button>
                         </div>
-                        <div class="lista-produtos-loja">
-                `;
-
-                itensDaLoja.forEach(item => {
-                    htmlLoja += `
-                        <div class="item-carrinho-simples">
-                            <img src="${item.imagem || '../assets/images/placeholder.png'}" alt="${item.nome}">
-                            <div class="info-item">
-                                <h4>${item.nome}</h4>
-                                <span class="preco-unitario">R$ ${item.preco.toLocaleString('pt-br', {minimumFractionDigits: 2})}</span>
-                            </div>
-                            <div class="controles-qtd-carrinho">
-                                <button onclick="alterarQtd('${item.id}', -1)"><i class="fa-solid fa-minus"></i></button>
-                                <span>${item.quantidade}</span>
-                                <button onclick="alterarQtd('${item.id}', 1)"><i class="fa-solid fa-plus"></i></button>
-                            </div>
-                        </div>
-                    `;
+                    </div>`;
                 });
-
-                // Campo de Cupom específico da Loja
-                htmlLoja += `
-                        </div>
-                        <div class="cupom-loja-area">
-                            <input type="text" placeholder="Cupom da ${nomeLoja}" class="input-cupom-loja">
-                            <button class="btn-link-aplicar">Aplicar</button>
-                        </div>
-                    </div>
-                `;
-                
-                listaLojasHtml.innerHTML += htmlLoja;
+                h += `</div>`;
+                listaLojasHtml.innerHTML += h;
             }
         }
 
-        function calcularTotaisGerais(itens, qtdLojas) {
-            const subtotal = itens.reduce((acc, item) => acc + (item.preco * item.quantidade), 0);
-            const taxaPorLoja = 5.00; // Aqui você pode buscar a taxa real de cada loja no futuro
-            const totalEntrega = qtdLojas * taxaPorLoja;
+        function calcular(itens, nLojas) {
+            const sub = itens.reduce((acc, i) => acc + (i.preco * i.quantidade), 0);
+            const frete = nLojas * 5.00;
+            let desc = 0;
 
-            document.getElementById('subtotal-geral').innerText = `R$ ${subtotal.toLocaleString('pt-br', {minimumFractionDigits: 2})}`;
-            document.getElementById('total-entregas').innerText = `R$ ${totalEntrega.toLocaleString('pt-br', {minimumFractionDigits: 2})}`;
-            document.getElementById('valor-total-final').innerText = `R$ ${(subtotal + totalEntrega).toLocaleString('pt-br', {minimumFractionDigits: 2})}`;
+            if (cupomAtivo) {
+                desc = cupomAtivo.tipo === "porcentagem" ? (sub * cupomAtivo.valor / 100) : cupomAtivo.valor;
+                document.getElementById('linha-desconto-global').classList.remove('hidden');
+                document.getElementById('desconto-global').innerText = `- R$ ${desc.toFixed(2)}`;
+            }
+
+            document.getElementById('subtotal-geral').innerText = `R$ ${sub.toFixed(2)}`;
+            document.getElementById('total-entregas').innerText = `R$ ${frete.toFixed(2)}`;
+            document.getElementById('valor-total-final').innerText = `R$ ${(sub + frete - desc).toFixed(2)}`;
         }
+
+        // --- FINALIZAÇÃO ---
+        document.getElementById('btn-finalizar').addEventListener('click', async () => {
+            const user = auth.currentUser;
+            const itens = JSON.parse(localStorage.getItem('nordgo_carrinho')) || [];
+            if (!user || itens.length === 0) return;
+
+            try {
+                // Aqui você pode fazer um loop para criar um pedido por loja se preferir
+                await addDoc(collection(db, "pedidos"), {
+                    clientId: user.uid,
+                    itens: itens,
+                    status: "pendente",
+                    data: serverTimestamp(),
+                    total: parseFloat(document.getElementById('valor-total-final').innerText.replace('R$ ', ''))
+                });
+
+                if (cupomAtivo) {
+                    await updateDoc(doc(db, "cupons", cupomAtivo.id), {
+                        usosAtuais: increment(1),
+                        usuariosQueUsaram: arrayUnion(user.uid)
+                    });
+                }
+
+                localStorage.removeItem('nordgo_carrinho');
+                alert("Pedido realizado com sucesso!");
+                window.location.href = "../index.html";
+            } catch (err) { console.error(err); }
+        });
 
         carregarCarrinho();
     </script>
