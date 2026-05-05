@@ -66,13 +66,13 @@
 
     <script type="module">
         import { db, auth } from '../js/firebase-config.js';
+        import { collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
 
         const listaItensHtml = document.getElementById('lista-itens-carrinho');
         const subtotalHtml = document.getElementById('subtotal');
         const totalGeralHtml = document.getElementById('total-geral');
         const taxaEntrega = 5.00;
 
-        // Torna a função global para os botões inline (+ e -)
         window.alterarQtd = function(index, delta) {
             let carrinho = JSON.parse(localStorage.getItem('nordgo_carrinho')) || [];
             
@@ -130,19 +130,67 @@
 
         function calcularTotais(itens) {
             const subtotal = itens.reduce((acc, item) => acc + (item.preco * item.quantidade), 0);
-            const total = subtotal + taxaEntrega;
-            
-            subtotalHtml.innerText = `R$ ${subtotal.toLocaleString('pt-br', {minimumFractionDigits: 2})}`;
-            totalGeralHtml.innerText = `R$ ${total.toLocaleString('pt-br', {minimumFractionDigits: 2})}`;
+            return {
+                subtotal: subtotal,
+                total: subtotal + taxaEntrega
+            };
         }
 
-        document.getElementById('btn-finalizar').addEventListener('click', () => {
-            // Lógica para o próximo passo (WhatsApp ou Checkout Firebase)
-            console.log("Iniciando finalização do pedido...");
+        // Atualiza a UI dos totais
+        function atualizarInterfaceTotais() {
+            const itens = JSON.parse(localStorage.getItem('nordgo_carrinho')) || [];
+            const valores = calcularTotais(itens);
+            subtotalHtml.innerText = `R$ ${valores.subtotal.toLocaleString('pt-br', {minimumFractionDigits: 2})}`;
+            totalGeralHtml.innerText = `R$ ${valores.total.toLocaleString('pt-br', {minimumFractionDigits: 2})}`;
+        }
+
+        document.getElementById('btn-finalizar').addEventListener('click', async () => {
+            const user = auth.currentUser;
+            const itensDoCarrinho = JSON.parse(localStorage.getItem('nordgo_carrinho')) || [];
+
+            if (!user) {
+                alert("Por favor, faça login para finalizar o pedido.");
+                return;
+            }
+
+            if (itensDoCarrinho.length === 0) {
+                alert("Seu carrinho está vazio.");
+                return;
+            }
+
+            const valores = calcularTotais(itensDoCarrinho);
+
+            // Mapeando itens para o formato de objetos (Maps) conforme image_e3fa7f.png
+            const itensFormatados = itensDoCarrinho.map(item => ({
+                nome: item.nome,
+                preco: item.preco,
+                quantidade: item.quantidade
+            }));
+
+            const dadosPedido = {
+                clientId: user.uid,
+                data: serverTimestamp(), // Gera a data conforme image_e3fe45.png
+                endereco: "Endereço Padrão", // Substituir por campo de input futuramente
+                itens: itensFormatados,
+                lojaId: itensDoCarrinho[0].lojaId || "",
+                status: "pendente",
+                total: valores.total
+            };
+
+            try {
+                const docRef = await addDoc(collection(db, "pedidos"), dadosPedido);
+                localStorage.removeItem('nordgo_carrinho');
+                alert("Pedido realizado com sucesso!");
+                window.location.href = "../index.html"; 
+            } catch (error) {
+                console.error("Erro ao salvar pedido:", error);
+                alert("Erro ao processar o pedido. Tente novamente.");
+            }
         });
 
         // Inicializa ao carregar a página
         carregarCarrinho();
+        atualizarInterfaceTotais();
     </script>
 </body>
 </html>
