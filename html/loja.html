@@ -77,7 +77,7 @@
         </div>
     </main>
 
-    <!-- CARRINHO FLUTUANTE (Padronizado) -->
+    <!-- CARRINHO FLUTUANTE -->
     <div id="floating-cart" class="carrinho-flutuante hidden" onclick="window.location.href='carrinho.html'">
         <div class="carrinho-info-esquerda">
             <span id="cart-count" class="badge-qtd-carrinho">0</span>
@@ -89,7 +89,6 @@
         </div>
     </div>
 
-    <!-- Script de auxílio do Carrinho -->
     <script type="module" src="../js/cart-helper.js"></script>
 
     <script type="module">
@@ -128,7 +127,6 @@
                 document.getElementById('loja-skeleton').style.display = 'none';
                 document.getElementById('loja-content').classList.remove('hidden');
                 
-                // Inicializa o estado do carrinho
                 atualizarCarrinhoFlutuante();
 
             } catch (error) { 
@@ -165,6 +163,7 @@
             listaMaisPedidos.innerHTML = "";
             cardapioAgrupado.innerHTML = "";
 
+            // Renderização Mais Pedidos
             const maisPedidos = produtos.filter(p => p.destaque === true);
             if (maisPedidos.length > 0) {
                 containerMaisPedidos.classList.remove('hidden');
@@ -180,13 +179,17 @@
                             </div>
                             <div class="prod-info-h">
                                 <h4>${p.nome}</h4>
-                                <span class="preco">R$ ${p.preco.toLocaleString('pt-br', {minimumFractionDigits: 2})}</span>
+                                <div class="preco-e-add-horizontal">
+                                    <span class="preco">R$ ${p.preco.toLocaleString('pt-br', {minimumFractionDigits: 2})}</span>
+                                    ${!indisponivel ? `<button class="btn-add-simples"><i class="fa-solid fa-plus"></i></button>` : ''}
+                                </div>
                             </div>
                         </div>
                     `;
                 });
             }
 
+            // Agrupamento por Categorias
             const categorias = {};
             produtos.forEach(p => {
                 const cat = p.categoria || "Outros";
@@ -214,7 +217,10 @@
                             <div class="prod-detalhes">
                                 <h3>${p.nome}</h3>
                                 <p>${p.descricao || ''}</p>
-                                <span class="preco">R$ ${p.preco.toLocaleString('pt-br', {minimumFractionDigits: 2})}</span>
+                                <div class="preco-e-add">
+                                    <span class="preco">R$ ${p.preco.toLocaleString('pt-br', {minimumFractionDigits: 2})}</span>
+                                    ${!indisponivel ? `<button class="btn-add-carrinho"><i class="fa-solid fa-plus"></i> Adicionar</button>` : ''}
+                                </div>
                                 ${indisponivel ? '<span class="txt-esgotado">Esgotado no momento</span>' : ''}
                             </div>
                             <div class="prod-img-box">
