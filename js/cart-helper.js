@@ -5,11 +5,11 @@ import { auth, mostrarNotificacao } from './firebase-config.js';
  * Gerencia o localStorage e o Carrinho Flutuante
  */
 
-// 1. Função para adicionar produtos (Chamada no onclick dos botões no index e loja)
-window.adicionarAoCarrinho = function(id, nome, preco, imagem, lojaId) {
+// 1. Função para adicionar produtos (Agora recebendo nomeLoja para correção visual no carrinho)
+window.adicionarAoCarrinho = function(id, nome, preco, imagem, lojaId, nomeLoja) {
     let carrinho = JSON.parse(localStorage.getItem('nordgo_carrinho')) || [];
     
-    // Verifica se já existe um item de OUTRA loja (opcional: limpar ou avisar)
+    // Verifica se já existe um item de OUTRA loja
     if (carrinho.length > 0 && carrinho[0].lojaId !== lojaId) {
         if (confirm("Seu carrinho possui itens de outra loja. Deseja limpar o carrinho atual para adicionar este produto?")) {
             carrinho = [];
@@ -29,13 +29,13 @@ window.adicionarAoCarrinho = function(id, nome, preco, imagem, lojaId) {
             preco: parseFloat(preco), 
             imagem, 
             lojaId, 
+            nomeLoja: nomeLoja || 'Loja', // Salva o nome da loja no objeto do item
             quantidade: 1 
         });
     }
 
     localStorage.setItem('nordgo_carrinho', JSON.stringify(carrinho));
     
-    // Usa a função que você já tem no seu firebase-config.js
     mostrarNotificacao(`${nome} adicionado ao carrinho!`, 'success');
     
     atualizarCarrinhoFlutuante();
@@ -65,7 +65,6 @@ export function atualizarCarrinhoFlutuante() {
 
 // 3. Inicialização automática ao carregar qualquer página
 document.addEventListener('DOMContentLoaded', () => {
-    // Insere o HTML do carrinho flutuante dinamicamente se não existir
     if (!document.getElementById('floating-cart')) {
         const cartHTML = `
             <div id="floating-cart" class="floating-cart hidden">
