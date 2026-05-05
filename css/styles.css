@@ -180,15 +180,13 @@ body {
 }
 
 /* ============================================================
-    CARRINHO E RESUMO DO PEDIDO
-   ============================================================ */
-/* ============================================================
     BOTÃO ADICIONAR E CARRINHO FLUTUANTE
    ============================================================ */
 
 /* 1. Botão de Adicionar (nos Cards de Produto) */
 .btn-add-carrinho {
-    background-color: #ff4757; /* Vermelho NordGo */
+    display: flex !important; /* Força a exibição caso haja conflito */
+    background-color: #ff4757;
     color: white;
     border: none;
     padding: 0.5rem 1rem;
@@ -196,11 +194,11 @@ body {
     font-size: 0.85rem;
     font-weight: 600;
     cursor: pointer;
-    display: flex;
     align-items: center;
     gap: 0.5rem;
     transition: all 0.2s ease;
     box-shadow: 0 2px 6px rgba(255, 71, 87, 0.2);
+    margin-top: 0.5rem;
 }
 
 .btn-add-carrinho:hover {
@@ -213,40 +211,36 @@ body {
     transform: scale(0.95);
 }
 
-.btn-add-carrinho i {
-    font-size: 0.9rem;
-}
-
-/* 2. Carrinho Flutuante (Fixado na parte inferior) */
+/* 2. Carrinho Flutuante (Barra Inferior) */
 .carrinho-flutuante {
     position: fixed;
     bottom: 1.5rem;
     left: 50%;
     transform: translateX(-50%);
     width: 90%;
-    max-width: 31.25rem; /* ~500px */
-    background-color: #2ed573; /* Verde para destacar sucesso/compra */
+    max-width: 31.25rem;
+    background-color: #2ed573;
     color: white;
     padding: 1rem 1.5rem;
     border-radius: 1rem;
-    display: flex;
+    display: flex; /* Garante que o container seja flex */
     justify-content: space-between;
     align-items: center;
-    z-index: 1000;
+    z-index: 9999; /* Aumentado para garantir sobreposição */
     cursor: pointer;
     box-shadow: 0 0.5rem 1.5rem rgba(46, 213, 115, 0.3);
-    animation: slideUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);[cite: 1]
+    animation: slideUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
-.carrinho-flutuante:hover {
-    background-color: #26af5e;
+/* Esconde apenas se a classe .hidden for adicionada via JS */
+.carrinho-flutuante.hidden {
+    display: none !important;
 }
 
-/* Informações dentro do carrinho flutuante */
 .carrinho-info-esquerda {
     display: flex;
     align-items: center;
-    gap: 1rem;[cite: 1]
+    gap: 1rem;
 }
 
 .badge-qtd-carrinho {
@@ -254,198 +248,18 @@ body {
     padding: 0.25rem 0.6rem;
     border-radius: 0.5rem;
     font-weight: 700;
-    font-size: 0.9rem;[cite: 1]
+    font-size: 0.9rem;
 }
 
-.carrinho-texto {
-    font-weight: 600;
-    font-size: 1rem;[cite: 1]
-}
+/* ============================================================
+    LAYOUT DA PÁGINA DE CARRINHO (GRID E ITENS)
+   ============================================================ */
 
-.carrinho-valor-total {
-    font-weight: 700;
-    font-size: 1.1rem;[cite: 1]
-}
-
-/* Animação para aparecer de baixo */
-@keyframes slideUp {
-    from {
-        bottom: -5rem;
-        opacity: 0;
-    }
-    to {
-        bottom: 1.5rem;
-        opacity: 1;
-    }
-}
-
-/* Esconder o carrinho flutuante quando estiver vazio (via JS controlando a classe) */
-.carrinho-flutuante.hidden {
-    display: none !important;[cite: 1]
-}
-
-/* Ajuste para não cobrir o conteúdo do rodapé em telas mobile */
-@media (max-width: 48rem) {
-    .carrinho-flutuante {
-        bottom: 1rem;
-        width: 95%;
-        padding: 0.875rem 1.25rem;[cite: 1]
-    }
-}
-
-/* Layout em Grid: Itens à esquerda, Resumo à direita */
-.carrinho-grid {
-    display: grid;
-    grid-template-columns: 1fr 22rem; /* Coluna do resumo com largura fixa */
-    gap: 2rem;
-    margin-top: 2rem;
-}
-
-/* Container da lista de itens */
-.itens-carrinho {
-    background: #fff;
-    border-radius: 0.75rem;
-    padding: 1.5rem;
-    box-shadow: 0 0.25rem 0.625rem rgba(0,0,0,0.05);[cite: 1]
-}
-
-/* Estilo de cada item individual no carrinho */
-.item-no-carrinho {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    padding: 1rem 0;
-    border-bottom: 0.0625rem solid #eee;[cite: 1]
-}
-
-.item-no-carrinho:last-child {
-    border-bottom: none;[cite: 1]
-}
-
-/* Imagem do produto no carrinho */
-.img-item-carrinho {
-    width: 5rem;
-    height: 5rem;
-    border-radius: 0.5rem;
-    object-fit: cover;[cite: 1]
-}
-
-.detalhes-item {
-    flex: 1;
-}
-
-.detalhes-item h4 {
-    font-size: 1.1rem;
-    color: #2f3542;
-    margin-bottom: 0.25rem;[cite: 1]
-}
-
-.detalhes-item p {
-    color: #2ed573; /* Verde para o preço */
-    font-weight: 600;[cite: 1]
-}
-
-/* Controles de Quantidade (+ / -) */
-.controles-quantidade {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;[cite: 1]
-}
-
-.btn-qtd {
-    background: #f1f2f6;
-    border: none;
-    width: 2rem;
-    height: 2rem;
-    border-radius: 50%;
-    cursor: pointer;
-    transition: 0.2s;
-    display: flex;
-    align-items: center;
-    justify-content: center;[cite: 1]
-}
-
-.btn-qtd:hover {
-    background: #dfe4ea;[cite: 1]
-}
-
-/* Card de Resumo do Pedido (Sticky para acompanhar o scroll) */
-.resumo-pedido {
-    background: #fff;
-    padding: 1.5rem;
-    border-radius: 0.75rem;
-    height: fit-content;
-    position: sticky;
-    top: 6rem; /* Fica fixo abaixo do header ao rolar */
-    box-shadow: 0 0.25rem 0.625rem rgba(0,0,0,0.05);[cite: 1]
-}
-
-.resumo-linha {
-    display: flex;
-    justify-content: space-between;
-    margin: 0.75rem 0;
-    color: #57606f;[cite: 1]
-}
-
-.resumo-linha.total {
-    font-size: 1.25rem;
-    font-weight: 600;
-    color: #2f3542;
-    margin-top: 1rem;
-    padding-top: 1rem;
-    border-top: 1px solid #eee;[cite: 1]
-}
-
-/* Botões de Ação Final */
-.btn-finalizar {
-    width: 100%;
-    background: #ff4757; /* Vermelho NordGo */
-    color: white;
-    border: none;
-    padding: 1rem;
-    border-radius: 0.5rem;
-    font-weight: 600;
-    font-size: 1rem;
-    margin-top: 1.5rem;
-    cursor: pointer;
-    transition: 0.3s;[cite: 1]
-}
-
-.btn-finalizar:hover {
-    background: #e84118;
-    transform: translateY(-2px);[cite: 1]
-}
-
-.btn-continuar {
-    display: block;
-    text-align: center;
-    margin-top: 1rem;
-    color: #747d8c;
-    text-decoration: none;
-    font-size: 0.9rem;[cite: 1]
-}
-
-/* Responsividade do Carrinho */
-@media (max-width: 48rem) {
-    .carrinho-grid {
-        grid-template-columns: 1fr; /* Empilha o resumo abaixo dos itens no mobile */
-    }
-    
-    .resumo-pedido {
-        position: static; /* Remove o sticky no mobile para não sobrepor */
-    }
-}
-
-/* --- Página de Carrinho --- */
 .carrinho-grid {
     display: grid;
     grid-template-columns: 1fr 22rem;
     gap: 2rem;
     margin-top: 2rem;
-}
-
-@media (max-width: 48rem) {
-    .carrinho-grid { grid-template-columns: 1fr; }
 }
 
 .itens-carrinho {
@@ -463,7 +277,9 @@ body {
     border-bottom: 0.0625rem solid #eee;
 }
 
-.item-no-carrinho:last-child { border-bottom: none; }
+.item-no-carrinho:last-child {
+    border-bottom: none;
+}
 
 .img-item-carrinho {
     width: 5rem;
@@ -472,10 +288,21 @@ body {
     object-fit: cover;
 }
 
-.detalhes-item { flex: 1; }
-.detalhes-item h4 { font-size: 1.1rem; color: #2f3542; }
-.detalhes-item p { color: #2ed573; font-weight: 600; }
+.detalhes-item {
+    flex: 1;
+}
 
+.detalhes-item h4 {
+    font-size: 1.1rem;
+    color: #2f3542;
+}
+
+.detalhes-item p {
+    color: #2ed573;
+    font-weight: 600;
+}
+
+/* Controles e Resumo */
 .controles-quantidade {
     display: flex;
     align-items: center;
@@ -489,12 +316,12 @@ body {
     height: 2rem;
     border-radius: 50%;
     cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     transition: 0.2s;
 }
 
-.btn-qtd:hover { background: #dfe4ea; }
-
-/* Resumo */
 .resumo-pedido {
     background: #fff;
     padding: 1.5rem;
@@ -505,18 +332,13 @@ body {
     box-shadow: 0 0.25rem 0.625rem rgba(0,0,0,0.05);
 }
 
-.resumo-linha {
-    display: flex;
-    justify-content: space-between;
-    margin: 0.75rem 0;
-    color: #57606f;
-}
-
 .resumo-linha.total {
     font-size: 1.25rem;
     font-weight: 600;
     color: #2f3542;
     margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid #eee;
 }
 
 .btn-finalizar {
@@ -527,18 +349,31 @@ body {
     padding: 1rem;
     border-radius: 0.5rem;
     font-weight: 600;
-    font-size: 1rem;
-    margin-top: 1.5rem;
     cursor: pointer;
+    margin-top: 1.5rem;
 }
 
-.btn-continuar {
-    display: block;
-    text-align: center;
-    margin-top: 1rem;
-    color: #747d8c;
-    text-decoration: none;
-    font-size: 0.9rem;
+/* ============================================================
+    ANIMAÇÕES E RESPONSIVIDADE
+   ============================================================ */
+
+@keyframes slideUp {
+    from { bottom: -5rem; opacity: 0; }
+    to { bottom: 1.5rem; opacity: 1; }
+}
+
+@media (max-width: 48rem) {
+    .carrinho-grid {
+        grid-template-columns: 1fr;
+    }
+    .resumo-pedido {
+        position: static;
+        margin-top: 1rem;
+    }
+    .carrinho-flutuante {
+        bottom: 1rem;
+        width: 95%;
+    }
 }
 
 /* ============================================================
