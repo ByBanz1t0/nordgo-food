@@ -98,6 +98,7 @@
 
         const params = new URLSearchParams(window.location.search);
         const lojaId = params.get('loja') || params.get('id'); 
+        let nomeLojaGlobal = ""; // Variável para armazenar o nome da loja
 
         if (!lojaId) { 
             window.location.href = '../index.html'; 
@@ -112,6 +113,7 @@
                 if (!lojaSnap.exists()) { window.location.href = '../index.html'; return; }
 
                 const loja = lojaSnap.data();
+                nomeLojaGlobal = loja.nome; // Define o nome da loja aqui
                 renderizarDadosLoja(loja);
 
                 const produtosRef = collection(db, "produtos");
@@ -169,7 +171,8 @@
                 containerMaisPedidos.classList.remove('hidden');
                 maisPedidos.forEach(p => {
                     const indisponivel = p.disponibilidade === false;
-                    const acaoClique = indisponivel ? "" : `onclick="adicionarAoCarrinho('${p.id}', '${p.nome}', ${p.preco}, '${p.imagem || ''}', '${lojaId}')"`;
+                    // ALTERAÇÃO: Adicionado nomeLojaGlobal como último argumento
+                    const acaoClique = indisponivel ? "" : `onclick="adicionarAoCarrinho('${p.id}', '${p.nome}', ${p.preco}, '${p.imagem || ''}', '${lojaId}', '${nomeLojaGlobal}')"`;
                     
                     listaMaisPedidos.innerHTML += `
                         <div class="produto-card-horizontal ${indisponivel ? 'prod-esgotado' : ''}" ${acaoClique}>
@@ -213,7 +216,8 @@
 
                 produtosDaCat.forEach(p => {
                     const indisponivel = p.disponibilidade === false;
-                    const acaoClique = indisponivel ? "" : `onclick="adicionarAoCarrinho('${p.id}', '${p.nome}', ${p.preco}, '${p.imagem || ''}', '${lojaId}')"`;
+                    // ALTERAÇÃO: Adicionado nomeLojaGlobal como último argumento
+                    const acaoClique = indisponivel ? "" : `onclick="adicionarAoCarrinho('${p.id}', '${p.nome}', ${p.preco}, '${p.imagem || ''}', '${lojaId}', '${nomeLojaGlobal}')"`;
 
                     htmlCategoria += `
                         <div class="produto-item-lista ${indisponivel ? 'prod-esgotado' : ''}" ${acaoClique}>
