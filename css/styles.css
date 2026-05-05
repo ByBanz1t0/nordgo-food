@@ -182,6 +182,154 @@ body {
 /* ============================================================
     CARRINHO
    ============================================================ */
+
+/* ============================================================
+    CARRINHO E RESUMO DO PEDIDO
+   ============================================================ */
+
+/* Layout em Grid: Itens à esquerda, Resumo à direita */
+.carrinho-grid {
+    display: grid;
+    grid-template-columns: 1fr 22rem; /* Coluna do resumo com largura fixa */
+    gap: 2rem;
+    margin-top: 2rem;
+}
+
+/* Container da lista de itens */
+.itens-carrinho {
+    background: #fff;
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    box-shadow: 0 0.25rem 0.625rem rgba(0,0,0,0.05);[cite: 1]
+}
+
+/* Estilo de cada item individual no carrinho */
+.item-no-carrinho {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 0;
+    border-bottom: 0.0625rem solid #eee;[cite: 1]
+}
+
+.item-no-carrinho:last-child {
+    border-bottom: none;[cite: 1]
+}
+
+/* Imagem do produto no carrinho */
+.img-item-carrinho {
+    width: 5rem;
+    height: 5rem;
+    border-radius: 0.5rem;
+    object-fit: cover;[cite: 1]
+}
+
+.detalhes-item {
+    flex: 1;
+}
+
+.detalhes-item h4 {
+    font-size: 1.1rem;
+    color: #2f3542;
+    margin-bottom: 0.25rem;[cite: 1]
+}
+
+.detalhes-item p {
+    color: #2ed573; /* Verde para o preço */
+    font-weight: 600;[cite: 1]
+}
+
+/* Controles de Quantidade (+ / -) */
+.controles-quantidade {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;[cite: 1]
+}
+
+.btn-qtd {
+    background: #f1f2f6;
+    border: none;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;[cite: 1]
+}
+
+.btn-qtd:hover {
+    background: #dfe4ea;[cite: 1]
+}
+
+/* Card de Resumo do Pedido (Sticky para acompanhar o scroll) */
+.resumo-pedido {
+    background: #fff;
+    padding: 1.5rem;
+    border-radius: 0.75rem;
+    height: fit-content;
+    position: sticky;
+    top: 6rem; /* Fica fixo abaixo do header ao rolar */
+    box-shadow: 0 0.25rem 0.625rem rgba(0,0,0,0.05);[cite: 1]
+}
+
+.resumo-linha {
+    display: flex;
+    justify-content: space-between;
+    margin: 0.75rem 0;
+    color: #57606f;[cite: 1]
+}
+
+.resumo-linha.total {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #2f3542;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid #eee;[cite: 1]
+}
+
+/* Botões de Ação Final */
+.btn-finalizar {
+    width: 100%;
+    background: #ff4757; /* Vermelho NordGo */
+    color: white;
+    border: none;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    font-size: 1rem;
+    margin-top: 1.5rem;
+    cursor: pointer;
+    transition: 0.3s;[cite: 1]
+}
+
+.btn-finalizar:hover {
+    background: #e84118;
+    transform: translateY(-2px);[cite: 1]
+}
+
+.btn-continuar {
+    display: block;
+    text-align: center;
+    margin-top: 1rem;
+    color: #747d8c;
+    text-decoration: none;
+    font-size: 0.9rem;[cite: 1]
+}
+
+/* Responsividade do Carrinho */
+@media (max-width: 48rem) {
+    .carrinho-grid {
+        grid-template-columns: 1fr; /* Empilha o resumo abaixo dos itens no mobile */
+    }
+    
+    .resumo-pedido {
+        position: static; /* Remove o sticky no mobile para não sobrepor */
+    }
+}
+
 /* --- Página de Carrinho --- */
 .carrinho-grid {
     display: grid;
