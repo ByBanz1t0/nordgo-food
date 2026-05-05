@@ -8,58 +8,75 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="../css/styles.css">
 </head>
-<body>
+<body class="body-carrinho">
     <div id="toast-container" class="toast-container"></div>
 
     <header class="main-header">
         <div class="header-container">
             <div class="header-left">
-                <a href="../index.html">
-                    <img src="../assets/images/nordgo-logo.png" alt="NordGo" class="main-logo">
-                </a>
-            </div>
-            <div class="header-right" id="user-area">
-                <!-- Área do usuário injetada via JS global -->
+                <button onclick="window.history.back()" class="btn-back-header">
+                    <i class="fa-solid fa-chevron-left"></i>
+                </button>
+                <h1 class="titulo-pagina">Meu Carrinho</h1>
             </div>
         </div>
     </header>
 
     <main class="container">
-        <div class="search-info">
-            <h2 class="section-title">Meu Carrinho</h2>
-        </div>
-
-        <!-- Mensagem exibida quando o localStorage está vazio -->
+        <!-- Carrinho Vazio -->
         <div id="carrinho-vazio" class="hidden">
-            <i class="fa-solid fa-cart-shopping" style="font-size: 4rem; color: #dfe4ea; display: block; margin-bottom: 1.5rem;"></i>
-            <h3>Seu carrinho está vazio</h3>
-            <p>Escolha seus produtos favoritos para continuar.</p>
-            <a href="../index.html" class="btn-voltar" style="margin-top: 1rem; display: inline-block;">Ver lojas</a>
+            <div class="vazio-content">
+                <i class="fa-solid fa-cart-plus"></i>
+                <h3>Seu carrinho está vazio</h3>
+                <p>Que tal explorar as delícias da região?</p>
+                <a href="../index.html" class="btn-primario">Explorar Lojas</a>
+            </div>
         </div>
 
-        <!-- Estrutura principal do carrinho -->
-        <div id="conteudo-carrinho" class="carrinho-grid">
-            <section class="itens-carrinho" id="lista-itens-carrinho">
-                <!-- Itens injetados dinamicamente -->
+        <div id="conteudo-carrinho" class="carrinho-layout">
+            <!-- Coluna da Esquerda: Itens agrupados -->
+            <section class="coluna-itens" id="lista-lojas-carrinho">
+                <!-- Blocos de lojas e itens injetados aqui -->
             </section>
 
-            <aside class="resumo-pedido">
-                <h3>Resumo do Pedido</h3>
-                <div class="resumo-linha">
-                    <span>Subtotal</span>
-                    <span id="subtotal">R$ 0,00</span>
+            <!-- Coluna da Direita: Resumo Geral -->
+            <aside class="coluna-resumo">
+                <div class="card-resumo">
+                    <h3>Resumo Geral</h3>
+                    
+                    <!-- Cupom da Plataforma -->
+                    <div class="cupom-global-area">
+                        <label>Cupom NordGo (Geral)</label>
+                        <div class="input-group">
+                            <input type="text" id="cupom-plataforma" placeholder="Código promocional">
+                            <button class="btn-aplicar">Aplicar</button>
+                        </div>
+                    </div>
+
+                    <div class="resumo-detalhes">
+                        <div class="linha-resumo">
+                            <span>Soma dos produtos</span>
+                            <span id="subtotal-geral">R$ 0,00</span>
+                        </div>
+                        <div class="linha-resumo">
+                            <span>Total de entregas</span>
+                            <span id="total-entregas">R$ 0,00</span>
+                        </div>
+                        <div class="linha-resumo desconto hidden" id="linha-desconto-global">
+                            <span>Desconto Plataforma</span>
+                            <span id="desconto-global">- R$ 0,00</span>
+                        </div>
+                        <hr>
+                        <div class="linha-resumo total">
+                            <span>Total a pagar</span>
+                            <span id="valor-total-final">R$ 0,00</span>
+                        </div>
+                    </div>
+
+                    <button id="btn-finalizar" class="btn-finalizar-checkout">
+                        Finalizar Todos os Pedidos
+                    </button>
                 </div>
-                <div class="resumo-linha">
-                    <span>Taxa de entrega</span>
-                    <span id="taxa-entrega">R$ 5,00</span>
-                </div>
-                <div class="resumo-linha total">
-                    <span>Total</span>
-                    <span id="total-geral">R$ 0,00</span>
-                </div>
-                
-                <button id="btn-finalizar" class="btn-finalizar">Finalizar Pedido</button>
-                <a href="javascript:history.back()" class="btn-continuar">Adicionar mais itens</a>
             </aside>
         </div>
     </main>
@@ -68,21 +85,26 @@
         import { db, auth } from '../js/firebase-config.js';
         import { collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
 
-        const listaItensHtml = document.getElementById('lista-itens-carrinho');
-        const subtotalHtml = document.getElementById('subtotal');
-        const totalGeralHtml = document.getElementById('total-geral');
-        const taxaEntrega = 5.00;
+        const listaLojasHtml = document.getElementById('lista-lojas-carrinho');
+        
+        // Função para agrupar itens por loja
+        function agruparPorLoja(itens) {
+            return itens.reduce((acc, item) => {
+                const lojaId = item.lojaId || 'outros';
+                if (!acc[lojaId]) acc[lojaId] = [];
+                acc[lojaId].push(item);
+                return acc;
+            }, {});
+        }
 
-        window.alterarQtd = function(index, delta) {
+        window.alterarQtd = function(produtoId, delta) {
             let carrinho = JSON.parse(localStorage.getItem('nordgo_carrinho')) || [];
+            const index = carrinho.findIndex(p => p.id === produtoId);
             
-            if (carrinho[index]) {
+            if (index !== -1) {
                 carrinho[index].quantidade += delta;
-
-                if (carrinho[index].quantidade <= 0) {
-                    carrinho.splice(index, 1);
-                }
-
+                if (carrinho[index].quantidade <= 0) carrinho.splice(index, 1);
+                
                 localStorage.setItem('nordgo_carrinho', JSON.stringify(carrinho));
                 carregarCarrinho();
             }
@@ -95,102 +117,74 @@
                 document.getElementById('carrinho-vazio').classList.remove('hidden');
                 document.getElementById('conteudo-carrinho').classList.add('hidden');
                 return;
-            } else {
-                document.getElementById('carrinho-vazio').classList.add('hidden');
-                document.getElementById('conteudo-carrinho').classList.remove('hidden');
             }
 
-            renderizarItens(itens);
-            calcularTotais(itens);
+            document.getElementById('carrinho-vazio').classList.add('hidden');
+            document.getElementById('conteudo-carrinho').classList.remove('hidden');
+
+            const lojasAgrupadas = agruparPorLoja(itens);
+            renderizarLojas(lojasAgrupadas);
+            calcularTotaisGerais(itens, Object.keys(lojasAgrupadas).length);
         }
 
-        function renderizarItens(itens) {
-            listaItensHtml.innerHTML = '';
-            itens.forEach((item, index) => {
-                listaItensHtml.innerHTML += `
-                    <div class="item-no-carrinho">
-                        <img src="${item.imagem || '../assets/images/placeholder.png'}" class="img-item-carrinho">
-                        <div class="detalhes-item">
-                            <h4>${item.nome}</h4>
-                            <p>R$ ${item.preco.toLocaleString('pt-br', {minimumFractionDigits: 2})}</p>
+        function renderizarLojas(lojas) {
+            listaLojasHtml.innerHTML = '';
+            
+            for (const lojaId in lojas) {
+                const itensDaLoja = lojas[lojaId];
+                const nomeLoja = itensDaLoja[0].nomeLoja || "Loja"; // Ideal ter o nome da loja no objeto do item
+
+                let htmlLoja = `
+                    <div class="card-loja-carrinho" data-loja-id="${lojaId}">
+                        <div class="header-loja-carrinho">
+                            <i class="fa-solid fa-store"></i>
+                            <span>${nomeLoja}</span>
                         </div>
-                        <div class="controles-quantidade">
-                            <button class="btn-qtd" onclick="alterarQtd(${index}, -1)">
-                                <i class="fa-solid fa-minus"></i>
-                            </button>
-                            <span>${item.quantidade}</span>
-                            <button class="btn-qtd" onclick="alterarQtd(${index}, 1)">
-                                <i class="fa-solid fa-plus"></i>
-                            </button>
+                        <div class="lista-produtos-loja">
+                `;
+
+                itensDaLoja.forEach(item => {
+                    htmlLoja += `
+                        <div class="item-carrinho-simples">
+                            <img src="${item.imagem || '../assets/images/placeholder.png'}" alt="${item.nome}">
+                            <div class="info-item">
+                                <h4>${item.nome}</h4>
+                                <span class="preco-unitario">R$ ${item.preco.toLocaleString('pt-br', {minimumFractionDigits: 2})}</span>
+                            </div>
+                            <div class="controles-qtd-carrinho">
+                                <button onclick="alterarQtd('${item.id}', -1)"><i class="fa-solid fa-minus"></i></button>
+                                <span>${item.quantidade}</span>
+                                <button onclick="alterarQtd('${item.id}', 1)"><i class="fa-solid fa-plus"></i></button>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                // Campo de Cupom específico da Loja
+                htmlLoja += `
+                        </div>
+                        <div class="cupom-loja-area">
+                            <input type="text" placeholder="Cupom da ${nomeLoja}" class="input-cupom-loja">
+                            <button class="btn-link-aplicar">Aplicar</button>
                         </div>
                     </div>
                 `;
-            });
+                
+                listaLojasHtml.innerHTML += htmlLoja;
+            }
         }
 
-        function calcularTotais(itens) {
+        function calcularTotaisGerais(itens, qtdLojas) {
             const subtotal = itens.reduce((acc, item) => acc + (item.preco * item.quantidade), 0);
-            return {
-                subtotal: subtotal,
-                total: subtotal + taxaEntrega
-            };
+            const taxaPorLoja = 5.00; // Aqui você pode buscar a taxa real de cada loja no futuro
+            const totalEntrega = qtdLojas * taxaPorLoja;
+
+            document.getElementById('subtotal-geral').innerText = `R$ ${subtotal.toLocaleString('pt-br', {minimumFractionDigits: 2})}`;
+            document.getElementById('total-entregas').innerText = `R$ ${totalEntrega.toLocaleString('pt-br', {minimumFractionDigits: 2})}`;
+            document.getElementById('valor-total-final').innerText = `R$ ${(subtotal + totalEntrega).toLocaleString('pt-br', {minimumFractionDigits: 2})}`;
         }
 
-        // Atualiza a UI dos totais
-        function atualizarInterfaceTotais() {
-            const itens = JSON.parse(localStorage.getItem('nordgo_carrinho')) || [];
-            const valores = calcularTotais(itens);
-            subtotalHtml.innerText = `R$ ${valores.subtotal.toLocaleString('pt-br', {minimumFractionDigits: 2})}`;
-            totalGeralHtml.innerText = `R$ ${valores.total.toLocaleString('pt-br', {minimumFractionDigits: 2})}`;
-        }
-
-        document.getElementById('btn-finalizar').addEventListener('click', async () => {
-            const user = auth.currentUser;
-            const itensDoCarrinho = JSON.parse(localStorage.getItem('nordgo_carrinho')) || [];
-
-            if (!user) {
-                alert("Por favor, faça login para finalizar o pedido.");
-                return;
-            }
-
-            if (itensDoCarrinho.length === 0) {
-                alert("Seu carrinho está vazio.");
-                return;
-            }
-
-            const valores = calcularTotais(itensDoCarrinho);
-
-            // Mapeando itens para o formato de objetos (Maps) conforme image_e3fa7f.png
-            const itensFormatados = itensDoCarrinho.map(item => ({
-                nome: item.nome,
-                preco: item.preco,
-                quantidade: item.quantidade
-            }));
-
-            const dadosPedido = {
-                clientId: user.uid,
-                data: serverTimestamp(), // Gera a data conforme image_e3fe45.png
-                endereco: "Endereço Padrão", // Substituir por campo de input futuramente
-                itens: itensFormatados,
-                lojaId: itensDoCarrinho[0].lojaId || "",
-                status: "pendente",
-                total: valores.total
-            };
-
-            try {
-                const docRef = await addDoc(collection(db, "pedidos"), dadosPedido);
-                localStorage.removeItem('nordgo_carrinho');
-                alert("Pedido realizado com sucesso!");
-                window.location.href = "../index.html"; 
-            } catch (error) {
-                console.error("Erro ao salvar pedido:", error);
-                alert("Erro ao processar o pedido. Tente novamente.");
-            }
-        });
-
-        // Inicializa ao carregar a página
         carregarCarrinho();
-        atualizarInterfaceTotais();
     </script>
 </body>
 </html>
