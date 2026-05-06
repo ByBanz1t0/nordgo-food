@@ -139,7 +139,8 @@
         function renderizarDadosLoja(loja) {
             document.title = `${loja.nome} | Nordgo Food`;
             document.getElementById('header-nome-loja').innerText = loja.nome;
-            document.getElementById('detalhe-nome-lo_ja').innerText = loja.nome;
+            // Correção do ID: removido o underscore indesejado
+            document.getElementById('detalhe-nome-loja').innerText = loja.nome; 
             document.getElementById('detalhe-categoria-loja').innerText = loja.categoria;
             document.getElementById('detalhe-descricao').innerText = loja.descricao || "";
             document.getElementById('detalhe-avaliacao').innerText = loja.avaliacao || "Novo";
