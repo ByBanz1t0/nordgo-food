@@ -6,7 +6,7 @@
     <title>NordGo | Sua Vitrine de Sabores</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Verifique se a pasta css está no mesmo diretório deste arquivo -->
+    <!-- O link abaixo carregará o CSS que você vai me enviar -->
     <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
@@ -14,19 +14,33 @@
     
     <header class="main-header">
         <div class="header-container">
+            <!-- LOGO E LOCALIZAÇÃO -->
             <div class="header-left">
-                <a href="index.html">
-                    <img src="assets/images/nordgo-logo.png" alt="NordGo" class="main-logo">
-                </a>
+                <div class="pill-badge pill-home">
+                    <a href="index.html" class="logo-link">
+                        <img src="assets/images/nordgo-logo.png" alt="NordGo" class="main-logo">
+                    </a>
+                    <span class="location-text">Home</span>
+                </div>
             </div>
+
+            <!-- BARRA DE PESQUISA -->
             <div class="header-center">
-                <div class="search-bar">
-                    <i class="fa-solid fa-magnifying-glass" style="margin-left: 10px; color: #999;"></i>
+                <div class="search-bar-wrapper">
+                    <i class="fa-solid fa-magnifying-glass"></i>
                     <input type="text" id="input-busca" placeholder="Busque por um estabelecimento...">
                 </div>
             </div>
+
+            <!-- ÁREA DO USUÁRIO -->
             <div class="header-right" id="user-area">
-                <div class="loading-small">...</div>
+                <div class="pill-badge pill-user">
+                    <div class="user-photo-placeholder">
+                        <i class="fa-solid fa-user"></i>
+                        <img id="user-photo" src="" alt="" class="hidden">
+                    </div>
+                    <span id="user-name">Carregando...</span>
+                </div>
             </div>
         </div>
     </header>
@@ -44,11 +58,7 @@
         <div id="lista-lojas" class="grid-lojas"></div>
     </main>
 
-    <!-- 
-        CARRINHO FLUTUANTE 
-        Ajustado para usar a classe 'carrinho-flutuante' definida no CSS.
-        A classe 'hidden' será removida pelo cart-helper.js quando houver itens.
-    -->
+    <!-- CARRINHO FLUTUANTE -->
     <div id="floating-cart" class="carrinho-flutuante hidden" onclick="window.location.href='html/carrinho.html'">
         <div class="carrinho-info-esquerda">
             <span id="cart-count" class="badge-qtd-carrinho">0</span>
@@ -65,7 +75,7 @@
     <script type="module" src="./js/cart-helper.js"></script>
 
     <script type="module">
-        import { auth, db, mostrarNotificacao } from './js/firebase-config.js';
+        import { auth, db } from './js/firebase-config.js';
         import { collection, getDocs, doc, getDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
         import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
         import { atualizarCarrinhoFlutuante } from './js/cart-helper.js';
@@ -76,9 +86,7 @@
         function injetarSkeletons() {
             const catContainer = document.getElementById('categorias-container');
             const lojasContainer = document.getElementById('lista-lojas');
-
             catContainer.innerHTML = Array(6).fill('<div class="skeleton skeleton-cat"></div>').join('');
-
             lojasContainer.innerHTML = Array(4).fill(`
                 <div class="skeleton-card">
                     <div class="skeleton skeleton-banner"></div>
@@ -101,21 +109,32 @@
 
         // Inicialização
         injetarSkeletons();
-        
-        // Chamada inicial para verificar o estado do carrinho no localStorage/DB
         atualizarCarrinhoFlutuante();
 
         onAuthStateChanged(auth, async (user) => {
+            const userNameElem = document.getElementById('user-name');
+            const userPhotoElem = document.getElementById('user-photo');
+
             if (user) {
                 try {
                     const userSnap = await getDoc(doc(db, "usuarios", user.uid));
                     if (userSnap.exists()) {
                         const dados = userSnap.data();
                         bairroUsuario = dados.bairro || dados.bairroCliente || "";
+                        
+                        // Atualiza a pílula do usuário
+                        userNameElem.innerText = `Olá, ${dados.nome.split(' ')[0]}`;
+                        if (dados.fotoUrl) {
+                            userPhotoElem.src = dados.fotoUrl;
+                            userPhotoElem.classList.remove('hidden');
+                            userPhotoElem.previousElementSibling.classList.add('hidden');
+                        }
                     }
                 } catch (e) {
-                    console.error("Erro ao obter bairro:", e);
+                    console.error("Erro ao obter dados do usuário:", e);
                 }
+            } else {
+                userNameElem.innerText = "Entrar";
             }
             renderizarCategorias();
             renderizarLojas();
@@ -153,7 +172,6 @@
                 let lojas = [];
                 querySnapshot.forEach(doc => lojas.push({ id: doc.id, ...doc.data() }));
 
-                // Ordenação por proximidade (Bairro)
                 lojas.sort((a, b) => {
                     const aPerto = a.bairroLoja?.trim().toLowerCase() === bairroUsuario?.trim().toLowerCase() && bairroUsuario !== "" ? 1 : 0;
                     const bPerto = b.bairroLoja?.trim().toLowerCase() === bairroUsuario?.trim().toLowerCase() && bairroUsuario !== "" ? 1 : 0;
