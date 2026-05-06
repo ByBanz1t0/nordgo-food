@@ -98,7 +98,7 @@
 
         const params = new URLSearchParams(window.location.search);
         const lojaId = params.get('loja') || params.get('id'); 
-        let nomeLojaGlobal = ""; // Variável para armazenar o nome da loja
+        let nomeLojaGlobal = ""; 
 
         if (!lojaId) { 
             window.location.href = '../index.html'; 
@@ -113,7 +113,7 @@
                 if (!lojaSnap.exists()) { window.location.href = '../index.html'; return; }
 
                 const loja = lojaSnap.data();
-                nomeLojaGlobal = loja.nome; // Define o nome da loja aqui
+                nomeLojaGlobal = loja.nome; 
                 renderizarDadosLoja(loja);
 
                 const produtosRef = collection(db, "produtos");
@@ -139,7 +139,7 @@
         function renderizarDadosLoja(loja) {
             document.title = `${loja.nome} | Nordgo Food`;
             document.getElementById('header-nome-loja').innerText = loja.nome;
-            document.getElementById('detalhe-nome-loja').innerText = loja.nome;
+            document.getElementById('detalhe-nome-lo_ja').innerText = loja.nome;
             document.getElementById('detalhe-categoria-loja').innerText = loja.categoria;
             document.getElementById('detalhe-descricao').innerText = loja.descricao || "";
             document.getElementById('detalhe-avaliacao').innerText = loja.avaliacao || "Novo";
@@ -165,17 +165,15 @@
             listaMaisPedidos.innerHTML = "";
             cardapioAgrupado.innerHTML = "";
 
-            // Renderização Mais Pedidos
+            // 1. Renderização Mais Pedidos (Horizontal)
             const maisPedidos = produtos.filter(p => p.destaque === true);
             if (maisPedidos.length > 0) {
                 containerMaisPedidos.classList.remove('hidden');
                 maisPedidos.forEach(p => {
                     const indisponivel = p.disponibilidade === false;
-                    // ALTERAÇÃO: Adicionado nomeLojaGlobal como último argumento
-                    const acaoClique = indisponivel ? "" : `onclick="adicionarAoCarrinho('${p.id}', '${p.nome}', ${p.preco}, '${p.imagem || ''}', '${lojaId}', '${nomeLojaGlobal}')"`;
                     
                     listaMaisPedidos.innerHTML += `
-                        <div class="produto-card-horizontal ${indisponivel ? 'prod-esgotado' : ''}" ${acaoClique}>
+                        <div class="produto-card-horizontal ${indisponivel ? 'prod-esgotado' : ''}">
                             <div class="img-wrapper">
                                 <img src="${p.imagem || '../assets/images/placeholder.png'}" alt="${p.nome}">
                                 ${indisponivel ? '<span class="badge-esgotado">Esgotado</span>' : ''}
@@ -185,8 +183,8 @@
                                 <div class="preco-e-add-horizontal">
                                     <span class="preco">R$ ${p.preco.toLocaleString('pt-br', {minimumFractionDigits: 2})}</span>
                                     ${!indisponivel ? `
-                                        <button class="btn-add-simples">
-                                            <i class="fa-solid fa-plus"></i>
+                                        <button class="btn-add-carrinho" onclick="adicionarAoCarrinho('${p.id}', '${p.nome}', ${p.preco}, '${p.imagem || ''}', '${lojaId}', '${nomeLojaGlobal}')">
+                                            <i class="fa-solid fa-plus"></i> Adicionar
                                         </button>` : ''}
                                 </div>
                             </div>
@@ -195,7 +193,7 @@
                 });
             }
 
-            // Agrupamento por Categorias
+            // 2. Agrupamento por Categorias (Vertical)
             const categorias = {};
             produtos.forEach(p => {
                 const cat = p.categoria || "Outros";
@@ -216,17 +214,18 @@
 
                 produtosDaCat.forEach(p => {
                     const indisponivel = p.disponibilidade === false;
-                    // ALTERAÇÃO: Adicionado nomeLojaGlobal como último argumento
-                    const acaoClique = indisponivel ? "" : `onclick="adicionarAoCarrinho('${p.id}', '${p.nome}', ${p.preco}, '${p.imagem || ''}', '${lojaId}', '${nomeLojaGlobal}')"`;
 
                     htmlCategoria += `
-                        <div class="produto-item-lista ${indisponivel ? 'prod-esgotado' : ''}" ${acaoClique}>
+                        <div class="produto-item-lista ${indisponivel ? 'prod-esgotado' : ''}">
                             <div class="prod-detalhes">
                                 <h3>${p.nome}</h3>
                                 <p>${p.descricao || ''}</p>
                                 <div class="preco-e-add">
                                     <span class="preco">R$ ${p.preco.toLocaleString('pt-br', {minimumFractionDigits: 2})}</span>
-                                    ${!indisponivel ? `<button class="btn-add-carrinho"><i class="fa-solid fa-plus"></i> Adicionar</button>` : ''}
+                                    ${!indisponivel ? `
+                                        <button class="btn-add-carrinho" onclick="adicionarAoCarrinho('${p.id}', '${p.nome}', ${p.preco}, '${p.imagem || ''}', '${lojaId}', '${nomeLojaGlobal}')">
+                                            <i class="fa-solid fa-plus"></i> Adicionar
+                                        </button>` : ''}
                                 </div>
                                 ${indisponivel ? '<span class="txt-esgotado">Esgotado no momento</span>' : ''}
                             </div>
