@@ -14,17 +14,24 @@
     <header class="main-header">
         <div class="header-container">
             <div class="header-left">
-                <a href="../index.html">
-                    <img src="../assets/images/nordgo-logo.png" alt="NordGo" class="main-logo">
-                </a>
-            </div>
-            <div class="header-center">
-                <div class="search-bar">
-                    <i class="fa-solid fa-magnifying-glass" style="margin-left: 10px; color: #999;"></i>
-                    <input type="text" id="input-busca-interna" placeholder="Pesquisar lojas ou produtos...">
+                <div class="pill-badge pill-back" onclick="history.back()">
+                    <img src="../assets/images/voltar.png" alt="Voltar" class="back-icon-img">
+                    <span class="location-text">Voltar</span>
                 </div>
             </div>
-            <div class="header-right" id="user-area"></div>
+
+            <div class="header-center">
+                <div class="search-bar-wrapper">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="text" id="input-busca" placeholder="Busque por um estabelecimento...">
+                </div>
+            </div>
+
+            <div id="user-area" class="header-right">
+                <div class="pill-badge" style="opacity: 0.5;">
+                    <span class="user-name-text">Carregando...</span>
+                </div>
+            </div>
         </div>
     </header>
 
@@ -37,19 +44,7 @@
         <div id="lista-resultados"></div>
     </main>
 
-    <!-- CARRINHO FLUTUANTE (Padronizado com o novo CSS) -->
-    <div id="floating-cart" class="carrinho-flutuante hidden" onclick="window.location.href='carrinho.html'">
-        <div class="carrinho-info-esquerda">
-            <span id="cart-count" class="badge-qtd-carrinho">0</span>
-            <span class="carrinho-texto">Ver Carrinho</span>
-        </div>
-        <div class="carrinho-info-direita">
-            <span id="cart-float-total" class="carrinho-valor-total">R$ 0,00</span>
-            <i class="fa-solid fa-chevron-right" style="margin-left: 10px; font-size: 0.8rem;"></i>
-        </div>
-    </div>
-
-    <!-- Scripts -->
+    <script type="module" src="../js/firebase-config.js"></script>
     <script type="module" src="../js/cart-helper.js"></script>
 
     <script type="module">
@@ -65,30 +60,15 @@
         const titulo = document.getElementById('titulo-pesquisa');
         const subtitulo = document.getElementById('subtitulo-pesquisa');
 
-        function injetarSkeletons() {
-            listaResultados.innerHTML = `
-                <div class="grid-lojas">
-                    ${Array(4).fill(`
-                        <div class="skeleton-card">
-                            <div class="skeleton skeleton-banner"></div>
-                            <div class="skeleton skeleton-text"></div>
-                            <div class="skeleton skeleton-text-sm"></div>
-                        </div>
-                    `).join('')}
-                </div>`;
-        }
-
-        const inputInterno = document.getElementById('input-busca-interna');
-        inputInterno.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter' && inputInterno.value.trim() !== "") {
-                window.location.href = `pesquisa.html?busca=${encodeURIComponent(inputInterno.value.trim())}`;
+        const inputBusca = document.getElementById('input-busca');
+        inputBusca.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && inputBusca.value.trim() !== "") {
+                window.location.href = `pesquisa.html?busca=${encodeURIComponent(inputBusca.value.trim())}`;
             }
         });
 
         async function executarBusca() {
-            injetarSkeletons();
             atualizarCarrinhoFlutuante();
-            
             try {
                 const [snapshotLojas, snapshotProdutos] = await Promise.all([
                     getDocs(collection(db, "lojas")),
@@ -108,24 +88,19 @@
 
                 if (catUrl) {
                     titulo.innerText = `Categoria: ${categoriaFiltro}`;
-                    const lFiltradas = lojas.filter(l => (l.categoria || "").toLowerCase().includes(catUrl));
-                    const pFiltrados = produtos.filter(p => (p.categoria || "").toLowerCase().includes(catUrl));
-                    resultadosFinais = [...lFiltradas, ...pFiltrados];
+                    resultadosFinais = [
+                        ...lojas.filter(l => (l.categoria || "").toLowerCase().includes(catUrl)),
+                        ...produtos.filter(p => (p.categoria || "").toLowerCase().includes(catUrl))
+                    ];
                 } else if (buscaUrl) {
                     titulo.innerText = `Buscando por: "${termoBusca}"`;
-                    const lFiltradas = lojas.filter(l => 
-                        (l.nome || "").toLowerCase().includes(buscaUrl) || 
-                        (l.categoria || "").toLowerCase().includes(buscaUrl)
-                    );
-                    const pFiltrados = produtos.filter(p => 
-                        (p.nome || "").toLowerCase().includes(buscaUrl) || 
-                        (p.categoria || "").toLowerCase().includes(buscaUrl)
-                    );
-                    resultadosFinais = [...lFiltradas, ...pFiltrados];
+                    inputBusca.value = termoBusca;
+                    resultadosFinais = [
+                        ...lojas.filter(l => (l.nome || "").toLowerCase().includes(buscaUrl) || (l.categoria || "").toLowerCase().includes(buscaUrl)),
+                        ...produtos.filter(p => (p.nome || "").toLowerCase().includes(buscaUrl) || (p.categoria || "").toLowerCase().includes(buscaUrl))
+                    ];
                 }
-
                 renderizarResultados(resultadosFinais);
-
             } catch (e) {
                 console.error("Erro na busca:", e);
                 listaResultados.innerHTML = "<p>Erro ao processar busca.</p>";
@@ -134,36 +109,35 @@
 
         function renderizarResultados(resultados) {
             listaResultados.innerHTML = "";
-            
             if (resultados.length === 0) {
                 listaResultados.innerHTML = "<p class='placeholder-text'>Nenhum resultado encontrado.</p>";
                 subtitulo.innerText = "Tente outros termos.";
                 return;
             }
 
-            const lojasOrdenadas = resultados
-                .filter(item => item.tipo === 'loja')
-                .sort((a, b) => (b.avaliacao || 0) - (a.avaliacao || 0));
+            const lojasOrdenadas = resultados.filter(item => item.tipo === 'loja');
+            const produtosOrdenados = resultados.filter(item => item.tipo === 'produto');
 
-            const produtosOrdenados = resultados
-                .filter(item => item.tipo === 'produto')
-                .sort((a, b) => (b.vendas || 0) - (a.vendas || 0));
-
+            // --- SEÇÃO DE LOJAS ---
             if (lojasOrdenadas.length > 0) {
                 const secaoLojas = document.createElement('div');
-                secaoLojas.innerHTML = `<h3 class="section-divider">Lojas em destaque</h3>`;
-                
+                secaoLojas.innerHTML = `<h3 class="section-divider">Lojas encontradas</h3>`;
                 const scrollContainer = document.createElement('div');
                 scrollContainer.className = 'horizontal-scroll-container';
                 
                 lojasOrdenadas.forEach(item => {
+                    // Validação para evitar strings vazias do Firebase
+                    const logoUrl = (item.logoLoja && item.logoLoja.trim() !== "") 
+                                    ? item.logoLoja 
+                                    : '../assets/images/default-loja.png';
+
                     scrollContainer.innerHTML += `
                         <div class="card-loja scroll-item" onclick="window.location.href='loja.html?loja=${item.id}'">
                             <div class="banner-loja" style="background-color: ${item.temaLoja || '#ff4757'}">
-                                <img src="${item.logoLoja || '../assets/images/default-store.png'}" class="logo-loja">
+                                <img src="${logoUrl}" class="logo-loja" alt="${item.nome}">
                             </div>
                             <div class="info-loja">
-                                <h3>${item.nome} <span class="badge-tipo">Loja</span></h3>
+                                <h3>${item.nome}</h3>
                                 <p><i class="fa-solid fa-star" style="color: #ffa502;"></i> ${item.avaliacao || '4.5'} • ${item.categoria}</p>
                             </div>
                         </div>`;
@@ -172,26 +146,38 @@
                 listaResultados.appendChild(secaoLojas);
             }
 
+            // --- SEÇÃO DE PRODUTOS ---
             if (produtosOrdenados.length > 0) {
                 const secaoProdutos = document.createElement('div');
-                secaoProdutos.innerHTML = `<h3 class="section-divider">Produtos mais pedidos</h3>`;
-                
+                secaoProdutos.innerHTML = `<h3 class="section-divider">Produtos encontrados</h3>`;
                 const gridProdutos = document.createElement('div');
                 gridProdutos.className = 'grid-lojas';
                 
                 produtosOrdenados.forEach(item => {
+                    // Validação de imagem do produto
+                    let imagemUrl = (item.imagem && item.imagem.trim() !== "") ? item.imagem : null;
+                    
+                    if (!imagemUrl) {
+                        // Lógica de fallback por categoria/slug
+                        if (item.categoria === "Doces & Bolos" || item.slugCategoria === "doces") {
+                            // Mantendo o nome com o erro de digitação identificado no seu arquivo
+                            imagemUrl = '../assets/images/default-doces.png'; 
+                        } else {
+                            imagemUrl = '../assets/images/placeholder.png';
+                        }
+                    }
+
                     const card = document.createElement('div');
                     card.className = 'card-loja produto-encontrado';
                     card.innerHTML = `
                         <div class="banner-loja" onclick="window.location.href='loja.html?loja=${item.lojaId}'">
-                            <img src="${item.imagem || '../assets/images/placeholder.png'}" class="logo-loja">
+                            <img src="${imagemUrl}" class="logo-loja" alt="${item.nome}">
                         </div>
                         <div class="info-loja">
                             <h3 onclick="window.location.href='loja.html?loja=${item.lojaId}'">${item.nome} <span class="badge-tipo prod">Produto</span></h3>
                             <p>${item.categoria} • <span class="preco-busca">R$ ${item.preco.toLocaleString('pt-br', {minimumFractionDigits: 2})}</span></p>
-                            <!-- Botão corrigido para a classe .btn-add-carrinho -->
-                            <button class="btn-add-carrinho" onclick="adicionarAoCarrinho('${item.id}', '${item.nome}', ${item.preco}, '${item.imagem}', '${item.lojaId}')">
-                                <i class="fa-solid fa-plus"></i> Adicionar
+                            <button class="btn-add-carrinho" onclick="adicionarAoCarrinho('${item.id}', '${item.nome}', ${item.preco}, '${imagemUrl}', '${item.lojaId}')">
+                                <i class="fa-solid fa-plus"></i><i class="fa-solid fa-cart-shopping"></i>
                             </button>
                         </div>`;
                     gridProdutos.appendChild(card);
@@ -199,7 +185,6 @@
                 secaoProdutos.appendChild(gridProdutos);
                 listaResultados.appendChild(secaoProdutos);
             }
-
             subtitulo.innerText = `Encontramos ${lojasOrdenadas.length} lojas e ${produtosOrdenados.length} produtos.`;
         }
 

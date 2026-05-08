@@ -2,7 +2,6 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/fireba
 import { getFirestore, doc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
 import { getAuth, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
 
-// Configuração do Firebase
 const firebaseConfig = {
     apiKey: "AIzaSyDt8z1zNvG43sgiUKwcGQCx79KRNq_5Cjc",
     authDomain: "nordgo-food.firebaseapp.com",
@@ -13,15 +12,13 @@ const firebaseConfig = {
     measurementId: "G-3SYYB0MCGY"
 };
 
-// Inicialização
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 const googleProvider = new GoogleAuthProvider();
 
 /**
- * LÓGICA DE REDIRECIONAMENTO INTELIGENTE
- * Garante que o lojista vá para a página correta: perfil-loja.html
+ * REDIRECIONAMENTO INTELIGENTE PARA LOJISTAS
  */
 window.irParaMinhaLoja = async function() {
     const user = auth.currentUser;
@@ -34,20 +31,14 @@ window.irParaMinhaLoja = async function() {
     }
 
     try {
-        // Busca o documento do usuário para verificar o vínculo com a loja
         const userSnap = await getDoc(doc(db, "usuarios", user.uid));
-        
         if (userSnap.exists()) {
             const userData = userSnap.data();
-            
-            // Verificamos se o campo 'loja' existe e redirecionamos para perfil-loja.html
             if (userData.loja && userData.loja.trim() !== "") {
                 window.location.href = `${pathPrefix}perfil-loja.html`;
             } else {
                 window.location.href = `${pathPrefix}login-loja.html`;
             }
-        } else {
-            window.location.href = `${pathPrefix}login-loja.html`;
         }
     } catch (e) {
         console.error("Erro ao redirecionar para loja:", e);
@@ -55,10 +46,10 @@ window.irParaMinhaLoja = async function() {
 };
 
 /**
- * Lógica Automática do Menu Superior
+ * MONITOR DE AUTENTICAÇÃO E CONSTRUÇÃO DO MENU
  */
 onAuthStateChanged(auth, async (user) => {
-    const headerRight = document.querySelector('.header-right') || document.getElementById('user-area');
+    const headerRight = document.getElementById('user-area') || document.querySelector('.header-right');
     if (!headerRight) return;
 
     const isRoot = window.location.pathname.includes('index.html') || window.location.pathname.endsWith('/');
@@ -68,19 +59,24 @@ onAuthStateChanged(auth, async (user) => {
         try {
             const userDoc = await getDoc(doc(db, "usuarios", user.uid));
             const userData = userDoc.data();
-            
             const nomeExibir = userData?.nome ? userData.nome.split(' ')[0] : "Usuário";
+            const fotoPerfil = userData?.fotoUrl || (isRoot ? 'assets/images/default-user.png' : '../assets/images/default-user.png');
             
-            // Define o link de "Minha Loja" apenas para usuários do tipo 'dono'
             const linkMinhaLoja = userData?.tipo === 'dono' 
-                ? `<a href="#" onclick="window.irParaMinhaLoja(); return false;"><i class="fa-solid fa-store"></i> Minha Loja</a>` 
+                ? `<a href="#" id="link-loja-global"><i class="fa-solid fa-store"></i> Minha Loja</a>` 
                 : '';
 
+            // Layout do Usuário Logado
             headerRight.innerHTML = `
                 <div class="user-menu-container">
-                    <span class="user-name-display">
-                        Olá, ${nomeExibir} <i class="fa-solid fa-chevron-down" style="font-size: 0.7rem;"></i>
-                    </span>
+                    <div class="pill-badge pill-user">
+                        <div class="user-photo-placeholder">
+                            <img src="${fotoPerfil}" alt="Perfil">
+                        </div>
+                        <span class="user-name-text">Olá, ${nomeExibir}</span>
+                        <i class="fa-solid fa-chevron-down icone-seta" style="font-size: 0.7rem; margin-left: 5px;"></i>
+                    </div>
+                    
                     <div class="dropdown-content">
                         <a href="${pathPrefix}perfil.html"><i class="fa-regular fa-user"></i> Meu Perfil</a>
                         ${linkMinhaLoja}
@@ -91,51 +87,52 @@ onAuthStateChanged(auth, async (user) => {
                 </div>
             `;
 
-            document.getElementById('btn-logout-global').onclick = async () => {
-                try {
-                    await signOut(auth);
-                    window.location.href = isRoot ? 'index.html' : '../index.html';
-                } catch (error) {
-                    console.error("Erro ao deslogar:", error);
+            // Atribuição de eventos após injetar o HTML
+            if (userData?.tipo === 'dono') {
+                const btnLoja = document.getElementById('link-loja-global');
+                if (btnLoja) {
+                    btnLoja.onclick = (e) => {
+                        e.preventDefault();
+                        window.irParaMinhaLoja();
+                    };
                 }
+            }
+
+            document.getElementById('btn-logout-global').onclick = async () => {
+                await signOut(auth);
+                window.location.href = isRoot ? 'index.html' : '../index.html';
             };
 
         } catch (error) {
-            console.error("Erro ao carregar menu do usuário:", error);
+            console.error("Erro ao carregar menu:", error);
         }
     } else {
+        // Layout do Usuário Deslogado (Limpo de estilos inline)
         const loginPath = isRoot ? 'html/login.html' : 'login.html';
         headerRight.innerHTML = `
-            <button onclick="window.location.href='${loginPath}'" class="btn-login">Entrar</button>
+            <button onclick="window.location.href='${loginPath}'" class="btn-login">
+                <i class="fa-solid fa-right-to-bracket"></i> Entrar
+            </button>
         `;
     }
 });
 
 /**
- * Função global para notificações (Toasts)
+ * UTILITÁRIO DE NOTIFICAÇÕES (TOASTS)
  */
 export function mostrarNotificacao(mensagem, tipo = 'success') {
     let container = document.getElementById('toast-container');
-    
     if (!container) {
         container = document.createElement('div');
         container.id = 'toast-container';
         container.className = 'toast-container';
         document.body.appendChild(container);
     }
-
     const toast = document.createElement('div');
     toast.className = `toast ${tipo}`;
-    
-    const icon = tipo === 'success' ? 'fa-check-circle' : 'fa-circle-exclamation';
-    
-    toast.innerHTML = `
-        <i class="fa-solid ${icon}"></i>
-        <span>${mensagem}</span>
-    `;
-
+    toast.innerHTML = `<i class="fa-solid ${tipo === 'success' ? 'fa-check-circle' : 'fa-circle-exclamation'}"></i><span>${mensagem}</span>`;
     container.appendChild(toast);
-
+    
     setTimeout(() => {
         toast.style.animation = 'fadeOut 0.5s ease-in forwards';
         setTimeout(() => toast.remove(), 500);

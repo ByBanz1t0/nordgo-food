@@ -14,33 +14,38 @@
     <header class="main-header">
         <div class="header-container">
             <div class="header-left">
-                <button onclick="window.location.href='../index.html'" class="btn-back">
-                    <i class="fa-solid fa-arrow-left"></i>
-                    <span>Voltar</span>
-                </button>
+                <div class="pill-badge pill-back" onclick="history.back()">
+                    <img src="../assets/images/voltar.png" alt="Voltar" class="back-icon-img">
+                    <span class="location-text" style="margin-left: 8px;">Voltar</span>
+                </div>
             </div>
+
             <div class="header-center">
-                <img src="../assets/images/nordgo-logo.png" alt="NordGo Food" class="main-logo" onclick="window.location.href='../index.html'">
+                <div class="pill-badge pill-page-title" style="cursor: default; background-color: #f5f5f5; border-color: #e2e2e2;">
+                    <span style="font-weight: 600; color: #333;">Meu Perfil</span>
+                </div>
             </div>
-            <div class="header-right" id="user-area"></div>
+
+            <div class="header-right" id="user-area">
+                <div class="user-loading-placeholder" style="height: 3rem; min-width: 120px;"></div>
+            </div>
         </div>
     </header>
 
     <main class="container">
         <div class="login-container profile-page">
             <header class="login-header">
-                <h2>Meu Perfil</h2>
+                <h2>Dados da Conta</h2>
                 <p>Gerencie suas informações de cliente</p>
             </header>
 
             <div class="perfil-info" id="perfil-form-container">
                 <div class="login-form">
-                    <!-- Dados Pessoais -->
                     <div class="form-section">
                         <h3><i class="fa-regular fa-id-card"></i> Identificação</h3>
                         
                         <label for="perfil-nome">Nome Completo</label>
-                        <input type="text" id="perfil-nome" placeholder="Seu nome" class="input-carregando">
+                        <input type="text" id="perfil-nome" placeholder="Seu nome">
 
                         <label for="perfil-email">E-mail</label>
                         <input type="email" id="perfil-email" readonly style="background: #eee; cursor: not-allowed;">
@@ -48,41 +53,40 @@
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="perfil-cpf">CPF</label>
-                                <input type="text" id="perfil-cpf" placeholder="000.000.000-00" maxlength="14" class="input-carregando">
+                                <input type="text" id="perfil-cpf" placeholder="000.000.000-00" maxlength="14">
                             </div>
                             <div class="form-group">
                                 <label for="perfil-telefone">Telefone</label>
-                                <input type="text" id="perfil-telefone" placeholder="(00) 00000-0000" maxlength="15" class="input-carregando">
+                                <input type="text" id="perfil-telefone" placeholder="(00) 00000-0000" maxlength="15">
                             </div>
                         </div>
                     </div>
 
-                    <!-- Endereço -->
                     <div class="form-section" style="margin-top: 20px;">
                         <h3><i class="fa-solid fa-location-dot"></i> Endereço de Entrega</h3>
                         
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="perfil-cep">CEP</label>
-                                <input type="text" id="perfil-cep" placeholder="00000-000" maxlength="9" class="input-carregando">
+                                <input type="text" id="perfil-cep" placeholder="00000-000" maxlength="9">
                             </div>
                             <div class="form-group">
                                 <label for="perfil-bairro">Bairro</label>
-                                <input type="text" id="perfil-bairro" placeholder="Ex: Cavaco" class="input-carregando">
+                                <input type="text" id="perfil-bairro" placeholder="Ex: Cavaco">
                             </div>
                         </div>
 
                         <label for="perfil-rua">Rua / Avenida</label>
-                        <input type="text" id="perfil-rua" placeholder="Ex: Rua Ada Zenaide da Silva" class="input-carregando">
+                        <input type="text" id="perfil-rua" placeholder="Ex: Rua Ada Zenaide da Silva">
 
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="perfil-numero">Número</label>
-                                <input type="text" id="perfil-numero" placeholder="Ex: 44" class="input-carregando">
+                                <input type="text" id="perfil-numero" placeholder="Ex: 44">
                             </div>
                             <div class="form-group">
                                 <label for="perfil-obs">Observação / Ponto de Ref.</label>
-                                <input type="text" id="perfil-obs" placeholder="Ex: Portão grande" class="input-carregando">
+                                <input type="text" id="perfil-obs" placeholder="Ex: Portão grande">
                             </div>
                         </div>
                     </div>
@@ -104,6 +108,8 @@
         </div>
     </main>
 
+    <script type="module" src="../js/firebase-config.js"></script>
+
     <script type="module">
         import { auth, db, mostrarNotificacao } from '../js/firebase-config.js';
         import { doc, getDoc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
@@ -121,18 +127,6 @@
             obs: document.getElementById('perfil-obs')
         };
 
-        // --- FUNÇÃO PARA MANIPULAR SKELETONS NO FORM ---
-        function setCarregando(estado) {
-            Object.values(campos).forEach(campo => {
-                if (estado) {
-                    campo.classList.add('skeleton'); // Reutiliza a animação do seu styles.css
-                } else {
-                    campo.classList.remove('skeleton');
-                }
-            });
-        }
-
-        // --- FUNÇÕES DE MÁSCARA ---
         const aplicarMascaraCPF = (valor) => {
             return valor.replace(/\D/g, '').replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d{1,2})/, '$1-$2').replace(/(-\d{2})\d+?$/, '$1');
         };
@@ -143,9 +137,6 @@
 
         campos.cpf.addEventListener('input', (e) => e.target.value = aplicarMascaraCPF(e.target.value));
         campos.telefone.addEventListener('input', (e) => e.target.value = aplicarMascaraTelefone(e.target.value));
-
-        // Carregar dados iniciais
-        setCarregando(true);
 
         onAuthStateChanged(auth, async (user) => {
             if (user) {
@@ -166,15 +157,12 @@
                 } catch (e) { 
                     console.error("Erro ao carregar perfil:", e);
                     mostrarNotificacao("Erro ao carregar dados do perfil.", "error");
-                } finally {
-                    setCarregando(false); // Remove o efeito após carregar (ou falhar)
                 }
             } else {
                 window.location.href = "login.html";
             }
         });
 
-        // Ação de Salvar
         document.getElementById('btn-salvar-perfil').onclick = async () => {
             const user = auth.currentUser;
             if (!user) return;

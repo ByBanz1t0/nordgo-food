@@ -13,17 +13,13 @@
     
     <header class="main-header">
         <div class="header-container">
-            <!-- LOGO E LOCALIZAÇÃO -->
             <div class="header-left">
-                <div class="pill-badge pill-home">
-                    <a href="index.html" class="logo-link">
-                        <img src="assets/images/nordgo-logo.png" alt="NordGo" class="main-logo">
-                    </a>
+                <div class="pill-badge pill-home" onclick="window.location.href='index.html'">
+                    <img src="assets/images/nordgo-logo.png" alt="NordGo" class="main-logo">
                     <span class="location-text">Home</span>
                 </div>
             </div>
 
-            <!-- BARRA DE PESQUISA -->
             <div class="header-center">
                 <div class="search-bar-wrapper">
                     <i class="fa-solid fa-magnifying-glass"></i>
@@ -31,10 +27,10 @@
                 </div>
             </div>
 
-            <!-- ÁREA DO USUÁRIO DINÂMICA -->
             <div class="header-right" id="user-area">
-                <!-- Conteúdo injetado pelo JavaScript (Login ou Perfil) -->
-                <div class="loading-small">...</div>
+                <div class="pill-badge" style="opacity: 0.5;">
+                    <span class="user-name-text">Carregando...</span>
+                </div>
             </div>
         </div>
     </header>
@@ -50,41 +46,15 @@
         <div id="lista-lojas" class="grid-lojas"></div>
     </main>
 
-    <div id="floating-cart" class="carrinho-flutuante hidden" onclick="window.location.href='html/carrinho.html'">
-        <div class="carrinho-info-esquerda">
-            <span id="cart-count" class="badge-qtd-carrinho">0</span>
-            <span class="carrinho-texto">Ver Carrinho</span>
-        </div>
-        <div class="carrinho-info-direita">
-            <span id="cart-float-total" class="carrinho-valor-total">R$ 0,00</span>
-            <i class="fa-solid fa-chevron-right" style="margin-left: 10px; font-size: 0.8rem;"></i>
-        </div>
-    </div>
-
     <script type="module" src="./js/firebase-config.js"></script>
     <script type="module" src="./js/cart-helper.js"></script>
 
     <script type="module">
         import { auth, db } from './js/firebase-config.js';
-        import { collection, getDocs, doc, getDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
-        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
+        import { collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
         import { atualizarCarrinhoFlutuante } from './js/cart-helper.js';
 
-        let bairroUsuario = "";
-
-        function injetarSkeletons() {
-            const catContainer = document.getElementById('categorias-container');
-            const lojasContainer = document.getElementById('lista-lojas');
-            catContainer.innerHTML = Array(6).fill('<div class="skeleton skeleton-cat"></div>').join('');
-            lojasContainer.innerHTML = Array(4).fill(`
-                <div class="skeleton-card">
-                    <div class="skeleton skeleton-banner"></div>
-                    <div class="skeleton skeleton-text"></div>
-                    <div class="skeleton skeleton-text-sm"></div>
-                </div>
-            `).join('');
-        }
-
+        // Lógica de Busca
         const inputBusca = document.getElementById('input-busca');
         inputBusca.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
@@ -95,48 +65,10 @@
             }
         });
 
-        injetarSkeletons();
+        // Inicialização de interface
         atualizarCarrinhoFlutuante();
-
-        onAuthStateChanged(auth, async (user) => {
-            const userArea = document.getElementById('user-area');
-
-            if (user) {
-                try {
-                    const userSnap = await getDoc(doc(db, "usuarios", user.uid));
-                    if (userSnap.exists()) {
-                        const dados = userSnap.data();
-                        bairroUsuario = dados.bairro || dados.bairroCliente || "";
-                        const primeiroNome = dados.nome ? dados.nome.split(' ')[0] : "Usuário";
-                        const fotoPerfil = dados.fotoUrl || 'assets/images/default-user.png';
-
-                        // Renderiza pílula do usuário logado
-                        userArea.innerHTML = `
-                            <div class="pill-badge pill-user" onclick="window.location.href='html/perfil.html'">
-                                <div class="user-photo-placeholder">
-                                    <img src="${fotoPerfil}" alt="Perfil">
-                                </div>
-                                <span class="user-name-text">Olá, ${primeiroNome}</span>
-                            </div>
-                        `;
-                    }
-                } catch (e) {
-                    console.error("Erro ao obter dados do usuário:", e);
-                }
-            } else {
-                // Renderiza pílula de "Entrar" para deslogados
-                userArea.innerHTML = `
-                    <a href="html/login.html" style="text-decoration: none;">
-                        <div class="pill-badge">
-                            <i class="fa-solid fa-right-to-bracket" style="margin-right: 8px; color: #27ae60;"></i>
-                            <span class="user-name-text" style="color: #27ae60;">Entrar</span>
-                        </div>
-                    </a>
-                `;
-            }
-            renderizarCategorias();
-            renderizarLojas();
-        });
+        renderizarCategorias();
+        renderizarLojas();
 
         async function renderizarCategorias() {
             const container = document.getElementById('categorias-container');
@@ -149,10 +81,7 @@
                     const div = document.createElement('div');
                     div.className = 'cat-item';
                     div.innerText = cat.nome;
-                    div.onclick = () => {
-                        const termo = cat.slug || cat.nome;
-                        window.location.href = `html/pesquisa.html?categoria=${encodeURIComponent(termo)}`;
-                    };
+                    div.onclick = () => window.location.href = `html/pesquisa.html?categoria=${encodeURIComponent(cat.slug || cat.nome)}`;
                     container.appendChild(div);
                 });
             } catch (e) { container.innerHTML = "Erro ao carregar categorias."; }
@@ -163,29 +92,19 @@
             try {
                 const querySnapshot = await getDocs(collection(db, "lojas"));
                 lista.innerHTML = ""; 
-                let lojas = [];
-                querySnapshot.forEach(doc => lojas.push({ id: doc.id, ...doc.data() }));
-
-                lojas.sort((a, b) => {
-                    const aPerto = a.bairroLoja?.trim().toLowerCase() === bairroUsuario?.trim().toLowerCase() && bairroUsuario !== "" ? 1 : 0;
-                    const bPerto = b.bairroLoja?.trim().toLowerCase() === bairroUsuario?.trim().toLowerCase() && bairroUsuario !== "" ? 1 : 0;
-                    return bPerto - aPerto;
-                });
-
-                lojas.forEach(d => {
-                    const eDoBairro = d.bairroLoja?.trim().toLowerCase() === bairroUsuario?.trim().toLowerCase() && bairroUsuario !== "";
+                querySnapshot.forEach(doc => {
+                    const d = doc.data();
                     lista.innerHTML += `
-                        <div class="card-loja" onclick="window.location.href='html/loja.html?loja=${d.id}'">
+                        <div class="card-loja" onclick="window.location.href='html/loja.html?loja=${doc.id}'">
                             <div class="banner-loja" style="background-color: ${d.temaLoja || '#ff4757'}">
                                 <img src="${d.logoLoja || 'assets/images/default-loja.png'}" class="logo-loja" alt="Logo">
                             </div>
                             <div class="info-loja">
-                                <h3>${d.nome} ${eDoBairro ? '<span class="badge-proximo">Perto</span>' : ''}</h3>
+                                <h3>${d.nome}</h3>
                                 <p>${d.categoria} • ${d.bairroLoja || 'Centro'}</p>
                             </div>
                         </div>`;
                 });
-                if (lojas.length === 0) lista.innerHTML = "<p>Nenhuma loja encontrada.</p>";
             } catch (e) { lista.innerHTML = "<p>Erro ao carregar lojas.</p>"; }
         }
     </script>

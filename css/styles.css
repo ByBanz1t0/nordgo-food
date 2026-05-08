@@ -8,71 +8,33 @@
     font-family: 'Poppins', sans-serif;
 }
 
-html {
-    font-size: 100%; /* Base: 16px */
+html, body {
+    width: 100%;
+    overflow-x: hidden;
 }
 
 body {
     background-color: #f7f7f7;
     color: #333;
     line-height: 1.6;
-    overflow-x: hidden;
+    padding-top: 0; 
 }
 
 .container {
-    max-width: 75rem; /* 1400px */
+    width: 100%;
+    max-width: 75rem; 
     margin: 0 auto;
-    padding: 0 1.5rem; /* ~24px */
-}
-
-/* Container fixo no canto */
-.toast-container {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    z-index: 9999;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-/* Estilo da Notificação */
-.toast {
-    min-width: 250px;
-    padding: 15px 20px;
-    border-radius: 8px;
-    color: white;
-    font-family: 'Poppins', sans-serif;
-    font-size: 0.9rem;
-    font-weight: 500;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    animation: slideIn 0.3s ease-out forwards;
-}
-
-/* Tipos de Notificação */
-.toast.success { background-color: #27ae60; }
-.toast.error { background-color: #e74c3c; }
-.toast.info { background-color: #3498db; }
-
-/* Animações */
-@keyframes slideIn {
-    from { transform: translateX(100%); opacity: 0; }
-    to { transform: translateX(0); opacity: 1; }
-}
-
-@keyframes fadeOut {
-    to { opacity: 0; transform: translateY(-10px); }
+    padding: 0 1.2rem;
 }
 
 /* ============================================================
-    CABEÇALHO (NAVBAR) - DESIGN PÍLULA PADRONIZADO
+    CABEÇALHO (NAVBAR) - NORDGO FOOD (VERSÃO FINAL DESKTOP)
    ============================================================ */
 .main-header {
     background: #fff;
-    padding: 0.625rem 0;
+    height: 4.5rem; 
+    display: flex;
+    align-items: center;
     box-shadow: 0 0.125rem 0.5rem rgba(0,0,0,0.06);
     position: sticky;
     top: 0;
@@ -81,53 +43,106 @@ body {
 
 .header-container {
     max-width: 75rem;
+    width: 100%;
     margin: 0 auto;
     display: flex;
     align-items: center;
     justify-content: space-between;
     padding: 0 1.5rem;
-    gap: 1.5rem;
 }
 
-.header-left, .header-right {
+.header-left {
     flex: 1;
+    min-width: 180px; 
     display: flex;
     align-items: center;
 }
 
 .header-center {
-    flex: 1.5;
+    flex: 2;
     display: flex;
     justify-content: center;
 }
 
-/* Estilo Base das Pílulas */
-.pill-badge {
+.header-right { 
+    flex: 1;
+    min-width: 180px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end; 
+    /* TRAVA DE SEGURANÇA: Impede a barra de busca de encostar no usuário */
+    padding-left: 2.5rem !important; 
+}
+
+/* --- PÍLULAS PADRONIZADAS --- */
+.pill-badge, 
+.search-bar-wrapper,
+.btn-login {
+    height: 3rem; 
     display: flex;
     align-items: center;
     background-color: #f5f5f5;
-    padding: 0.5rem 1.2rem; /* Ajuste para clique confortável */
-    border-radius: 100px;
+    border-radius: 6.25rem; 
     border: 0.0625rem solid #e2e2e2;
-    transition: all 0.3s ease;
+    box-sizing: border-box;
+    transition: background-color 0.3s ease;
+}
+
+/* Home e Voltar: Ícone na esquerda e texto centralizado no resto */
+.pill-home, .pill-back {
+    width: 140px; 
+    flex-shrink: 0;
+    padding: 0 0.8rem !important; 
+    justify-content: flex-start; 
+}
+
+.pill-home span, .pill-back span {
+    flex: 1; 
+    text-align: center; 
+    font-weight: 500;
+    /* Compensa o ícone da esquerda para o texto centralizar na pílula toda */
+    margin-right: 1.2rem; 
+}
+
+/* FIX: Pílula de Título (Meu Perfil) - Impede que vire círculo no Desktop */
+.pill-page-title {
+    width: auto !important;
+    min-width: 120px;
+    padding: 0 1.5rem !important;
+    justify-content: center;
+    cursor: default;
+}
+
+.pill-page-title span {
+    margin: 0 !important; /* Sem margem de compensação aqui */
+    white-space: nowrap;
+}
+
+.pill-badge {
     cursor: pointer;
-    min-height: 42px;
+    text-decoration: none;
+    color: inherit;
 }
 
-..pill-badge:hover {
-    border-color: #ff4757;
-    background-color: #fff;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+.pill-badge:hover, .btn-login:hover {
+    background-color: #ededed;
 }
 
-.pill-badge.btn-login-pill {
-    background-color: #27ae60;
-    border-color: #27ae60;
-    color: white;
+/* --- ÁREA DO USUÁRIO: Foto na Direita --- */
+.pill-user {
+    flex-direction: row-reverse; 
+    padding: 0 0.5rem 0 1.2rem !important; 
+    gap: 0.8rem;
+    white-space: nowrap;
 }
 
-.pill-badge.btn-login-pill #user-name {
-    color: white;
+.user-photo-placeholder {
+    width: 1.875rem;
+    height: 1.875rem;
+    background: #e2e2e2;
+    border-radius: 50%;
+    overflow: hidden;
+    flex-shrink: 0;
 }
 
 .user-photo-placeholder img {
@@ -136,177 +151,223 @@ body {
     object-fit: cover;
 }
 
-.user-name-text {
-    font-size: 0.85rem;
+/* --- LOGO E ÍCONES --- */
+.main-logo {
+    height: 1.5rem; 
+    width: auto;
+    display: block;
+}
+
+.back-icon-img {
+    height: 1.2rem;
+    width: auto;
+    display: block;
+}
+
+/* --- BOTÃO DE LOGIN --- */
+.btn-login {
+    background-color: #27ae60;
+    color: white;
+    border: none;
+    padding: 0 1.5rem;
     font-weight: 600;
-    color: #333;
+    font-size: 0.875rem;
+    cursor: pointer;
+    gap: 0.6rem;
     white-space: nowrap;
 }
 
-/* Lado Esquerdo: Logo + Home */
-.main-logo {
-    height: 2.2rem;
-    width: auto;
-    margin-right: 0.8rem;
+.btn-login:hover {
+    background-color: #219150;
 }
 
-.location-text {
-    font-size: 0.9rem;
-    font-weight: 600;
-    color: #333;
-}
-
-/* Centro: Barra de Busca Corrigida */
+/* --- BARRA DE BUSCA --- */
 .search-bar-wrapper {
     width: 100%;
-    display: flex;
-    align-items: center;
-    background-color: #f5f5f5;
-    border-radius: 100px; /* Design de Pílula */
     padding: 0 1.2rem;
-    border: 0.0625rem solid #e2e2e2;
-    transition: 0.3s ease;
-}
-
-.search-bar-wrapper i {
-    color: #999;
-    margin-right: 0.8rem;
-    font-size: 0.9rem;
 }
 
 .search-bar-wrapper input {
     width: 100%;
-    padding: 0.75rem 0;
+    height: 100%;
     border: none;
     background: transparent;
     outline: none;
     font-size: 0.875rem;
-    color: #333;
+    padding: 0.5rem;
 }
 
-.search-bar-wrapper:focus-within {
-    border-color: #ff4757;
+/* --- DROPDOWN --- */
+.dropdown-content {
+    opacity: 0;
+    visibility: hidden;
+    transform: translateX(-50%) translateY(10px); 
+    position: absolute;
+    left: 50%; 
+    top: calc(100% + 8px);
     background-color: #fff;
-    box-shadow: 0 0 0 0.2rem rgba(255, 71, 87, 0.1);
+    min-width: 13rem;
+    border-radius: 1.25rem;
+    border: 1px solid rgba(0,0,0,0.05);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    padding: 0.6rem 0;
+    z-index: 1100;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Lado Direito: Usuário + Foto */
-.header-right {
-    justify-content: flex-end;
+.user-menu-container {
+    position: relative;
 }
 
-.header-right a {
-    text-decoration: none;
-    display: block;
+.user-menu-container:hover .dropdown-content {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-50%) translateY(0);
 }
 
-.user-photo-placeholder {
-    width: 1.8rem;
-    height: 1.8rem;
-    background: #e2e2e2;
-    border-radius: 50%;
+.dropdown-content a, .dropdown-content button {
+    padding: 0.75rem 1.25rem;
     display: flex;
     align-items: center;
-    justify-content: center;
-    overflow: hidden;
-    margin-right: 0.6rem;
-}
-
-.user-photo-placeholder img {
+    gap: 12px;
+    text-decoration: none;
+    color: #444;
+    font-size: 0.9rem;
     width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-.user-photo-placeholder i {
-    font-size: 0.8rem;
-    color: #888;
-}
-
-#user-name {
-    font-size: 0.85rem;
-    font-weight: 600;
-    white-space: nowrap;
-}
-
-/* Utilidades */
-.hidden { display: none !important; }
-
-/* Responsividade Básica */
-@media (max-width: 768px) {
-    .location-text { display: none; }
-    .header-center { flex: 2; }
+    border: none;
+    background: none;
+    cursor: pointer;
+    text-align: left;
 }
 
 /* ============================================================
-    BOTÃO ADICIONAR E CARRINHO FLUTUANTE
+    SEÇÃO HERO E CARDS
+   ============================================================ */
+.hero {
+    padding: 2.5rem 1rem;
+    text-align: center;
+    background: #fff;
+    margin-bottom: 1rem;
+}
+
+.hero h2 {
+    font-size: 1.5rem;
+    max-width: 90%;
+    margin: 0 auto 0.5rem;
+}
+
+.card-loja {
+    background: white;
+    border-radius: 1rem; /* 16px */
+    overflow: hidden;
+    box-shadow: 0 0.25rem 0.75rem rgba(0,0,0,0.05);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 0.0625rem solid #f0f0f0;
+}
+
+/* ============================================================
+    BOTÕES DE ADIÇÃO E CARRINHO (PADRÃO GLOBAL - ATUALIZADO)
    ============================================================ */
 
-/* 1. Botão de Adicionar (nos Cards de Produto) */
+/* 1. Botão de Adicionar Unificado (Slim: + 🛒) */
 .btn-add-carrinho {
     display: flex !important;
+    width: 3.4rem;
+    height: 2.4rem;
     background-color: #ff4757;
     color: white;
     border: none;
-    padding: 0.5rem 1rem;
-    border-radius: 0.5rem;
-    font-size: 0.85rem;
-    font-weight: 600;
+    border-radius: 0.7rem;
     cursor: pointer;
     align-items: center;
-    gap: 0.5rem;
+    justify-content: center;
+    gap: 3px;
     transition: all 0.2s ease;
-    box-shadow: 0 2px 6px rgba(255, 71, 87, 0.2);
-    margin-top: 0.5rem;
+    box-shadow: 0 4px 12px rgba(255, 71, 87, 0.2);
+    z-index: 5;
+}
+
+.btn-add-carrinho i:first-child {
+    font-size: 0.7rem; /* Sinal de + */
+}
+
+.btn-add-carrinho i:last-child {
+    font-size: 0.95rem; /* Ícone de Carrinho */
 }
 
 .btn-add-carrinho:hover {
     background-color: #ff6b81;
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(255, 71, 87, 0.3);
+    box-shadow: 0 6px 15px rgba(255, 71, 87, 0.3);
 }
 
 .btn-add-carrinho:active {
     transform: scale(0.95);
 }
 
-/* 2. Carrinho Flutuante (Barra Inferior) */
+/* 2. Carrinho Flutuante (Layout: Preço sobre Quantidade) */
 .carrinho-flutuante {
     position: fixed;
-    bottom: 1.5rem;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 90%;
-    max-width: 31.25rem;
+    bottom: 2rem;
+    right: 1.5rem;
     background-color: #2ed573;
     color: white;
-    padding: 1rem 1.5rem;
+    padding: 0.7rem 1.2rem;
     border-radius: 1rem;
     display: flex;
-    justify-content: space-between;
     align-items: center;
+    gap: 0.9rem;
     z-index: 9999;
     cursor: pointer;
-    box-shadow: 0 0.5rem 1.5rem rgba(46, 213, 115, 0.3);
-    animation: slideUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    box-shadow: 0 8px 25px rgba(46, 213, 115, 0.4);
+    transition: all 0.3s ease;
+    animation: slideInRight 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
 .carrinho-flutuante.hidden {
     display: none !important;
 }
 
-.carrinho-info-esquerda {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
+.carrinho-flutuante:hover {
+    transform: scale(1.05);
+    background-color: #26af5d;
 }
 
-.badge-qtd-carrinho {
-    background: rgba(255, 255, 255, 0.2);
-    padding: 0.25rem 0.6rem;
-    border-radius: 0.5rem;
+/* Container do Ícone (Esquerda) */
+.cart-icon-container {
+    font-size: 1.4rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Container do Texto Empilhado (Direita) */
+.cart-stack-info {
+    display: flex;
+    flex-direction: column; /* Empilha os itens verticalmente */
+    align-items: flex-start;
+    line-height: 1.1; /* Deixa o texto mais "juntinho" */
+}
+
+/* Valor Total (Destaque Superior) */
+.carrinho-valor-total {
     font-weight: 700;
-    font-size: 0.9rem;
+    font-size: 1.05rem;
+    white-space: nowrap;
+}
+
+/* Label de Quantidade (Texto Inferior Menor) */
+.cart-count-label {
+    font-size: 0.75rem; /* Tamanho reduzido conforme pedido */
+    font-weight: 400;
+    opacity: 0.9;
+}
+
+/* Animação para entrada lateral */
+@keyframes slideInRight {
+    from { transform: translateX(100px); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
 }
 
 /* ============================================================
@@ -529,15 +590,7 @@ body {
     to { bottom: 1.5rem; opacity: 1; }
 }
 
-@media (max-width: 48rem) {
-    .carrinho-layout {
-        grid-template-columns: 1fr;
-    }
-    .card-resumo {
-        position: static;
-        margin-top: 1rem;
-    }
-}
+
 /* ============================================================
     ESTILOS DA PÁGINA DE LOGIN / CADASTRO
    ============================================================ */
@@ -799,27 +852,11 @@ input.input-error {
     text-decoration: none;
 }
 
-/* Responsividade do Header na tela de Login */
-.btn-back {
-    background: none;
-    border: none;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    color: #333;
-    font-weight: 500;
-    font-size: 0.9rem;
-}
-
-.btn-back:hover { color: #ff4757; }
-
 /* Container do Menu do Usuário */
 .user-menu-container {
-    position: relative;
+    position: absolute;
     display: inline-block;
     cursor: pointer;
-    padding: 0.5rem 1rem;
 }
 
 .user-name-display {
@@ -1125,15 +1162,7 @@ input.input-error {
     padding: 1.5rem 0 4rem;
 }
 
-.card-loja {
-    background: white;
-    border-radius: 1rem; /* 16px */
-    overflow: hidden;
-    box-shadow: 0 0.25rem 0.75rem rgba(0,0,0,0.05);
-    cursor: pointer;
-    transition: all 0.3s ease;
-    border: 0.0625rem solid #f0f0f0;
-}
+
 
 .card-loja:hover {
     transform: translateY(-0.375rem); /* -6px */
@@ -1281,21 +1310,6 @@ hr {
     display: flex;
     align-items: center;
     gap: 1.25rem;
-}
-
-.btn-voltar {
-    text-decoration: none;
-    color: #666;
-    font-size: 0.9rem;
-    padding: 0.5rem 0.9375rem;
-    border-radius: 1.25rem;
-    background: #f1f1f1;
-    transition: 0.3s;
-}
-
-.btn-voltar:hover {
-    background: #e5e5e5;
-    color: #333;
 }
 
 /* Dashboard Grid */
@@ -1581,506 +1595,344 @@ input[type="color"]::-webkit-color-swatch {
 }
 
 /* ============================================================
-    LOJA.HTML
+    LOJA.HTML - ESTRUTURA E IDENTIDADE (DESKTOP/BASE)
    ============================================================ */
-/* --- ESTILIZAÇÃO DA PÁGINA DA LOJA --- */
 
-/* Hero e Banner */
 .loja-hero {
     position: relative;
     width: 100%;
     background-color: #fff;
 }
 
+/* Banner Compacto */
 .loja-banner {
     width: 100%;
-    height: 12.5rem; /* 200px */
+    height: 8.5rem; 
     background-size: cover;
     background-position: center;
-    background-repeat: no-repeat;
-    border-bottom: 0.0625rem solid #eee;
+    border-radius: 0 0 1rem 1rem;
+    border-bottom: 1px solid #eee;
 }
 
-/* Container do Perfil (Logo + Nome) */
 .loja-perfil {
     position: relative;
     padding: 0 1rem 1.5rem;
-    margin-top: -3.125rem; /* Puxa o conteúdo para cima do banner (metade da logo) */
+    margin-top: -3.125rem; /* Sobe a logo sobre o banner */
     display: flex;
     flex-direction: column;
     align-items: center;
     text-align: center;
-    background: transparent;
 }
 
-/* Logo Circular Sobreposta */
 .loja-logo-container {
-    width: 6.25rem; /* 100px */
-    height: 6.25rem; /* 100px */
-    background-color: #ffffff;
+    width: 6.25rem;
+    height: 6.25rem;
+    background: #fff;
     border-radius: 50%;
-    padding: 0.25rem; /* Efeito de borda branca ao redor da foto */
-    box-shadow: 0 0.25rem 0.625rem rgba(0, 0, 0, 0.15);
+    padding: 0.25rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
     z-index: 5;
     margin-bottom: 0.75rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
     overflow: hidden;
 }
 
-.loja-logo-circular {
-    width: 100%;
-    height: 100%;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 0.0625rem solid #f0f0f0;
-}
-
-/* Informações da Loja */
-#detalhe-nome-loja {
-    font-size: 1.5rem;
-    font-weight: 600;
-    color: #333;
-    margin-bottom: 0.25rem;
+.loja-logo-circular { 
+    width: 100%; height: 100%; border-radius: 50%; object-fit: cover; 
 }
 
 .tag-categoria {
-    font-size: 0.875rem;
-    color: #666;
-    background: #f1f2f6;
-    padding: 0.25rem 0.75rem;
-    border-radius: 1.25rem;
-    display: inline-block;
-    margin-bottom: 1rem;
+    font-size: 0.875rem; color: #666; background: #f1f2f6;
+    padding: 0.25rem 0.75rem; border-radius: 1.25rem; margin-bottom: 1rem;
 }
 
-.loja-meta {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-size: 0.875rem;
-    color: #555;
-    margin-bottom: 1rem;
+.loja-meta { 
+    display: flex; align-items: center; gap: 0.5rem; 
+    font-size: 0.875rem; color: #666; margin-bottom: 1rem; 
+}
+.loja-meta i { color: #ffb142; }
+
+/* ============================================================
+    GRIDS E CONTAINERS (2 COLUNAS)
+   ============================================================ */
+
+.titulo-sessao, .titulo-categoria {
+    font-size: 1.25rem; font-weight: 600; color: #2f3542; margin: 2rem 0 1.2rem 0;
 }
 
-.loja-meta .fa-star {
-    color: #ffc107;
-}
-
-.divisor {
-    color: #ccc;
-}
-
-.loja-desc {
-    font-size: 0.9375rem;
-    color: #777;
-    line-height: 1.4;
-    max-width: 37.5rem;
-}
-
-/* Ajustes Extras para o Skeleton combinar */
-.loja-banner-sk {
-    width: 100%;
-    height: 12.5rem;
-}
-
-.loja-info-header {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 1rem;
-}
-
-/* Meta dados da Loja (Avaliação, Tempo, Frete) */
-.loja-meta {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    margin: 0.62rem 0;
-    font-size: 0.87rem;
-    color: #666;
-}
-
-.meta-item i {
-    color: #ffb142; /* Estrela Amarela */
-    margin-right: 0.18rem;
-}
-
-.divisor {
-    color: #ccc;
-}
-
-.frete-gratis {
-    color: #2ed573; /* Verde para destaque */
-    font-weight: 600;
-}
-
-/* Ajuste do Banner */
-.loja-banner {
-    width: 100%;
-    height: 11.25rem;
-    background-size: cover;
-    background-position: center;
-    border-radius: 0 0 1rem 1rem;
-}
-
-/* Imagem do Produto */
-.produto-img-container {
-    width: 5rem;
-    height: 5rem;
-    border-radius: 0.5rem;
-    overflow: hidden;
-    flex-shrink: 0;
-}
-
-.produto-img-container img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-.img-placeholder {
-    width: 100%;
-    height: 100%;
-    background: #f5f5f5;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #ccc;
-    font-size: 1.5rem;
-}
-
-/* --- BARRA DE PESQUISA DE PRODUTOS --- */
-
-/* --- Estilos da Página de Pesquisa (NordGo) --- */
-
-/* Container de Scroll Horizontal */
+/* Mais Pedidos (Scroll Horizontal) */
 .horizontal-scroll-container {
+    display: flex; overflow-x: auto; gap: 1.2rem;
+    padding: 15px 5px 1.5rem 5px; /* Padding evita corte do hover */
+    margin-top: -10px; scrollbar-width: none;
+}
+.horizontal-scroll-container::-webkit-scrollbar { display: none; }
+
+/* Grid de Categorias (2 Colunas Desktop) */
+.grid-produtos-detalhado {
+    display: grid; grid-template-columns: repeat(2, 1fr); 
+    gap: 1.5rem; padding-top: 15px; margin-top: -10px;
+}
+
+/* ============================================================
+    BOTÃO DE ADICIONAR UNIFICADO (.btn-add-carrinho)
+   ============================================================ */
+
+.btn-add-carrinho {
     display: flex;
-    overflow-x: auto;
-    gap: 1rem;
-    padding-bottom: 1rem;
-    scrollbar-width: thin;
-    scrollbar-color: #ff4757 #f1f1f1;
+    width: 3.4rem; height: 2.4rem;
+    background-color: #ff4757; color: white;
+    border: none; border-radius: 0.7rem;
+    cursor: pointer; align-items: center; justify-content: center;
+    gap: 3px; z-index: 5;
+    box-shadow: 0 4px 12px rgba(255, 71, 87, 0.2);
+    transition: all 0.2s ease;
 }
 
-.horizontal-scroll-container::-webkit-scrollbar {
-    height: 0.375rem;
+.btn-add-carrinho i:first-child { font-size: 0.7rem; }
+.btn-add-carrinho i:last-child { font-size: 0.95rem; }
+
+.btn-add-carrinho:hover {
+    background-color: #ff6b81;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(255, 71, 87, 0.3);
 }
 
-.horizontal-scroll-container::-webkit-scrollbar-thumb {
-    background: #ff4757;
-    border-radius: 0.625rem;
+.btn-add-carrinho:active { transform: scale(0.95); }
+
+/* Lógica de posição: Se estiver dentro do card quadrado (Mais Pedidos) */
+.card-produto-quadrado .btn-add-carrinho {
+    position: absolute; right: 0.8rem; bottom: 0.8rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
 }
 
-/* Ajuste no card para o scroll */
-.scroll-item {
-    flex: 0 0 17.5rem; /* Largura fixa para os cards no carrossel */
+/* ============================================================
+    MODELO 1: CARD QUADRADO (MAIS PEDIDOS)
+   ============================================================ */
+
+.card-produto-quadrado {
+    position: relative; width: 14rem; aspect-ratio: 1 / 1;
+    border-radius: 1rem; overflow: hidden; flex-shrink: 0;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1); transition: transform 0.3s ease;
 }
 
-.section-divider {
-    margin: 1.5rem 0 1rem 0;
-    font-size: 1.25rem;
-    font-weight: 600;
-    color: #2f3542;
+.card-produto-quadrado:hover { transform: translateY(-8px); z-index: 10; }
+.card-produto-quadrado img { width: 100%; height: 100%; object-fit: cover; }
+
+.card-produto-quadrado .info-overlay {
+    position: absolute; bottom: 0; left: 0; width: 100%; padding: 0.8rem;
+    background: linear-gradient(to top, rgba(0,0,0,0.9) 20%, transparent 100%);
+    display: flex; flex-direction: column; justify-content: flex-end; pointer-events: none;
 }
 
-/* Badge para identificar se é Loja ou Produto */
-.badge-tipo {
-    font-size: 0.65rem; /* ~10.4px */
-    background: #eee;
-    padding: 0.125rem 0.375rem; /* 2px 6px */
-    border-radius: 0.25rem; /* 4px */
-    vertical-align: middle;
-    margin-left: 0.3125rem; /* 5px */
-    text-transform: uppercase;
-    font-weight: 600;
-    color: #333;
+/* Textos no Card Quadrado (Corrigidos para Branco) */
+.card-produto-quadrado h3 { 
+    color: #fff; font-size: 1.1rem; margin-bottom: 4px; 
+}
+.card-produto-quadrado .preco-tag { 
+    color: #fff; font-weight: 700; font-size: 1rem; 
 }
 
-/* Cor específica para o badge de Produto */
-.badge-tipo.prod {
-    background: #ff4757;
-    color: white;
+/* ============================================================
+    MODELO 2: CARD HORIZONTAL (CATEGORIAS)
+   ============================================================ */
+
+.card-produto-horizontal {
+    display: flex; background: #fff; border: 1px solid #f0f0f0;
+    border-radius: 1rem; padding: 0.85rem; gap: 1.2rem; align-items: center;
+    transition: transform 0.2s, box-shadow 0.2s;
 }
 
-/* Estilização dos cards de produtos encontrados na busca */
-.produto-encontrado .banner-loja {
-    background: #f8f9fa; 
-    display: flex; 
-    align-items: center; 
-    justify-content: center;
+.card-produto-horizontal:hover {
+    transform: translateY(-4px); box-shadow: 0 5px 15px rgba(0,0,0,0.06); z-index: 10;
 }
 
-.produto-encontrado .logo-loja {
-    border-radius: 0.5rem; /* 8px */
-    width: 80%; 
-    height: 80%; 
-    object-fit: cover;
+.prod-foto-lateral { 
+    width: 6rem; height: 6rem; flex-shrink: 0; border-radius: 0.8rem; overflow: hidden; 
+}
+.prod-foto-lateral img { width: 100%; height: 100%; object-fit: cover; }
+
+.prod-conteudo { display: flex; flex: 1; justify-content: space-between; align-items: center; }
+.prod-textos { flex: 1; padding-right: 1rem; }
+
+/* Status Badges */
+.prod-header-info { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.3rem; }
+.prod-header-info h4 { font-size: 1.1rem; color: #2d3436; font-weight: 600; }
+
+.status-badge { font-size: 0.75rem; font-weight: 600; display: flex; align-items: center; gap: 4px; }
+.status-disponivel { color: #2ed573; }
+.status-indisponivel { color: #ff4757; }
+
+.prod-desc-completa { 
+    font-size: 0.85rem; color: #777; line-height: 1.4; 
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; 
 }
 
-.produto-encontrado small {
-    display: block;
-    margin-top: 0.3125rem; /* 5px */
-    color: #ff4757;
-    font-weight: 600;
+/* Coluna de Preço e Botão */
+.prod-acoes-lateral { 
+    display: flex; flex-direction: column; align-items: flex-end; 
+    justify-content: center; gap: 0.5rem; min-width: 7rem; 
 }
+.preco-detalhe { font-size: 1.25rem; font-weight: 700; color: #2ed573; }
 
-.produto-encontrado small i {
-    font-size: 0.7rem; /* ~11.2px */
-    margin-left: 0.1875rem; /* 3px */
-}
-
-/* Preço em destaque nos resultados da busca */
-.preco-busca {
-    color: #2ed573;
-    font-weight: 600;
-}
-
-/* Ajuste fino na barra de pesquisa interna */
-.search-bar i {
-    margin-left: 0.9375rem; /* 15px */
-    color: #a4b0be;
-}
-
-.cardapio-section {
-    padding: 1rem;
-    background-color: #fff;
-}
-
-.search-produtos {
-    display: flex;
-    align-items: center;
-    background-color: #f1f2f6;
-    padding: 0.75rem 1rem;
-    border-radius: 0.75rem; /* 12px */
-    margin-bottom: 1.5rem;
-    border: 0.0625rem solid transparent;
-    transition: all 0.3s ease;
-}
-
-/* Efeito de foco quando o usuário clica para digitar */
-.search-produtos:focus-within {
-    background-color: #fff;
-    border-color: #ff4757; /* Cor principal do seu tema */
-    box-shadow: 0 0.25rem 0.75rem rgba(255, 71, 87, 0.1);
-}
-
-.search-produtos i {
-    color: #a4b0be;
-    margin-right: 0.75rem;
-    font-size: 1rem;
-}
-
-.search-produtos input {
-    border: none;
-    background: transparent;
-    outline: none;
-    width: 100%;
-    font-family: 'Poppins', sans-serif;
-    font-size: 0.9375rem; /* 15px */
-    color: #2f3542;
-}
-
-.search-produtos input::placeholder {
-    color: #a4b0be;
-}
-
-/* Título da seção abaixo da pesquisa */
-.titulo-sessao {
-    font-size: 1.125rem; /* 18px */
-    font-weight: 600;
-    color: #2f3542;
-    margin-bottom: 1rem;
-}
-
-/* Carrossel Mais Pedidos */
-.carrossel-horizontal {
-    display: flex;
-    overflow-x: auto;
-    gap: 1rem;
-    padding: 0.5rem 0 1.5rem;
-    scrollbar-width: none;
-}
-.carrossel-horizontal::-webkit-scrollbar { display: none; }
-
-.produto-card-horizontal {
-    min-width: 10rem;
-    max-width: 10rem;
-    background: #fff;
-    border-radius: 0.75rem;
-    border: 1px solid #eee;
-    overflow: hidden;
-    flex-shrink: 0;
-}
-
-.produto-card-horizontal .img-wrapper { position: relative; height: 7rem; }
-.produto-card-horizontal img { width: 100%; height: 100%; object-fit: cover; }
-
-/* Estilo para Itens Esgotados */
-.prod-esgotado {
-    opacity: 0.6;
-    filter: grayscale(0.5);
-    pointer-events: none; /* Impede clique se estiver desativado */
-}
-
+/* Estados de Esgotado */
+.prod-esgotado { filter: grayscale(1); opacity: 0.6; }
 .badge-esgotado {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: rgba(0,0,0,0.7);
-    color: white;
-    padding: 0.2rem 0.5rem;
-    border-radius: 0.25rem;
-    font-size: 0.7rem;
-}
-
-.txt-esgotado {
-    display: block;
-    color: #ff4757;
-    font-size: 0.75rem;
-    font-weight: 600;
-    margin-top: 0.25rem;
-}
-
-/* Blocos de Categoria */
-.categoria-bloco { margin-bottom: 2rem; }
-.titulo-categoria {
-    font-size: 1.1rem;
-    font-weight: 600;
-    margin-bottom: 1rem;
-    padding-bottom: 0.5rem;
-    border-bottom: 2px solid #f1f2f6;
-}
-
-.produto-item-lista {
-    display: flex;
-    justify-content: space-between;
-    padding: 1rem 0;
-    border-bottom: 1px solid #f8f9fa;
-    gap: 1rem;
-}
-
-.prod-detalhes { flex: 1; }
-.prod-img-box {
-    width: 5rem;
-    height: 5rem;
-    background: #f1f2f6;
-    border-radius: 0.5rem;
-    overflow: hidden;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-.prod-img-box img { width: 100%; height: 100%; object-fit: cover; }
-/* ============================================================
-    SKELETON
-   ============================================================ */
-/* Efeito de brilho animado */
-.skeleton {
-    background: #eee;
-    background: linear-gradient(110deg, #ececec 8%, #f5f5f5 18%, #ececec 33%);
-    border-radius: 8px;
-    background-size: 200% 100%;
-    animation: 1.5s shine linear infinite;
-    border: none !important;
-}
-
-@keyframes shine {
-    to {
-        background-position-x: -200%;
-    }
-}
-
-/* Formatos específicos para os skeletons */
-.skeleton-card {
-    height: 220px;
-    width: 100%;
-    margin-bottom: 20px;
-}
-
-.skeleton-text {
-    height: 20px;
-    width: 70%;
-    margin: 10px 0;
-}
-
-.skeleton-circle {
-    height: 60px;
-    width: 60px;
-    border-radius: 50%;
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    background: rgba(0,0,0,0.7); color: #fff; padding: 0.3rem 0.6rem; border-radius: 0.4rem; font-size: 0.7rem;
 }
 
 /* ============================================================
-    RESPONSIVIDADE
+    RESPONSIVIDADE (UNIFICADA - @MEDIA)
    ============================================================ */
+
+/* TABLETS E SMARTPHONES (Até 768px / 48rem) */
 @media (max-width: 48rem) {
-    .header-container {
-        flex-wrap: wrap; /* Permite quebrar linha */
-        justify-content: space-between;
+    
+    /* 1. HEADER: Ajuste de Estrutura */
+    header.main-header {
+        height: 4.5rem !important;
+    }
+
+    header.main-header .header-container {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        padding: 0 0.8rem !important;
+        gap: 0.6rem !important;
+    }
+
+    /* Trava as pontas (Home, Voltar e Usuário/Entrar) */
+    .header-left, .header-right {
+        flex: 0 0 3.2rem !important; 
+        min-width: 3.2rem !important;
+        max-width: 3.2rem !important;
+        width: 3.2rem !important;
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+    }
+
+    .header-right {
+        justify-content: flex-end !important;
     }
 
     .header-center {
-        display: block; /* Volta a exibir */
-        order: 3; /* Move para baixo de tudo */
-        flex: 0 0 100%;
-        margin-top: 0.8rem;
+        flex: 1 !important;
+        display: flex !important;
+        justify-content: center !important;
+        min-width: 0 !important;
     }
 
-    .header-left, .header-right {
-        flex: 0 0 auto; /* Ajusta para não ocupar 100% */
+    /* BOTÕES CIRCULARES (Home, Voltar, Usuário e ENTRAR) */
+    header.main-header .pill-home,
+    header.main-header .pill-back,
+    header.main-header .pill-user,
+    header.main-header .btn-login {
+        width: 3.2rem !important;
+        height: 3.2rem !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        border-radius: 50% !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        flex-shrink: 0 !important;
+        overflow: hidden !important;
+        box-sizing: border-box !important;
+        /* Garante que qualquer texto solto não empurre o layout */
+        font-size: 0 !important; 
     }
 
-    .search-bar {
-        max-width: 100%; /* Ocupa a largura total no mobile */
+    /* EXCEÇÃO: Pílula de Título (Meu Perfil) */
+    header.main-header .pill-page-title {
+        width: auto !important; 
+        min-width: unset !important;
+        max-width: 85% !important;
+        height: 2.8rem !important;
+        padding: 0 1.2rem !important;
+        border-radius: 6.25rem !important;
+        background-color: #f5f5f5 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
     }
 
-    .hero h2 { font-size: 1.5rem; }
-    
-    .grid-lojas {
-        grid-template-columns: 1fr;
+    /* Esconde Textos das pontas */
+    .pill-home span, 
+    .pill-back span, 
+    .pill-user span,
+    .user-name-text, 
+    .location-text, 
+    .btn-login span, 
+    .pill-user i, 
+    .icone-seta { 
+        display: none !important; 
     }
-    .dropdown-content a, .dropdown-content button {
-        padding: 1rem; /* Aumenta a área de toque */
+
+    /* Garante que o ícone dentro do botão de login (se houver) apareça */
+    .btn-login i {
+        display: block !important;
+        font-size: 1.2rem !important;
+        margin: 0 !important;
+        color: white;
+    }
+
+    /* Texto do título central (perfil.html) */
+    header.main-header .pill-page-title span {
+        display: block !important;
+        font-size: 0.9rem !important;
+        font-weight: 600 !important;
+        color: #333 !important;
+        margin: 0 !important;
+        white-space: nowrap !important;
+    }
+
+    /* BARRA DE PESQUISA (index.html) */
+    .search-bar-wrapper {
+        width: 100% !important;
+        height: 3rem !important;
+        border-radius: 6.25rem !important;
+        padding: 0 1rem !important;
+    }
+
+    /* Imagens nos círculos */
+    .main-logo, .back-icon-img {
+        height: 1.5rem !important;
+        width: auto !important;
+    }
+
+    .user-photo-placeholder {
+        width: 2.2rem !important;
+        height: 2.2rem !important;
+    }
+
+    /* 2. VITRINE MOBILE: Banner Compacto */
+    .loja-banner, .loja-banner-sk {
+        height: 7rem !important;
+    }
+
+    /* 3. MAIS PEDIDOS */
+    .card-produto-quadrado { width: 9.5rem !important; }
+    .card-produto-quadrado .btn-add-carrinho {
+        width: 2.6rem !important; height: 1.8rem !important;
+    }
+
+    /* 4. CATEGORIAS */
+    .grid-produtos-detalhado { flex-direction: column !important; gap: 1rem !important; }
+    .card-produto-horizontal { width: 100% !important; }
+
+    /* 5. MENU DROPDOWN */
+    .dropdown-content { 
+        right: 0 !important; 
+        left: auto !important; 
+        min-width: 12rem !important;
+        transform: translateY(10px) !important; 
     }
 }
 
-@media (max-width: 30rem) { /* ~480px */
-    .form-row {
-        flex-direction: column; /* Empilha CEP/Bairro, etc */
-        gap: 0.5rem;
-    }
-    
-    .login-container {
-        padding: 1.5rem; /* Reduz padding interno para ganhar espaço */
-    }
-}
-
-@media (max-width: 25rem) { /* Celulares bem pequenos */
-    .modal-content {
-        padding: 1rem;
-        border-radius: 1rem;
-    }
-    
-    .modal-header h2 {
-        font-size: 1.1rem;
-    }
-}
-
-@media (max-width: 37.5rem) {
-    .input-row {
-        grid-template-columns: 1fr;
-    }
-    .modal-content {
-        padding: 1.25rem;
-    }
-
-    .grid-cadastro {
-        grid-template-columns: 1fr;
-    }
-    .full-width {
-        grid-column: span 1;
-    }
+/* CELULARES PEQUENOS */
+@media (max-width: 25rem) {
+    .prod-foto-lateral { width: 4.8rem !important; height: 4.8rem !important; }
+    header.main-header .header-container { gap: 0.4rem !important; }
+    header.main-header .pill-page-title { padding: 0 0.8rem !important; }
 }

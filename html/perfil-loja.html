@@ -22,13 +22,6 @@
             border: 2px solid #ddd;
             background: #f9f9f9;
         }
-        /* Ajuste para o skeleton no título */
-        .skeleton-titulo {
-            width: 200px;
-            height: 30px;
-            border-radius: 4px;
-            display: inline-block;
-        }
     </style>
 </head>
 <body>
@@ -38,20 +31,14 @@
             <a href="../index.html" class="btn-voltar">
                 <i class="fa-solid fa-arrow-left"></i> Sair do Painel
             </a>
-            <h1 id="nome-loja-titulo"><span class="skeleton skeleton-titulo"></span></h1>
+            <h1 id="nome-loja-titulo">Minha Loja</h1>
         </div>
     </header>
 
     <main class="dashboard-container">
-        <div class="grid-dashboard" id="grid-main">
-            <!-- Skeletons iniciais -->
-            <div class="skeleton-card" style="height: 160px;"></div>
-            <div class="skeleton-card" style="height: 160px;"></div>
-            <div class="skeleton-card" style="height: 160px;"></div>
-        </div>
+        <div class="grid-dashboard" id="grid-main"></div>
     </main>
 
-    <!-- MODAL DE INFORMAÇÕES DA LOJA -->
     <div id="modal-info" class="modal-overlay">
         <div class="modal-content">
             <div class="modal-header">
@@ -82,7 +69,7 @@
                     <div class="input-group">
                         <label>Categoria</label>
                         <select id="edit-categoria">
-                            <option value="">Carregando...</option>
+                            <option value="">Selecione uma categoria</option>
                         </select>
                     </div>
                     <div class="input-group">
@@ -129,7 +116,6 @@
         </div>
     </div>
 
-    <!-- MODAL DE PRODUTOS -->
     <div id="modal-produtos" class="modal-overlay">
         <div class="modal-content">
             <div class="modal-header">
@@ -157,7 +143,6 @@
         const editLogoUrl = document.getElementById('edit-logo-url');
         const previewLogo = document.getElementById('preview-logo');
 
-        // --- FUNÇÃO PARA INJETAR CONTEÚDO REAL ---
         function renderizarDashboard() {
             gridMain.innerHTML = `
                 <div class="card-dash" onclick="window.abrirModal('modal-info')">
@@ -215,7 +200,7 @@
                             idLojaGlobal = userData.loja;
                             await carregarCategorias();
                             await carregarDadosLoja();
-                            renderizarDashboard(); // Substitui skeletons pelos cards reais
+                            renderizarDashboard();
                         } else {
                             window.location.href = 'login-loja.html';
                         }

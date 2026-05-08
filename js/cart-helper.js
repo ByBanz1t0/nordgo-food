@@ -2,10 +2,10 @@ import { auth, mostrarNotificacao } from './firebase-config.js';
 
 /**
  * LÓGICA GLOBAL DO CARRINHO - NORDGO FOOD
- * Gerencia o localStorage e o Carrinho Flutuante
+ * Gerencia o localStorage e o Carrinho Flutuante (Modelo Retangular Compacto)
  */
 
-// 1. Função para adicionar produtos (Agora recebendo nomeLoja para correção visual no carrinho)
+// 1. Função para adicionar produtos
 window.adicionarAoCarrinho = function(id, nome, preco, imagem, lojaId, nomeLoja) {
     let carrinho = JSON.parse(localStorage.getItem('nordgo_carrinho')) || [];
     
@@ -29,7 +29,7 @@ window.adicionarAoCarrinho = function(id, nome, preco, imagem, lojaId, nomeLoja)
             preco: parseFloat(preco), 
             imagem, 
             lojaId, 
-            nomeLoja: nomeLoja || 'Loja', // Salva o nome da loja no objeto do item
+            nomeLoja: nomeLoja || 'Loja', 
             quantidade: 1 
         });
     }
@@ -63,17 +63,18 @@ export function atualizarCarrinhoFlutuante() {
     }
 }
 
-// 3. Inicialização automática ao carregar qualquer página
+// 3. Inicialização automática com o NOVO LAYOUT (Preço sobre Itens)
 document.addEventListener('DOMContentLoaded', () => {
+    // Se o carrinho ainda não existir no HTML, injetamos o modelo padrão
     if (!document.getElementById('floating-cart')) {
         const cartHTML = `
-            <div id="floating-cart" class="floating-cart hidden">
-                <div class="cart-info" onclick="redirecionarParaCarrinho()">
-                    <span id="cart-count">0</span>
+            <div id="floating-cart" class="carrinho-flutuante hidden" onclick="redirecionarParaCarrinho()">
+                <div class="cart-icon-container">
                     <i class="fa-solid fa-cart-shopping"></i>
                 </div>
-                <div class="cart-total" onclick="redirecionarParaCarrinho()">
-                    <span id="cart-float-total">R$ 0,00</span>
+                <div class="cart-stack-info">
+                    <span id="cart-float-total" class="carrinho-valor-total">R$ 0,00</span>
+                    <span class="cart-count-label"><span id="cart-count">0</span> itens</span>
                 </div>
             </div>
         `;
@@ -82,7 +83,7 @@ document.addEventListener('DOMContentLoaded', () => {
     atualizarCarrinhoFlutuante();
 });
 
-// Função auxiliar de navegação
+// Função auxiliar de navegação (Lida com caminhos diferentes da Root e Subpastas)
 window.redirecionarParaCarrinho = function() {
     const isRoot = window.location.pathname.includes('index.html') || window.location.pathname.endsWith('/');
     const pathPrefix = isRoot ? 'html/' : '';
