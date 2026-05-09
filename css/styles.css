@@ -88,6 +88,10 @@ body {
     transition: background-color 0.3s ease;
 }
 
+.location-text {
+    margin-left: 1.1rem;
+}
+
 /* Home e Voltar: Ícone na esquerda e texto centralizado no resto */
 .pill-home, .pill-back {
     width: 140px; 
