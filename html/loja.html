@@ -25,7 +25,7 @@
                 </div>
             </div>
             <div class="header-right" id="user-area">
-                <div style="height: 3rem; min-width: 120px;"></div>
+                <div style="height: 3rem; min-width: 7.5rem;"></div>
             </div>
         </div>
     </header>
@@ -36,7 +36,11 @@
                 <div class="loja-banner" id="loja-img-fundo"></div>
                 <div class="loja-perfil">
                     <div class="loja-logo-container">
-                        <img id="detalhe-logo-loja" src="" alt="Logo" class="loja-logo-circular">
+                        <img id="detalhe-logo-loja" 
+                             src="../assets/images/default-loja.png" 
+                             alt="Logo" 
+                             class="loja-logo-circular"
+                             onerror="this.src='../assets/images/default-loja.png'">
                     </div>
                     <h1 id="detalhe-nome-loja">Nome da Loja</h1>
                     <p id="detalhe-categoria-loja" class="tag-categoria">Categoria</p>
@@ -61,9 +65,6 @@
         </div>
     </main>
 
-    <script type="module" src="../js/firebase-config.js"></script>
-    <script type="module" src="../js/cart-helper.js"></script>
-
     <script type="module">
         import { db } from '../js/firebase-config.js';
         import { doc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
@@ -72,32 +73,53 @@
         const params = new URLSearchParams(window.location.search);
         const lojaId = params.get('loja') || params.get('id'); 
         let nomeLojaGlobal = ""; 
+        let fotosCategorias = {}; // Mapa para: { "Nome da Categoria": "arquivo.png" }
 
-        if (!lojaId) { window.location.href = '../index.html'; } else { carregarDadosLoja(); }
+        if (!lojaId) { 
+            window.location.href = '../index.html'; 
+        } else { 
+            inicializarPagina(); 
+        }
+
+        async function inicializarPagina() {
+            try {
+                // 1. Mapeia os arquivos de imagem das categorias primeiro
+                const catSnap = await getDocs(collection(db, "categorias"));
+                catSnap.forEach(docCat => {
+                    const c = docCat.data();
+                    if (c.nome && c.fotoArquivo) {
+                        fotosCategorias[c.nome] = c.fotoArquivo;
+                    }
+                });
+
+                // 2. Carrega os dados da loja e produtos
+                await carregarDadosLoja();
+                
+                atualizarCarrinhoFlutuante();
+            } catch (error) {
+                console.error("Erro na inicialização:", error);
+            }
+        }
 
         async function carregarDadosLoja() {
-            try {
-                const lojaRef = doc(db, "lojas", lojaId);
-                const lojaSnap = await getDoc(lojaRef);
-                if (!lojaSnap.exists()) { window.location.href = '../index.html'; return; }
+            const lojaRef = doc(db, "lojas", lojaId);
+            const lojaSnap = await getDoc(lojaRef);
+            
+            if (!lojaSnap.exists()) { 
+                window.location.href = '../index.html'; 
+                return; 
+            }
 
-                const loja = lojaSnap.data();
-                nomeLojaGlobal = loja.nome; 
-                renderizarDadosLoja(loja);
+            const loja = lojaSnap.data();
+            nomeLojaGlobal = loja.nome; 
+            renderizarDadosLoja(loja);
 
-                const produtosRef = collection(db, "produtos");
-                const q = query(produtosRef, where("lojaId", "==", lojaId));
-                const querySnapshot = await getDocs(q);
-                
-                if (!querySnapshot.empty) {
-                    const produtos = [];
-                    querySnapshot.forEach(doc => produtos.push({ id: doc.id, ...doc.data() }));
-                    renderizarCardapio(produtos);
-                }
-
-                // REMOVIDO: Lógica que escondia o conteúdo e mostrava o skeleton
-                atualizarCarrinhoFlutuante();
-            } catch (error) { console.error("Erro:", error); }
+            const q = query(collection(db, "produtos"), where("lojaId", "==", lojaId));
+            const querySnapshot = await getDocs(q);
+            
+            const produtos = [];
+            querySnapshot.forEach(doc => produtos.push({ id: doc.id, ...doc.data() }));
+            renderizarCardapio(produtos);
         }
 
         function renderizarDadosLoja(loja) {
@@ -107,26 +129,52 @@
             document.getElementById('detalhe-descricao').innerText = loja.descricao || "";
             document.getElementById('detalhe-avaliacao').innerText = loja.avaliacao || "Novo";
             document.getElementById('detalhe-tempo').innerText = `${loja.tempoEntrega || '20-30'} min`;
-            document.getElementById('detalhe-logo-loja').src = loja.logoLoja || '../assets/images/default-store.png'; 
+            
+            // Prioridade: logoUrl (Upload Storage) > logoLoja (Link antigo)
+            document.getElementById('detalhe-logo-loja').src = loja.logoUrl || loja.logoLoja || '../assets/images/default-store.png'; 
+            
             const banner = document.getElementById('loja-img-fundo');
-            if (loja.bannerLoja) { banner.style.backgroundImage = `url('${loja.bannerLoja}')`; } 
-            else { banner.style.backgroundColor = loja.temaLoja || '#ff4757'; }
+            if (loja.bannerLoja) { 
+                banner.style.backgroundImage = `url('${loja.bannerLoja}')`; 
+            } else { 
+                banner.style.backgroundColor = loja.temaLoja || '#ff4757'; 
+            }
+            
             const freteElem = document.getElementById('detalhe-frete');
-            freteElem.innerText = (!loja.frete || loja.frete == 0) ? "Frete Grátis" : parseFloat(loja.frete).toLocaleString('pt-br', { style: 'currency', currency: 'BRL' });
+            freteElem.innerText = (!loja.frete || loja.frete == 0) 
+                ? "Frete Grátis" 
+                : parseFloat(loja.frete).toLocaleString('pt-br', { style: 'currency', currency: 'BRL' });
+        }
+
+        // --- LÓGICA DE SELEÇÃO DE IMAGEM ---
+        function obterImagemProduto(p) {
+            // 1. Se o produto tem imagem própria, usa ela
+            if (p.imagem && p.imagem.trim() !== "") return p.imagem;
+            
+            // 2. Se não tem, busca o arquivo mapeado na categoria
+            const arquivoCat = fotosCategorias[p.categoria];
+            if (arquivoCat) return `../assets/images/${arquivoCat}`;
+            
+            // 3. Fallback final
+            return '../assets/images/placeholder.png';
         }
 
         function criarCardQuadradoHTML(p, customClass = "") {
             const indisponivel = p.disponibilidade === false;
+            const imgUrl = obterImagemProduto(p);
+
             return `
                 <div class="card-produto-quadrado ${customClass} ${indisponivel ? 'prod-esgotado' : ''}">
-                    <img src="${p.imagem || '../assets/images/placeholder.png'}" alt="${p.nome}">
+                    <img src="${imgUrl}" 
+                         alt="${p.nome}"
+                         onerror="this.src='../assets/images/placeholder.png'">
                     ${indisponivel ? '<span class="badge-esgotado">Esgotado</span>' : ''}
                     <div class="info-overlay">
                         <h3>${p.nome}</h3>
                         <span class="preco-tag">R$ ${p.preco.toLocaleString('pt-br', {minimumFractionDigits: 2})}</span>
                     </div>
                     ${!indisponivel ? `
-                        <button class="btn-add-carrinho" onclick="adicionarAoCarrinho('${p.id}', '${p.nome}', ${p.preco}, '${p.imagem || ''}', '${lojaId}', '${nomeLojaGlobal}')">
+                        <button class="btn-add-carrinho" onclick="adicionarAoCarrinho('${p.id}', '${p.nome}', ${p.preco}, '${imgUrl}', '${lojaId}', '${nomeLojaGlobal}')">
                             <i class="fa-solid fa-plus"></i><i class="fa-solid fa-cart-shopping"></i>
                         </button>` : ''}
                 </div>
@@ -135,10 +183,14 @@
 
         function criarCardHorizontalHTML(p) {
             const indisponivel = p.disponibilidade === false;
+            const imgUrl = obterImagemProduto(p);
+
             return `
                 <div class="card-produto-horizontal ${indisponivel ? 'prod-esgotado' : ''}">
                     <div class="prod-foto-lateral">
-                        <img src="${p.imagem || '../assets/images/placeholder.png'}" alt="${p.nome}">
+                        <img src="${imgUrl}" 
+                             alt="${p.nome}"
+                             onerror="this.src='../assets/images/placeholder.png'">
                     </div>
                     <div class="prod-conteudo">
                         <div class="prod-textos">
@@ -154,7 +206,7 @@
                         <div class="prod-acoes-lateral">
                             <span class="preco-detalhe">R$ ${p.preco.toLocaleString('pt-br', {minimumFractionDigits: 2})}</span>
                             ${!indisponivel ? `
-                                <button class="btn-add-carrinho" onclick="adicionarAoCarrinho('${p.id}', '${p.nome}', ${p.preco}, '${p.imagem || ''}', '${lojaId}', '${nomeLojaGlobal}')">
+                                <button class="btn-add-carrinho" onclick="adicionarAoCarrinho('${p.id}', '${p.nome}', ${p.preco}, '${imgUrl}', '${lojaId}', '${nomeLojaGlobal}')">
                                     <i class="fa-solid fa-plus"></i><i class="fa-solid fa-cart-shopping"></i>
                                 </button>` : ''}
                         </div>
@@ -167,22 +219,32 @@
             const containerMaisPedidos = document.getElementById('container-mais-pedidos');
             const listaMaisPedidos = document.getElementById('lista-mais-pedidos');
             const cardapioAgrupado = document.getElementById('cardapio-agrupado');
-            listaMaisPedidos.innerHTML = ""; cardapioAgrupado.innerHTML = "";
+            
+            listaMaisPedidos.innerHTML = ""; 
+            cardapioAgrupado.innerHTML = "";
+
             const maisPedidos = produtos.filter(p => p.destaque === true);
             if (maisPedidos.length > 0) {
                 containerMaisPedidos.classList.remove('hidden');
                 maisPedidos.forEach(p => { listaMaisPedidos.innerHTML += criarCardQuadradoHTML(p, "scroll-item"); });
             }
-            const categorias = {};
+
+            const categoriasEncontradas = {};
             produtos.forEach(p => {
                 const cat = p.categoria || "Outros";
-                if (!categorias[cat]) categorias[cat] = [];
-                categorias[cat].push(p);
+                if (!categoriasEncontradas[cat]) categoriasEncontradas[cat] = [];
+                categoriasEncontradas[cat].push(p);
             });
-            Object.keys(categorias).sort().forEach(catNome => {
-                const produtosDaCat = categorias[catNome].sort((a, b) => a.nome.localeCompare(b.nome));
-                let htmlCategoria = `<div class="categoria-bloco"><h2 class="titulo-categoria">${catNome}</h2><div class="grid-produtos-detalhado">`;
+
+            Object.keys(categoriasEncontradas).sort().forEach(catNome => {
+                const produtosDaCat = categoriasEncontradas[catNome].sort((a, b) => a.nome.localeCompare(b.nome));
+                let htmlCategoria = `
+                    <div class="categoria-bloco">
+                        <h2 class="titulo-categoria">${catNome}</h2>
+                        <div class="grid-produtos-detalhado">`;
+                
                 produtosDaCat.forEach(p => { htmlCategoria += criarCardHorizontalHTML(p); });
+                
                 htmlCategoria += `</div></div>`;
                 cardapioAgrupado.innerHTML += htmlCategoria;
             });

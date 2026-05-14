@@ -1,9 +1,11 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
 import { getFirestore, doc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
 import { getAuth, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
+// 1. Importar o serviço de Storage
+import { getStorage } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-storage.js";
 
 const firebaseConfig = {
-    apiKey: "AIzaSyDt8z1zNvG43sgiUKwcGQCx79KRNq_5Cjc",
+    apiKey: "AIzaSyDt8z1zNvG43sgiUKwcGQCx79KRNq_5Cjc", // Adicionado o 'K' aqui
     authDomain: "nordgo-food.firebaseapp.com",
     projectId: "nordgo-food",
     storageBucket: "nordgo-food.firebasestorage.app",
@@ -15,6 +17,8 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
+// 2. Inicializar o Storage
+const storage = getStorage(app);
 const googleProvider = new GoogleAuthProvider();
 
 /**
@@ -66,7 +70,6 @@ onAuthStateChanged(auth, async (user) => {
                 ? `<a href="#" id="link-loja-global"><i class="fa-solid fa-store"></i> Minha Loja</a>` 
                 : '';
 
-            // Layout do Usuário Logado
             headerRight.innerHTML = `
                 <div class="user-menu-container">
                     <div class="pill-badge pill-user">
@@ -87,7 +90,6 @@ onAuthStateChanged(auth, async (user) => {
                 </div>
             `;
 
-            // Atribuição de eventos após injetar o HTML
             if (userData?.tipo === 'dono') {
                 const btnLoja = document.getElementById('link-loja-global');
                 if (btnLoja) {
@@ -107,7 +109,6 @@ onAuthStateChanged(auth, async (user) => {
             console.error("Erro ao carregar menu:", error);
         }
     } else {
-        // Layout do Usuário Deslogado (Limpo de estilos inline)
         const loginPath = isRoot ? 'html/login.html' : 'login.html';
         headerRight.innerHTML = `
             <button onclick="window.location.href='${loginPath}'" class="btn-login">
@@ -139,4 +140,5 @@ export function mostrarNotificacao(mensagem, tipo = 'success') {
     }, 3000);
 }
 
-export { app, db, auth, googleProvider };
+// 3. Incluir storage nas exportações
+export { app, db, auth, storage, googleProvider };

@@ -94,10 +94,17 @@
                 lista.innerHTML = ""; 
                 querySnapshot.forEach(doc => {
                     const d = doc.data();
+                    
+                    // Ajuste: Usando logoUrl (do novo sistema) ou fallback padrão
+                    const fotoExibir = d.logoUrl || 'assets/images/default-loja.png';
+
                     lista.innerHTML += `
                         <div class="card-loja" onclick="window.location.href='html/loja.html?loja=${doc.id}'">
                             <div class="banner-loja" style="background-color: ${d.temaLoja || '#ff4757'}">
-                                <img src="${d.logoLoja || 'assets/images/default-loja.png'}" class="logo-loja" alt="Logo">
+                                <img src="${fotoExibir}" 
+                                     class="logo-loja" 
+                                     alt="Logo ${d.nome}"
+                                     onerror="this.src='assets/images/default-loja.png'">
                             </div>
                             <div class="info-loja">
                                 <h3>${d.nome}</h3>
@@ -105,7 +112,10 @@
                             </div>
                         </div>`;
                 });
-            } catch (e) { lista.innerHTML = "<p>Erro ao carregar lojas.</p>"; }
+            } catch (e) { 
+                console.error(e);
+                lista.innerHTML = "<p>Erro ao carregar lojas.</p>"; 
+            }
         }
     </script>
 </body>

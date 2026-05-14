@@ -14,14 +14,18 @@
     <header class="main-header">
         <div class="header-container">
             <div class="header-left">
-                <button onclick="window.location.href='../index.html'" class="btn-back">
-                    <i class="fa-solid fa-arrow-left"></i>
-                    <span>Voltar</span>
-                </button>
+                <div class="pill-badge pill-back" onclick="window.location.href='../index.html'" style="cursor: pointer;">
+                    <img src="../assets/images/voltar.png" alt="Voltar" class="back-icon-img">
+                    <span class="location-text" style="margin-left: 1rem;">Voltar</span>
+                </div>
             </div>
+
             <div class="header-center">
-                <img src="../assets/images/nordgo-logo.png" alt="NordGo Food" class="main-logo" onclick="window.location.href='../index.html'">
+                <div class="pill-badge pill-page-title" style="cursor: default; background-color: #f5f5f5; border-color: #e2e2e2;">
+                    <span style="font-weight: 600; color: #333;">Login</span>
+                </div>
             </div>
+
             <div class="header-right"></div>
         </div>
     </header>
@@ -29,7 +33,6 @@
     <main class="login-screen">
         <div class="login-container">
             
-            <!-- SEÇÃO DE CARREGAMENTO (SKELETON) -->
             <div id="section-skeleton">
                 <div class="login-header">
                     <div class="skeleton" style="width: 150px; height: 30px; margin: 0 auto 10px; border-radius: 4px;"></div>
@@ -43,7 +46,6 @@
                 </div>
             </div>
 
-            <!-- SEÇÃO DE LOGIN -->
             <div id="section-login" style="display: none;">
                 <header class="login-header">
                     <h2>Bem-vindo</h2>
@@ -73,7 +75,6 @@
                 </div>
             </div>
 
-            <!-- SEÇÃO DE CADASTRO -->
             <div id="section-cadastro" class="hidden">
                 <header class="login-header">
                     <h2>Crie sua conta</h2>
@@ -165,7 +166,7 @@
             sectionLogin.style.display = 'block';
         };
 
-        // Lógica de Login
+        // Lógica de Login E-mail/Senha
         document.getElementById('btn-login').onclick = async () => {
             const email = document.getElementById('email').value.trim();
             const senha = document.getElementById('senha').value;
@@ -179,7 +180,7 @@
                 const btn = document.getElementById('btn-login');
                 btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Entrando...';
                 await signInWithEmailAndPassword(auth, email, senha);
-                mostrarNotificacao("Login realizado com sucesso!");
+                mostrarNotificacao("Bem-vindo de volta!");
                 setTimeout(() => window.location.href = '../index.html', 1000);
             } catch (error) {
                 document.getElementById('btn-login').innerText = 'Entrar';
@@ -187,7 +188,7 @@
             }
         };
 
-        // Cadastro de Novo Usuário
+        // Cadastro de Novo Usuário (Salvando como cpfCliente)
         document.getElementById('btn-cadastrar-final').onclick = async () => {
             const campos = {
                 nome: document.getElementById('reg-nome').value.trim(),
@@ -208,30 +209,38 @@
             }
 
             if (!validarSenhaForte(campos.senha)) {
-                mostrarNotificacao("A senha deve ter 8+ caracteres, maiúscula, número e símbolo.", "error");
+                mostrarNotificacao("Senha fraca! Use 8+ caracteres, maiúscula, número e símbolo.", "error");
                 return;
             }
 
             try {
                 const btn = document.getElementById('btn-cadastrar-final');
+                btn.disabled = true;
                 btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Criando conta...';
                 
+                // 1. Cria o usuário no Auth
                 const userCred = await createUserWithEmailAndPassword(auth, campos.email, campos.senha);
+                
+                // 2. Remove a senha do objeto antes de salvar no Firestore
                 const { senha, ...dadosParaSalvar } = campos;
                 
+                // 3. Salva no Firestore
                 await setDoc(doc(db, "usuarios", userCred.user.uid), {
                     ...dadosParaSalvar,
                     tipo: "cliente",
-                    dataCriacao: new Date()
+                    dataCriacao: new Date(),
+                    fotoUrl: "" // Inicia sem foto
                 });
 
                 mostrarNotificacao("Conta criada com sucesso!");
                 setTimeout(() => window.location.href = '../index.html', 1500);
             } catch (error) { 
+                document.getElementById('btn-cadastrar-final').disabled = false;
                 document.getElementById('btn-cadastrar-final').innerText = 'Finalizar Cadastro';
                 if(error.code === 'auth/email-already-in-use') {
-                    mostrarNotificacao("Este e-mail já está cadastrado.", "error");
+                    mostrarNotificacao("Este e-mail já está em uso.", "error");
                 } else {
+                    console.error(error);
                     mostrarNotificacao("Erro ao criar conta.", "error");
                 }
             }
@@ -241,7 +250,7 @@
         document.getElementById('btn-esqueci-senha').onclick = async (e) => {
             e.preventDefault();
             const email = document.getElementById('email').value.trim();
-            if (!email) { mostrarNotificacao("Informe seu e-mail para recuperar.", "error"); return; }
+            if (!email) { mostrarNotificacao("Informe seu e-mail primeiro.", "error"); return; }
             try {
                 await sendPasswordResetEmail(auth, email);
                 mostrarNotificacao("E-mail de recuperação enviado!");
@@ -255,16 +264,19 @@
                 const result = await signInWithPopup(auth, provider);
                 const user = result.user;
                 const userDoc = await getDoc(doc(db, "usuarios", user.uid));
+                
+                // Se for a primeira vez do usuário, cria o documento dele
                 if (!userDoc.exists()) {
                     await setDoc(doc(db, "usuarios", user.uid), {
                         nome: user.displayName,
                         email: user.email,
                         tipo: "cliente",
+                        fotoUrl: user.photoURL || "",
                         dataCriacao: new Date()
                     });
                 }
                 window.location.href = '../index.html';
-            } catch (e) { mostrarNotificacao("Falha no login Google.", "error"); }
+            } catch (e) { mostrarNotificacao("Falha na autenticação com Google.", "error"); }
         };
     </script>
 </body>

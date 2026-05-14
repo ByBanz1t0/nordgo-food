@@ -6,32 +6,30 @@
     <title>Painel da Loja | NordGo</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <link rel="stylesheet" href="../css/styles.css">
-    <style>
-        .logo-preview-container {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            margin-bottom: 15px;
-        }
-        #preview-logo {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 2px solid #ddd;
-            background: #f9f9f9;
-        }
-    </style>
+    <link rel="stylesheet" href="../css/styles-perfil-loja.css">
 </head>
 <body>
-    
-    <header class="admin-header">
-        <div class="container-admin">
-            <a href="../index.html" class="btn-voltar">
-                <i class="fa-solid fa-arrow-left"></i> Sair do Painel
-            </a>
-            <h1 id="nome-loja-titulo">Minha Loja</h1>
+    <div id="toast-container" class="toast-container"></div>
+
+    <header class="main-header">
+        <div class="header-container">
+            <div class="header-left">
+                <div class="pill-badge pill-back" onclick="window.location.href='../index.html'">
+                    <img src="../assets/images/voltar.png" alt="Voltar" class="back-icon-img">
+                    <span class="location-text">Voltar</span>
+                </div>
+            </div>
+            <div class="header-center">
+                <div class="pill-badge pill-page-title" id="btn-ver-loja" title="Ver minha loja" style="cursor: pointer; background-color: #f5f5f5; border-color: #e2e2e2;">
+                    <span id="nome-loja-titulo" style="font-weight: 600; color: #333;">Carregando...</span>
+                    <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 0.7rem; margin-left: 8px; color: #999;"></i>
+                </div>
+            </div>
+            <div class="header-right" id="user-area">
+                <div class="user-loading-placeholder" style="height: 3rem; min-width: 120px;"></div>
+            </div>
         </div>
     </header>
 
@@ -45,72 +43,37 @@
                 <h2><i class="fa-solid fa-pen-to-square"></i> Editar Loja</h2>
                 <button class="btn-fechar" onclick="window.fecharModal('modal-info')">&times;</button>
             </div>
-            
             <form id="form-editar-loja" class="modal-body">
                 <div class="input-group">
-                    <label>Logo da Loja (URL ou Upload)</label>
+                    <label>Logo da Loja (Clique para alterar)</label>
                     <div class="logo-preview-container">
-                        <img id="preview-logo" src="../img/default-logo.png" alt="Logo">
-                        <input type="text" id="edit-logo-url" placeholder="URL da imagem (logoUrl)">
+                        <label for="edit-logo-file">
+                            <img id="preview-logo" src="../assets/images/default-loja.png" alt="Logo">
+                        </label>
+                        <input type="file" id="edit-logo-file" class="input-file-hidden" accept="image/*">
+                        <span class="label-upload-instrucao">Trocar imagem</span>
                     </div>
                 </div>
-
-                <div class="input-group">
-                    <label>Nome da Loja</label>
-                    <input type="text" id="edit-nome" required>
-                </div>
-                
-                <div class="input-group">
-                    <label>Descrição</label>
-                    <input type="text" id="edit-descricao">
-                </div>
-
+                <div class="input-group"><label>Nome da Loja</label><input type="text" id="edit-nome" required></div>
+                <div class="input-group"><label>Descrição</label><input type="text" id="edit-descricao"></div>
                 <div class="input-row">
-                    <div class="input-group">
-                        <label>Categoria</label>
-                        <select id="edit-categoria">
-                            <option value="">Selecione uma categoria</option>
-                        </select>
-                    </div>
-                    <div class="input-group">
-                        <label>CEP</label>
-                        <input type="text" id="edit-cep">
-                    </div>
+                    <div class="input-group"><label>Categoria</label><select id="edit-categoria"></select></div>
+                    <div class="input-group"><label>CEP</label><input type="text" id="edit-cep"></div>
                 </div>
-
-                <div class="input-group">
-                    <label>Rua</label>
-                    <input type="text" id="edit-rua">
-                </div>
-
                 <div class="input-row">
-                    <div class="input-group">
-                        <label>Bairro</label>
-                        <input type="text" id="edit-bairro">
-                    </div>
-                    <div class="input-group">
-                        <label>Número</label>
-                        <input type="text" id="edit-numero">
+                    <div class="input-group"><label>Bairro</label><input type="text" id="edit-bairro"></div>
+                    <div class="input-group"><label>Número</label><input type="text" id="edit-numero"></div>
+                </div>
+                <div class="input-group"><label>Cor do Tema</label>
+                    <div class="color-picker-container" style="display: flex; align-items: center; gap: 5px; background: #f9f9f9; padding: 5px 10px; border-radius: 1rem; border: 1.5px solid #f1f1f1; width: 100%;">
+                        <input type="color" id="edit-tema" value="#ff4757" style="border-radius: 16px; width: 25px; height: 50px; background: none; cursor: pointer;">
+                        <span id="valor-hex" style="font-family: monospace; font-weight: bold; color: #333;">#FF4757</span>
                     </div>
                 </div>
-
-                <div class="input-group">
-                    <label>Cor do Tema</label>
-                    <div class="color-picker-container">
-                        <input type="color" id="edit-tema" value="#ff4757">
-                        <span id="valor-hex">#FF4757</span>
-                    </div>
-                </div>
-                
                 <button type="submit" class="btn-salvar">Salvar Alterações</button>
-
                 <div class="danger-zone">
-                    <p class="danger-text">
-                        <i class="fa-solid fa-triangle-exclamation"></i> <strong>Atenção:</strong> Excluir a loja removerá todos os dados permanentemente.
-                    </p>
-                    <button type="button" id="btn-excluir-loja" class="btn-excluir">
-                        Excluir Minha Loja
-                    </button>
+                    <p class="danger-text"><i class="fa-solid fa-triangle-exclamation"></i> Excluir a loja é permanente.</p>
+                    <button type="button" id="btn-excluir-loja" class="btn-excluir">Excluir Minha Loja</button>
                 </div>
             </form>
         </div>
@@ -119,178 +82,325 @@
     <div id="modal-produtos" class="modal-overlay">
         <div class="modal-content">
             <div class="modal-header">
-                <h2><i class="fa-solid fa-utensils"></i> Gerenciar Produtos</h2>
+                <h2><i class="fa-solid fa-utensils"></i> Meus Itens</h2>
                 <button class="btn-fechar" onclick="window.fecharModal('modal-produtos')">&times;</button>
             </div>
             <div class="modal-body">
-                <p class="placeholder-text">Seu cardápio aparecerá aqui em breve.</p>
-                <button class="btn-salvar btn-blue">+ Adicionar Novo Item</button>
+                <div id="lista-produtos-dashboard" class="produtos-admin-list"></div>
             </div>
         </div>
     </div>
 
+    <div id="modal-add-produto" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fa-solid fa-plus"></i> Novo Produto</h2>
+                <button class="btn-fechar" onclick="window.fecharModal('modal-add-produto')">&times;</button>
+            </div>
+            <form id="form-add-produto" class="modal-body">
+                <div class="input-group">
+                    <label>Foto do Produto (Clique para alterar)</label>
+                    <div class="logo-preview-container">
+                        <label for="add-produto-file">
+                            <img id="preview-produto-add" src="../assets/images/placeholder.png" alt="Preview">
+                        </label>
+                        <input type="file" id="add-produto-file" class="input-file-hidden" accept="image/*">
+                        <span class="label-upload-instrucao">Selecionar Imagem</span>
+                    </div>
+                </div>
+                <div class="input-group"><label>Nome</label><input type="text" id="add-produto-nome" required></div>
+                <div class="input-row">
+                    <div class="input-group"><label>Preço</label><input type="number" id="add-produto-preco" step="0.01" required></div>
+                    <div class="input-group"><label>Categoria</label><select id="add-produto-categoria-select" required></select></div>
+                </div>
+                <div class="input-group"><label>Descrição Curta</label><textarea id="add-produto-descricao" rows="2"></textarea></div>
+                <button type="submit" class="btn-salvar">Cadastrar Produto</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="modal-editar-produto" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fa-solid fa-pencil"></i> Editar Item</h2>
+                <button class="btn-fechar" onclick="window.fecharModal('modal-editar-produto')">&times;</button>
+            </div>
+            <form id="form-editar-produto" class="modal-body">
+                <input type="hidden" id="edit-prod-id">
+                <div class="input-group">
+                    <label>Foto do Produto (Clique para alterar)</label>
+                    <div class="logo-preview-container">
+                        <label for="edit-produto-file">
+                            <img id="preview-produto-edit" src="../assets/images/placeholder.png" alt="Preview">
+                        </label>
+                        <input type="file" id="edit-produto-file" class="input-file-hidden" accept="image/*">
+                        <span class="label-upload-instrucao">Trocar Imagem</span>
+                    </div>
+                </div>
+                <div class="input-group"><label>Nome</label><input type="text" id="edit-produto-nome" required></div>
+                <div class="input-row">
+                    <div class="input-group"><label>Preço</label><input type="number" id="edit-produto-preco" step="0.01" required></div>
+                    <div class="input-group"><label>Categoria</label><select id="edit-produto-categoria-select" required></select></div>
+                </div>
+                <div class="input-group"><label>Descrição Curta</label><textarea id="edit-produto-descricao" rows="2"></textarea></div>
+                <button type="submit" class="btn-salvar">Salvar Alterações</button>
+            </form>
+        </div>
+    </div>
+
     <script type="module">
-        import { auth, db, mostrarNotificacao } from '../js/firebase-config.js';
-        import { doc, getDoc, updateDoc, deleteDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
+        // Importar storage de firebase-config
+        import { auth, db, storage, mostrarNotificacao } from '../js/firebase-config.js';
+        import { ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-storage.js";
+        import { doc, getDoc, updateDoc, deleteDoc, collection, getDocs, addDoc, query, where } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
         import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
 
         let idLojaGlobal = "";
         const gridMain = document.getElementById('grid-main');
         const tituloLoja = document.getElementById('nome-loja-titulo');
 
-        const inputCor = document.getElementById('edit-tema');
-        const displayHex = document.getElementById('valor-hex');
-        const editLogoUrl = document.getElementById('edit-logo-url');
-        const previewLogo = document.getElementById('preview-logo');
+        // --- AUXILIAR: UPLOAD DE IMAGEM NO STORAGE ---
+        async function realizarUpload(arquivo, pasta) {
+            if (!arquivo) return null;
+            const nomeArquivo = `${Date.now()}_${arquivo.name}`;
+            const refStorage = ref(storage, `lojas/${idLojaGlobal}/${pasta}/${nomeArquivo}`);
+            await uploadBytes(refStorage, arquivo);
+            return await getDownloadURL(refStorage);
+        }
+
+        // --- AUXILIAR: PREVIEW LOCAL IMEDIATO (UX) ---
+        function setPreview(inputId, imgId) {
+            const input = document.getElementById(inputId);
+            if (input) {
+                input.onchange = (e) => {
+                    const file = e.target.files[0];
+                    if (file) {
+                        const reader = new FileReader();
+                        reader.onload = (event) => document.getElementById(imgId).src = event.target.result;
+                        reader.readAsDataURL(file);
+                    }
+                };
+            }
+        }
+        setPreview('edit-logo-file', 'preview-logo');
+        setPreview('add-produto-file', 'preview-produto-add');
+        setPreview('edit-produto-file', 'preview-produto-edit');
+
+        document.getElementById('btn-ver-loja').onclick = () => { if (idLojaGlobal) window.location.href = `loja.html?loja=${idLojaGlobal}`; };
 
         function renderizarDashboard() {
             gridMain.innerHTML = `
-                <div class="card-dash" onclick="window.abrirModal('modal-info')">
-                    <i class="fa-solid fa-store"></i>
-                    <h3>Informações</h3>
-                    <p>Editar dados, endereço e contato</p>
-                </div>
-                <div class="card-dash" onclick="window.abrirModal('modal-produtos')">
-                    <i class="fa-solid fa-utensils"></i>
-                    <h3>Produtos</h3>
-                    <p>Gerenciar itens do cardápio</p>
-                </div>
-                <div class="card-dash" onclick="window.mostrarNotificacao('Em breve!', 'info')">
-                    <i class="fa-solid fa-clock"></i>
-                    <h3>Horários</h3>
-                    <p>Definir períodos de funcionamento</p>
-                </div>
+                <div class="card-dash" onclick="window.abrirModal('modal-info')"><i class="fa-solid fa-store"></i><h3>Informações</h3><p>Editar dados e endereço</p></div>
+                <div class="card-dash" onclick="window.abrirModal('modal-add-produto')"><i class="fa-solid fa-circle-plus" style="color: #2ed573;"></i><h3>Novo Produto</h3><p>Cadastrar item rápido</p></div>
+                <div class="card-dash" onclick="window.abrirGerenciadorProdutos()"><i class="fa-solid fa-utensils"></i><h3>Gerenciar Itens</h3><p>Ver e editar cardápio</p></div>
+                <div class="card-dash" onclick="window.mostrarNotificacao('Em breve!', 'info')"><i class="fa-solid fa-clock"></i><h3>Horários</h3><p>Definir funcionamento</p></div>
             `;
+            carregarCategoriasSelects();
         }
 
-        editLogoUrl.addEventListener('input', () => {
-            previewLogo.src = editLogoUrl.value || '../img/default-logo.png';
-        });
+        window.abrirGerenciadorProdutos = async () => {
+            window.abrirModal('modal-produtos');
+            const lista = document.getElementById('lista-produtos-dashboard');
+            lista.innerHTML = "<p style='text-align:center; padding:20px;'>Carregando...</p>";
 
-        if (inputCor && displayHex) {
-            inputCor.addEventListener('input', () => {
-                displayHex.innerText = inputCor.value.toUpperCase();
+            const q = query(collection(db, "produtos"), where("lojaId", "==", idLojaGlobal));
+            const snap = await getDocs(q);
+            lista.innerHTML = snap.empty ? "<p style='text-align:center; color:#888;'>Sem itens.</p>" : "";
+
+            snap.forEach(docSnap => {
+                const p = docSnap.data();
+                const itemDiv = document.createElement('div');
+                itemDiv.className = "produto-item-admin";
+                itemDiv.innerHTML = `
+                    <img src="${p.imagem || '../assets/images/placeholder.png'}" class="img-prod-admin">
+                    <div class="info-prod-admin"><h4>${p.nome}</h4><p>R$ ${p.preco.toFixed(2)}</p></div>
+                    <div class="actions-prod-admin">
+                        <button class="btn-action-prod btn-editar-prod" onclick="window.abrirEdicaoProduto('${docSnap.id}')"><i class="fa-solid fa-pencil"></i></button>
+                        <button class="btn-action-prod btn-excluir-prod" onclick="window.excluirProduto('${docSnap.id}')"><i class="fa-solid fa-trash"></i></button>
+                    </div>`;
+                lista.appendChild(itemDiv);
             });
-        }
+        };
 
-        async function carregarCategorias() {
-            const selectCat = document.getElementById('edit-categoria');
+        window.abrirEdicaoProduto = async (id) => {
+            window.fecharModal('modal-produtos');
+            window.abrirModal('modal-editar-produto');
+            const snap = await getDoc(doc(db, "produtos", id));
+            if (snap.exists()) {
+                const p = snap.data();
+                document.getElementById('edit-prod-id').value = id;
+                document.getElementById('edit-produto-nome').value = p.nome;
+                document.getElementById('edit-produto-preco').value = p.preco;
+                document.getElementById('edit-produto-categoria-select').value = p.categoria;
+                document.getElementById('edit-produto-descricao').value = p.descricao || "";
+                document.getElementById('preview-produto-edit').src = p.imagem || '../assets/images/placeholder.png';
+            }
+        };
+
+        // --- SALVAR EDIÇÃO DE PRODUTO ---
+        document.getElementById('form-editar-produto').onsubmit = async (e) => {
+            e.preventDefault();
+            const btn = e.target.querySelector('button');
+            const id = document.getElementById('edit-prod-id').value;
+            const arquivo = document.getElementById('edit-produto-file').files[0];
+            
+            btn.disabled = true;
+            btn.innerText = "Salvando...";
+
             try {
-                const querySnapshot = await getDocs(collection(db, "categorias"));
-                selectCat.innerHTML = '<option value="">Selecione uma categoria</option>';
-                querySnapshot.forEach((doc) => {
-                    const cat = doc.data();
-                    const option = document.createElement('option');
-                    option.value = cat.nome;
-                    option.textContent = cat.nome;
-                    selectCat.appendChild(option);
+                let urlFinal = document.getElementById('preview-produto-edit').src;
+                if (arquivo) {
+                    urlFinal = await realizarUpload(arquivo, 'produtos');
+                }
+
+                const cat = document.getElementById('edit-produto-categoria-select').value;
+                await updateDoc(doc(db, "produtos", id), {
+                    nome: document.getElementById('edit-produto-nome').value,
+                    preco: parseFloat(document.getElementById('edit-produto-preco').value),
+                    categoria: cat,
+                    imagem: urlFinal,
+                    descricao: document.getElementById('edit-produto-descricao').value,
+                    slugCategoria: cat.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, '-')
                 });
-            } catch (error) {
-                console.error("Erro ao carregar categorias:", error);
-            }
-        }
 
-        onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                try {
-                    const userSnap = await getDoc(doc(db, "usuarios", user.uid));
-                    if (userSnap.exists()) {
-                        const userData = userSnap.data();
-                        if (userData.loja) {
-                            idLojaGlobal = userData.loja;
-                            await carregarCategorias();
-                            await carregarDadosLoja();
-                            renderizarDashboard();
-                        } else {
-                            window.location.href = 'login-loja.html';
-                        }
-                    }
-                } catch (error) {
-                    console.error("Erro ao verificar vínculo da loja:", error);
-                }
-            } else {
-                window.location.href = 'login.html';
+                mostrarNotificacao("Item atualizado!");
+                window.fecharModal('modal-editar-produto');
+                window.abrirGerenciadorProdutos();
+            } catch (err) {
+                mostrarNotificacao("Erro ao atualizar item.", "error");
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "Salvar Alterações";
             }
-        });
+        };
 
-        async function carregarDadosLoja() {
-            if (!idLojaGlobal) return;
+        // --- CADASTRAR NOVO PRODUTO ---
+        document.getElementById('form-add-produto').onsubmit = async (e) => {
+            e.preventDefault();
+            const btn = e.target.querySelector('button');
+            const arquivo = document.getElementById('add-produto-file').files[0];
+            
+            btn.disabled = true;
+            btn.innerText = "Enviando...";
+
             try {
-                const lojaSnap = await getDoc(doc(db, "lojas", idLojaGlobal));
-                if (lojaSnap.exists()) {
-                    const d = lojaSnap.data();
-                    tituloLoja.innerText = d.nome || "Minha Loja";
-                    document.getElementById('edit-nome').value = d.nome || "";
-                    document.getElementById('edit-descricao').value = d.descricao || "";
-                    document.getElementById('edit-categoria').value = d.categoria || "";
-                    document.getElementById('edit-cep').value = d.cepLoja || "";
-                    document.getElementById('edit-rua').value = d.ruaLoja || "";
-                    document.getElementById('edit-bairro').value = d.bairroLoja || "";
-                    document.getElementById('edit-numero').value = d.numeroLoja || "";
-                    
-                    const urlLogo = d.logoUrl || '../img/default-logo.png';
-                    editLogoUrl.value = d.logoUrl || "";
-                    previewLogo.src = urlLogo;
-                    
-                    const corSalva = d.temaLoja || "#ff4757";
-                    inputCor.value = corSalva;
-                    displayHex.innerText = corSalva.toUpperCase();
+                let urlImg = "../assets/images/placeholder.png";
+                if (arquivo) {
+                    urlImg = await realizarUpload(arquivo, 'produtos');
                 }
-            } catch (error) {
-                console.error("Erro ao buscar dados:", error);
-            }
-        }
 
+                const cat = document.getElementById('add-produto-categoria-select').value;
+                await addDoc(collection(db, "produtos"), {
+                    nome: document.getElementById('add-produto-nome').value,
+                    preco: parseFloat(document.getElementById('add-produto-preco').value),
+                    categoria: cat,
+                    imagem: urlImg,
+                    descricao: document.getElementById('add-produto-descricao').value,
+                    lojaId: idLojaGlobal, vendas: 0,
+                    slugCategoria: cat.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, '-')
+                });
+
+                mostrarNotificacao("Produto cadastrado!");
+                window.fecharModal('modal-add-produto');
+                e.target.reset();
+                document.getElementById('preview-produto-add').src = "../assets/images/placeholder.png";
+            } catch (err) {
+                mostrarNotificacao("Erro ao cadastrar.", "error");
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "Cadastrar Produto";
+            }
+        };
+
+        // --- EDITAR DADOS DA LOJA ---
         document.getElementById('form-editar-loja').onsubmit = async (e) => {
             e.preventDefault();
-            if (!idLojaGlobal) return;
+            const btn = e.target.querySelector('button');
+            const arquivo = document.getElementById('edit-logo-file').files[0];
+            
+            btn.disabled = true;
+            btn.innerText = "Atualizando...";
+
             try {
-                const lojaRef = doc(db, "lojas", idLojaGlobal);
-                await updateDoc(lojaRef, {
+                let urlLogo = document.getElementById('preview-logo').src;
+                if (arquivo) {
+                    urlLogo = await realizarUpload(arquivo, 'perfil');
+                }
+
+                await updateDoc(doc(db, "lojas", idLojaGlobal), {
                     nome: document.getElementById('edit-nome').value,
                     descricao: document.getElementById('edit-descricao').value,
                     categoria: document.getElementById('edit-categoria').value,
                     cepLoja: document.getElementById('edit-cep').value,
-                    ruaLoja: document.getElementById('edit-rua').value,
                     bairroLoja: document.getElementById('edit-bairro').value,
                     numeroLoja: document.getElementById('edit-numero').value,
-                    temaLoja: inputCor.value,
-                    logoUrl: editLogoUrl.value 
+                    temaLoja: document.getElementById('edit-tema').value,
+                    logoUrl: urlLogo
                 });
-                mostrarNotificacao("Dados atualizados com sucesso!");
+
+                mostrarNotificacao("Dados da loja atualizados!");
                 window.fecharModal('modal-info');
-                await carregarDadosLoja(); 
-            } catch (error) {
+                await carregarDadosLoja();
+            } catch (err) {
                 mostrarNotificacao("Erro ao salvar alterações.", "error");
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "Salvar Alterações";
             }
         };
 
-        document.getElementById('btn-excluir-loja').onclick = async () => {
-            const confirmacao = confirm("CUIDADO! Isso excluirá permanentemente sua loja. Deseja continuar?");
-            if (confirmacao && idLojaGlobal) {
-                try {
-                    await deleteDoc(doc(db, "lojas", idLojaGlobal));
-                    const userRef = doc(db, "usuarios", auth.currentUser.uid);
-                    await updateDoc(userRef, { loja: "" });
-                    mostrarNotificacao("Loja removida com sucesso!");
-                    setTimeout(() => { window.location.href = '../index.html'; }, 1500);
-                } catch (error) {
-                    mostrarNotificacao("Erro ao excluir loja.", "error");
-                }
+        window.excluirProduto = async (id) => {
+            if (confirm("Remover este item?")) {
+                await deleteDoc(doc(db, "produtos", id));
+                mostrarNotificacao("Removido!");
+                window.abrirGerenciadorProdutos();
             }
         };
 
-        window.abrirModal = (id) => {
-            document.getElementById(id)?.classList.add('active');
-            document.body.style.overflow = 'hidden';
-        };
+        // --- AUTH & CARREGAMENTO ---
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                const snap = await getDoc(doc(db, "usuarios", user.uid));
+                if (snap.exists() && snap.data().loja) {
+                    idLojaGlobal = snap.data().loja;
+                    await carregarDadosLoja();
+                    renderizarDashboard();
+                } else { window.location.href = 'login-loja.html'; }
+            } else { window.location.href = 'login.html'; }
+        });
 
-        window.fecharModal = (id) => {
-            document.getElementById(id)?.classList.remove('active');
-            document.body.style.overflow = 'auto';
-        };
+        async function carregarDadosLoja() {
+            const snap = await getDoc(doc(db, "lojas", idLojaGlobal));
+            if (snap.exists()) {
+                const d = snap.data();
+                tituloLoja.innerText = d.nome || "Minha Loja";
+                document.getElementById('edit-nome').value = d.nome || "";
+                document.getElementById('edit-descricao').value = d.descricao || "";
+                document.getElementById('edit-categoria').value = d.categoria || "";
+                document.getElementById('edit-cep').value = d.cepLoja || "";
+                document.getElementById('edit-bairro').value = d.bairroLoja || "";
+                document.getElementById('edit-numero').value = d.numeroLoja || "";
+                document.getElementById('preview-logo').src = d.logoUrl || '../assets/images/default-loja.png';
+                document.getElementById('edit-tema').value = d.temaLoja || "#ff4757";
+                document.getElementById('valor-hex').innerText = (d.temaLoja || "#ff4757").toUpperCase();
+            }
+        }
 
-        window.mostrarNotificacao = mostrarNotificacao;
+        async function carregarCategoriasSelects() {
+            const snap = await getDocs(collection(db, "categorias"));
+            const selects = [
+                document.getElementById('edit-categoria'),
+                document.getElementById('add-produto-categoria-select'),
+                document.getElementById('edit-produto-categoria-select')
+            ];
+            selects.forEach(s => { if(s) s.innerHTML = '<option value="">Selecione...</option>'; });
+            snap.forEach(doc => { 
+                selects.forEach(s => { if(s) s.innerHTML += `<option value="${doc.data().nome}">${doc.data().nome}</option>`; });
+            });
+        }
+
+        window.abrirModal = (id) => { document.getElementById(id).classList.add('active'); document.body.style.overflow = 'hidden'; };
+        window.fecharModal = (id) => { document.getElementById(id).classList.remove('active'); document.body.style.overflow = 'auto'; };
     </script>
 </body>
 </html>
