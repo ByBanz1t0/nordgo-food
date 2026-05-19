@@ -22,13 +22,13 @@
                 </div>
             </div>
             <div class="header-center">
-                <div class="pill-badge pill-page-title" id="btn-ver-loja" title="Ver minha loja" style="cursor: pointer; background-color: #f5f5f5; border-color: #e2e2e2;">
-                    <span id="nome-loja-titulo" style="font-weight: 600; color: #333;">Carregando...</span>
-                    <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 0.7rem; margin-left: 8px; color: #999;"></i>
+                <div class="pill-badge pill-page-title btn-ver-loja-header" id="btn-ver-loja" title="Ver minha loja">
+                    <span id="nome-loja-titulo" class="nome-loja-titulo-text">Carregando...</span>
+                    <i class="fa-solid fa-arrow-up-right-from-square icon-link-externo"></i>
                 </div>
             </div>
             <div class="header-right" id="user-area">
-                <div class="user-loading-placeholder" style="height: 3rem; min-width: 120px;"></div>
+                <div class="user-loading-placeholder"></div>
             </div>
         </div>
     </header>
@@ -45,15 +45,28 @@
             </div>
             <form id="form-editar-loja" class="modal-body">
                 <div class="input-group">
-                    <label>Logo da Loja (Clique para alterar)</label>
+                    <label>Banner da Loja</label>
+                    <div class="banner-preview-container">
+                        <label for="edit-banner-file" class="wrapper-banner-input">
+                            <div id="preview-banner" class="banner-preview-element"></div>
+                            <div class="overlay-banner-input-upload">
+                                <i class="fa-solid fa-camera"></i> <span>Alterar Banner</span>
+                            </div>
+                        </label>
+                        <input type="file" id="edit-banner-file" class="input-file-hidden" accept="image/*">
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label>Logo da Loja</label>
                     <div class="logo-preview-container">
                         <label for="edit-logo-file">
                             <img id="preview-logo" src="../assets/images/default-loja.png" alt="Logo">
                         </label>
                         <input type="file" id="edit-logo-file" class="input-file-hidden" accept="image/*">
-                        <span class="label-upload-instrucao">Trocar imagem</span>
                     </div>
                 </div>
+
                 <div class="input-group"><label>Nome da Loja</label><input type="text" id="edit-nome" required></div>
                 <div class="input-group"><label>Descrição</label><input type="text" id="edit-descricao"></div>
                 <div class="input-row">
@@ -65,17 +78,72 @@
                     <div class="input-group"><label>Número</label><input type="text" id="edit-numero"></div>
                 </div>
                 <div class="input-group"><label>Cor do Tema</label>
-                    <div class="color-picker-container" style="display: flex; align-items: center; gap: 5px; background: #f9f9f9; padding: 5px 10px; border-radius: 1rem; border: 1.5px solid #f1f1f1; width: 100%;">
-                        <input type="color" id="edit-tema" value="#ff4757" style="border-radius: 16px; width: 25px; height: 50px; background: none; cursor: pointer;">
-                        <span id="valor-hex" style="font-family: monospace; font-weight: bold; color: #333;">#FF4757</span>
+                    <div class="color-picker-container">
+                        <input type="color" id="edit-tema" value="#ff4757" class="color-picker-input">
+                        <span id="valor-hex" class="color-picker-hex">#FF4757</span>
                     </div>
                 </div>
                 <button type="submit" class="btn-salvar">Salvar Alterações</button>
-                <div class="danger-zone">
-                    <p class="danger-text"><i class="fa-solid fa-triangle-exclamation"></i> Excluir a loja é permanente.</p>
-                    <button type="button" id="btn-excluir-loja" class="btn-excluir">Excluir Minha Loja</button>
-                </div>
             </form>
+        </div>
+    </div>
+
+    <div id="modal-frete" class="modal-overlay">
+        <div class="modal-content modal-content-logistica">
+            <div class="modal-header">
+                <h2><i class="fa-solid fa-truck-fast"></i> Logística de Entrega</h2>
+                <button class="btn-fechar" onclick="window.fecharModal('modal-frete')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p class="modal-subtitulo-frete">Selecione as cidades que você atende, defina os prazos e ajuste as taxas por bairro.</p>
+                
+                <div class="dropdown-cidades-container">
+                    <label class="label-secao-interna">Cidades de Cobertura:</label>
+                    <div class="dropdown-cidades-selecionador" id="btn-dropdown-cidades">
+                        <span id="texto-cidades-selecionadas">Selecionar cidades...</span>
+                        <i class="fa-solid fa-chevron-down"></i>
+                    </div>
+                    <div id="wrapper-checkboxes-cidades" class="dropdown-cidades-lista"></div>
+                </div>
+
+                <div id="container-logistica-cidades-ativas" class="logistica-cidades-scroll"></div>
+
+                <hr class="divisor-modal-frete">
+
+                <div class="input-group input-group-frete-gratis">
+                    <label>Frete Grátis a partir de (R$)</label>
+                    <input type="number" id="edit-frete-gratis-min" step="0.01" min="0" placeholder="Ex: 50.00 (0 para desativar)">
+                </div>
+
+                <button id="btn-salvar-frete" class="btn-salvar btn-salvar-frete-margin">Salvar Configurações de Logística</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-horarios" class="modal-overlay">
+        <div class="modal-content modal-content-horarios">
+            <div class="modal-header">
+                <h2><i class="fa-solid fa-clock"></i> Configuração de Funcionamento</h2>
+                <button class="btn-fechar" onclick="window.fecharModal('modal-horarios')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="input-group">
+                    <label>Status Geral da Loja</label>
+                    <select id="edit-status-loja-master" class="select-status-master">
+                        <option value="automatico">Seguir Horários Semanais (Automático)</option>
+                        <option value="fechado">Forçar Loja Fechada (Manual)</option>
+                    </select>
+                </div>
+
+                <div class="divisor-sessao-horarios">
+                    <i class="fa-solid fa-calendar-days"></i> Grade de Horários Semanais
+                </div>
+
+                <form id="form-salvar-horarios" class="grade-semanal-container">
+                    <div id="wrapper-dias-semana-inputs"></div>
+                    <button type="submit" id="btn-salvar-grade-horarios" class="btn-salvar btn-salvar-horarios-margin">Salvar Grade de Funcionamento</button>
+                </form>
+            </div>
         </div>
     </div>
 
@@ -85,9 +153,7 @@
                 <h2><i class="fa-solid fa-utensils"></i> Meus Itens</h2>
                 <button class="btn-fechar" onclick="window.fecharModal('modal-produtos')">&times;</button>
             </div>
-            <div class="modal-body">
-                <div id="lista-produtos-dashboard" class="produtos-admin-list"></div>
-            </div>
+            <div class="modal-body"><div id="lista-produtos-dashboard" class="produtos-admin-list"></div></div>
         </div>
     </div>
 
@@ -99,13 +165,10 @@
             </div>
             <form id="form-add-produto" class="modal-body">
                 <div class="input-group">
-                    <label>Foto do Produto (Clique para alterar)</label>
+                    <label>Foto do Produto</label>
                     <div class="logo-preview-container">
-                        <label for="add-produto-file">
-                            <img id="preview-produto-add" src="../assets/images/placeholder.png" alt="Preview">
-                        </label>
+                        <label for="add-produto-file"><img id="preview-produto-add" src="../assets/images/placeholder.png" alt="Preview"></label>
                         <input type="file" id="add-produto-file" class="input-file-hidden" accept="image/*">
-                        <span class="label-upload-instrucao">Selecionar Imagem</span>
                     </div>
                 </div>
                 <div class="input-group"><label>Nome</label><input type="text" id="add-produto-nome" required></div>
@@ -113,7 +176,7 @@
                     <div class="input-group"><label>Preço</label><input type="number" id="add-produto-preco" step="0.01" required></div>
                     <div class="input-group"><label>Categoria</label><select id="add-produto-categoria-select" required></select></div>
                 </div>
-                <div class="input-group"><label>Descrição Curta</label><textarea id="add-produto-descricao" rows="2"></textarea></div>
+                <div class="input-group"><label>Descrição</label><textarea id="add-produto-descricao" rows="2"></textarea></div>
                 <button type="submit" class="btn-salvar">Cadastrar Produto</button>
             </form>
         </div>
@@ -128,13 +191,10 @@
             <form id="form-editar-produto" class="modal-body">
                 <input type="hidden" id="edit-prod-id">
                 <div class="input-group">
-                    <label>Foto do Produto (Clique para alterar)</label>
+                    <label>Foto do Produto</label>
                     <div class="logo-preview-container">
-                        <label for="edit-produto-file">
-                            <img id="preview-produto-edit" src="../assets/images/placeholder.png" alt="Preview">
-                        </label>
+                        <label for="edit-produto-file"><img id="preview-produto-edit" src="../assets/images/placeholder.png" alt="Preview"></label>
                         <input type="file" id="edit-produto-file" class="input-file-hidden" accept="image/*">
-                        <span class="label-upload-instrucao">Trocar Imagem</span>
                     </div>
                 </div>
                 <div class="input-group"><label>Nome</label><input type="text" id="edit-produto-nome" required></div>
@@ -142,190 +202,314 @@
                     <div class="input-group"><label>Preço</label><input type="number" id="edit-produto-preco" step="0.01" required></div>
                     <div class="input-group"><label>Categoria</label><select id="edit-produto-categoria-select" required></select></div>
                 </div>
-                <div class="input-group"><label>Descrição Curta</label><textarea id="edit-produto-descricao" rows="2"></textarea></div>
+                <div class="input-group"><label>Descrição</label><textarea id="edit-produto-descricao" rows="2"></textarea></div>
                 <button type="submit" class="btn-salvar">Salvar Alterações</button>
             </form>
         </div>
     </div>
 
     <script type="module">
-        // Importar storage de firebase-config
         import { auth, db, storage, mostrarNotificacao } from '../js/firebase-config.js';
         import { ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-storage.js";
         import { doc, getDoc, updateDoc, deleteDoc, collection, getDocs, addDoc, query, where } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
         import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
 
         let idLojaGlobal = "";
+        let horariosFuncionamentoLocal = {};
+        let logisticaCidadesLocal = {};
+        let databaseRegionalLocal = {};
+        
         const gridMain = document.getElementById('grid-main');
         const tituloLoja = document.getElementById('nome-loja-titulo');
 
-        // --- AUXILIAR: UPLOAD DE IMAGEM NO STORAGE ---
-        async function realizarUpload(arquivo, pasta) {
-            if (!arquivo) return null;
-            const nomeArquivo = `${Date.now()}_${arquivo.name}`;
-            const refStorage = ref(storage, `lojas/${idLojaGlobal}/${pasta}/${nomeArquivo}`);
-            await uploadBytes(refStorage, arquivo);
-            return await getDownloadURL(refStorage);
-        }
+        let blobLogoCurrent = null;
+        let blobBannerCurrent = null;
+        let blobAddProdutoCurrent = null;
+        let blobEditProdutoCurrent = null;
+        let fotosCategorias = {};
 
-        // --- AUXILIAR: PREVIEW LOCAL IMEDIATO (UX) ---
-        function setPreview(inputId, imgId) {
-            const input = document.getElementById(inputId);
-            if (input) {
-                input.onchange = (e) => {
-                    const file = e.target.files[0];
-                    if (file) {
-                        const reader = new FileReader();
-                        reader.onload = (event) => document.getElementById(imgId).src = event.target.result;
-                        reader.readAsDataURL(file);
-                    }
-                };
-            }
-        }
-        setPreview('edit-logo-file', 'preview-logo');
-        setPreview('add-produto-file', 'preview-produto-add');
-        setPreview('edit-produto-file', 'preview-produto-edit');
+        const diasDaSemanaChaves = [
+            { id: "seg", nome: "Segunda-feira" },
+            { id: "ter", nome: "Terça-feira" },
+            { id: "qua", nome: "Quarta-feira" },
+            { id: "qui", nome: "Quinta-feira" },
+            { id: "sex", nome: "Sexta-feira" },
+            { id: "sab", nome: "Sábado" },
+            { id: "dom", nome: "Domingo" }
+        ];
 
-        document.getElementById('btn-ver-loja').onclick = () => { if (idLojaGlobal) window.location.href = `loja.html?loja=${idLojaGlobal}`; };
-
+        // --- DASHBOARD ---
         function renderizarDashboard() {
             gridMain.innerHTML = `
-                <div class="card-dash" onclick="window.abrirModal('modal-info')"><i class="fa-solid fa-store"></i><h3>Informações</h3><p>Editar dados e endereço</p></div>
-                <div class="card-dash" onclick="window.abrirModal('modal-add-produto')"><i class="fa-solid fa-circle-plus" style="color: #2ed573;"></i><h3>Novo Produto</h3><p>Cadastrar item rápido</p></div>
-                <div class="card-dash" onclick="window.abrirGerenciadorProdutos()"><i class="fa-solid fa-utensils"></i><h3>Gerenciar Itens</h3><p>Ver e editar cardápio</p></div>
-                <div class="card-dash" onclick="window.mostrarNotificacao('Em breve!', 'info')"><i class="fa-solid fa-clock"></i><h3>Horários</h3><p>Definir funcionamento</p></div>
+                <div class="card-dash" onclick="window.abrirModal('modal-info')"><i class="fa-solid fa-store"></i><h3>Informações</h3><p>Nome, Banner e CEP</p></div>
+                <div class="card-dash" onclick="window.abrirModal('modal-frete')"><i class="fa-solid fa-truck-fast"></i><h3>Entregas</h3><p>Bairros e taxas</p></div>
+                <div class="card-dash" onclick="window.abrirModal('modal-horarios')"><i class="fa-solid fa-clock"></i><h3>Horários</h3><p>Status e horários semanais</p></div>
+                <div class="card-dash" onclick="window.abrirModal('modal-add-produto')"><i class="fa-solid fa-circle-plus"></i><h3>Novo Produto</h3><p>Cadastrar rápido</p></div>
+                <div class="card-dash" onclick="window.abrirGerenciadorProdutos()"><i class="fa-solid fa-utensils"></i><h3>Cardápio</h3><p>Editar e excluir itens</p></div>
             `;
             carregarCategoriasSelects();
         }
 
-        window.abrirGerenciadorProdutos = async () => {
-            window.abrirModal('modal-produtos');
-            const lista = document.getElementById('lista-produtos-dashboard');
-            lista.innerHTML = "<p style='text-align:center; padding:20px;'>Carregando...</p>";
+        async function carregarRegioesDoBanco() {
+            try {
+                const snap = await getDocs(collection(db, "regioes"));
+                databaseRegionalLocal = {};
+                snap.forEach(docSnap => {
+                    databaseRegionalLocal[docSnap.id] = docSnap.data().bairros || [];
+                });
+            } catch (err) {
+                console.error("Erro ao carregar regiões globais:", err);
+                mostrarNotificacao("Erro ao carregar mapa de cidades.", "error");
+            }
+        }
 
-            const q = query(collection(db, "produtos"), where("lojaId", "==", idLojaGlobal));
-            const snap = await getDocs(q);
-            lista.innerHTML = snap.empty ? "<p style='text-align:center; color:#888;'>Sem itens.</p>" : "";
+        // MODIFICADO: Função auxiliar para atualizar o texto do gatilho do dropdown de forma responsiva
+        function atualizarTextoCidadesSelecionadas() {
+            const cidadesAtivas = Object.keys(logisticaCidadesLocal).sort();
+            const txtSpan = document.getElementById('texto-cidades-selecionadas');
+            if (!txtSpan) return;
+            
+            if (cidadesAtivas.length === 0) {
+                txtSpan.innerText = "Selecionar cidades...";
+                txtSpan.style.color = "#a4b0be";
+            } else {
+                txtSpan.innerText = cidadesAtivas.join(", ");
+                txtSpan.style.color = "#2f3542";
+            }
+        }
 
-            snap.forEach(docSnap => {
-                const p = docSnap.data();
-                const itemDiv = document.createElement('div');
-                itemDiv.className = "produto-item-admin";
-                itemDiv.innerHTML = `
-                    <img src="${p.imagem || '../assets/images/placeholder.png'}" class="img-prod-admin">
-                    <div class="info-prod-admin"><h4>${p.nome}</h4><p>R$ ${p.preco.toFixed(2)}</p></div>
-                    <div class="actions-prod-admin">
-                        <button class="btn-action-prod btn-editar-prod" onclick="window.abrirEdicaoProduto('${docSnap.id}')"><i class="fa-solid fa-pencil"></i></button>
-                        <button class="btn-action-prod btn-excluir-prod" onclick="window.excluirProduto('${docSnap.id}')"><i class="fa-solid fa-trash"></i></button>
-                    </div>`;
-                lista.appendChild(itemDiv);
+        // --- SISTEMA LOGÍSTICO MULTICIDADES REATIVO ---
+        function inicializarCheckboxesCidades() {
+            const wrapper = document.getElementById('wrapper-checkboxes-cidades');
+            if (!wrapper) return;
+            wrapper.innerHTML = "";
+
+            Object.keys(databaseRegionalLocal).forEach(cidade => {
+                const checked = logisticaCidadesLocal[cidade] ? "checked" : "";
+                const div = document.createElement('div');
+                div.className = "checkbox-cidade-item";
+                div.innerHTML = `
+                    <input type="checkbox" id="check-cidade-${cidade}" value="${cidade}" ${checked}>
+                    <label for="check-cidade-${cidade}">${cidade}</label>
+                `;
+                wrapper.appendChild(div);
+
+                div.querySelector('input').addEventListener('change', (e) => {
+                    if (e.target.checked) {
+                        logisticaCidadesLocal[cidade] = logisticaCidadesLocal[cidade] || { tempoMin: 40, tempoMax: 80, bairros: {} };
+                    } else {
+                        delete logisticaCidadesLocal[cidade];
+                    }
+                    renderizarPaineisCidadesAtivas();
+                    atualizarTextoCidadesSelecionadas(); // ADICIONADO: Atualiza texto ao marcar/desmarcar
+                });
             });
-        };
+            atualizarTextoCidadesSelecionadas(); // ADICIONADO: Sincroniza texto ao carregar a página
+        }
 
-        window.abrirEdicaoProduto = async (id) => {
-            window.fecharModal('modal-produtos');
-            window.abrirModal('modal-editar-produto');
-            const snap = await getDoc(doc(db, "produtos", id));
-            if (snap.exists()) {
-                const p = snap.data();
-                document.getElementById('edit-prod-id').value = id;
-                document.getElementById('edit-produto-nome').value = p.nome;
-                document.getElementById('edit-produto-preco').value = p.preco;
-                document.getElementById('edit-produto-categoria-select').value = p.categoria;
-                document.getElementById('edit-produto-descricao').value = p.descricao || "";
-                document.getElementById('preview-produto-edit').src = p.imagem || '../assets/images/placeholder.png';
+        function renderizarPaineisCidadesAtivas() {
+            const container = document.getElementById('container-logistica-cidades-ativas');
+            if (!container) return;
+            container.innerHTML = "";
+
+            const ciudadesAtivas = Object.keys(logisticaCidadesLocal).sort();
+
+            if (ciudadesAtivas.length === 0) {
+                container.innerHTML = `<p class="logistica-vazia-text">Nenhuma cidade selecionada para rota de entrega.</p>`;
+                return;
             }
-        };
 
-        // --- SALVAR EDIÇÃO DE PRODUTO ---
-        document.getElementById('form-editar-produto').onsubmit = async (e) => {
-            e.preventDefault();
-            const btn = e.target.querySelector('button');
-            const id = document.getElementById('edit-prod-id').value;
-            const arquivo = document.getElementById('edit-produto-file').files[0];
-            
-            btn.disabled = true;
-            btn.innerText = "Salvando...";
+            ciudadesAtivas.forEach(cidade => {
+                const dadosCidade = logisticaCidadesLocal[cidade];
+                const cardCidade = document.createElement('div');
+                cardCidade.className = "card-logistica-cidade-painel";
+                
+                let html = `
+                    <div class="header-cidade-painel">
+                        <h4><i class="fa-solid fa-city"></i> ${cidade}</h4>
+                        <div class="inputs-tempo-entrega">
+                            <i class="fa-solid fa-stopwatch"></i>
+                            <input type="number" id="time-min-${cidade}" value="${dadosCidade.tempoMin || 40}" min="1" placeholder="Min">
+                            <span>a</span>
+                            <input type="number" id="time-max-${cidade}" value="${dadosCidade.tempoMax || 80}" min="1" placeholder="Max">
+                            <span class="unidade-tempo">min</span>
+                        </div>
+                    </div>
+                    <div class="grade-bairros-logistica">
+                `;
 
-            try {
-                let urlFinal = document.getElementById('preview-produto-edit').src;
-                if (arquivo) {
-                    urlFinal = await realizarUpload(arquivo, 'produtos');
-                }
-
-                const cat = document.getElementById('edit-produto-categoria-select').value;
-                await updateDoc(doc(db, "produtos", id), {
-                    nome: document.getElementById('edit-produto-nome').value,
-                    preco: parseFloat(document.getElementById('edit-produto-preco').value),
-                    categoria: cat,
-                    imagem: urlFinal,
-                    descricao: document.getElementById('edit-produto-descricao').value,
-                    slugCategoria: cat.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, '-')
+                const bairrosDaCidade = databaseRegionalLocal[cidade] || [];
+                bairrosDaCidade.forEach(bairro => {
+                    const dadosBairro = dadosCidade.bairros[bairro] || { ativo: false, taxa: 0 };
+                    const checkedBairro = dadosBairro.ativo ? "checked" : "";
+                    
+                    html += `
+                        <div class="bairro-logistica-row">
+                            <div class="bairro-check-block">
+                                <input type="checkbox" id="check-bairro-${cidade}-${bairro}" ${checkedBairro}>
+                                <label for="check-bairro-${cidade}-${bairro}">${bairro}</label>
+                            </div>
+                            <div class="bairro-taxa-block">
+                                <span>R$</span>
+                                <input type="number" id="taxa-bairro-${cidade}-${bairro}" step="0.01" min="0" value="${dadosBairro.taxa ? dadosBairro.taxa.toFixed(2) : '0.00'}" ${dadosBairro.ativo ? '' : 'disabled'}>
+                            </div>
+                        </div>
+                    `;
                 });
 
-                mostrarNotificacao("Item atualizado!");
-                window.fecharModal('modal-editar-produto');
-                window.abrirGerenciadorProdutos();
-            } catch (err) {
-                mostrarNotificacao("Erro ao atualizar item.", "error");
-            } finally {
-                btn.disabled = false;
-                btn.innerText = "Salvar Alterações";
-            }
-        };
+                html += `</div>`;
+                cardCidade.innerHTML = html;
+                container.appendChild(cardCidade);
 
-        // --- CADASTRAR NOVO PRODUTO ---
-        document.getElementById('form-add-produto').onsubmit = async (e) => {
-            e.preventDefault();
-            const btn = e.target.querySelector('button');
-            const arquivo = document.getElementById('add-produto-file').files[0];
+                document.getElementById(`time-min-${cidade}`).oninput = (e) => dadosCidade.tempoMin = parseInt(e.target.value) || 0;
+                document.getElementById(`time-max-${cidade}`).oninput = (e) => dadosCidade.tempoMax = parseInt(e.target.value) || 0;
+
+                bairrosDaCidade.forEach(bairro => {
+                    const checkBairro = document.getElementById(`check-bairro-${cidade}-${bairro}`);
+                    const inputTaxa = document.getElementById(`taxa-bairro-${cidade}-${bairro}`);
+
+                    if (checkBairro && inputTaxa) {
+                        checkBairro.addEventListener('change', (e) => {
+                            inputTaxa.disabled = !e.target.checked;
+                            if (!e.target.checked) inputTaxa.value = "0.00";
+                            
+                            logisticaCidadesLocal[cidade].bairros[bairro] = {
+                                ativo: e.target.checked,
+                                taxa: parseFloat(inputTaxa.value) || 0
+                            };
+                        });
+
+                        inputTaxa.oninput = (e) => {
+                            logisticaCidadesLocal[cidade].bairros[bairro] = {
+                                ativo: checkBairro.checked,
+                                taxa: parseFloat(e.target.value) || 0
+                            };
+                        };
+                    }
+                });
+            });
+        }
+
+        document.getElementById('btn-salvar-frete').onclick = async () => {
+            if (!idLojaGlobal) return;
+            const btn = document.getElementById('btn-salvar-frete');
+            btn.disabled = true; btn.innerText = "Salvando Rota Logística...";
             
-            btn.disabled = true;
-            btn.innerText = "Enviando...";
+            const taxasBairrosAchatado = {};
+            let menorTaxaGeral = 999;
+            let possuiBairroAtivo = false;
+
+            Object.keys(logisticaCidadesLocal).forEach(cidade => {
+                const bairrosObj = logisticaCidadesLocal[cidade].bairros || {};
+                Object.keys(bairrosObj).forEach(bairro => {
+                    if (bairrosObj[bairro].ativo) {
+                        const taxa = bairrosObj[bairro].taxa || 0;
+                        taxasBairrosAchatado[bairro] = taxa;
+                        possuiBairroAtivo = true;
+                        if (taxa < menorTaxaGeral) menorTaxaGeral = taxa;
+                    }
+                });
+            });
+
+            const freteMinimoCalculado = possuiBairroAtivo ? menorTaxaGeral : 0;
 
             try {
-                let urlImg = "../assets/images/placeholder.png";
-                if (arquivo) {
-                    urlImg = await realizarUpload(arquivo, 'produtos');
-                }
-
-                const cat = document.getElementById('add-produto-categoria-select').value;
-                await addDoc(collection(db, "produtos"), {
-                    nome: document.getElementById('add-produto-nome').value,
-                    preco: parseFloat(document.getElementById('add-produto-preco').value),
-                    categoria: cat,
-                    imagem: urlImg,
-                    descricao: document.getElementById('add-produto-descricao').value,
-                    lojaId: idLojaGlobal, vendas: 0,
-                    slugCategoria: cat.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, '-')
+                await updateDoc(doc(db, "lojas", idLojaGlobal), {
+                    logisticaCidades: logisticaCidadesLocal,
+                    taxasBairros: taxasBairrosAchatado,
+                    frete: freteMinimoCalculado,
+                    freteGratisMin: parseFloat(document.getElementById('edit-frete-gratis-min').value) || 0
                 });
-
-                mostrarNotificacao("Produto cadastrado!");
-                window.fecharModal('modal-add-produto');
-                e.target.reset();
-                document.getElementById('preview-produto-add').src = "../assets/images/placeholder.png";
-            } catch (err) {
-                mostrarNotificacao("Erro ao cadastrar.", "error");
-            } finally {
-                btn.disabled = false;
-                btn.innerText = "Cadastrar Produto";
+                
+                mostrarNotificacao("Logística de distribuição updated!");
+                window.fecharModal('modal-frete');
+                await carregarDadosLoja();
+            } catch (err) { 
+                console.error(err);
+                mostrarNotificacao("Erro ao salvar dados logísticos.", "error"); 
+            } finally { 
+                btn.disabled = false; 
+                btn.innerText = "Salvar Configurações de Logística"; 
             }
         };
 
-        // --- EDITAR DADOS DA LOJA ---
+        // --- GESTÃO DE HORÁRIOS ---
+        function gerarInputsGradeSemanal() {
+            const wrapper = document.getElementById('wrapper-dias-semana-inputs');
+            wrapper.innerHTML = "";
+
+            diasDaSemanaChaves.forEach(dia => {
+                const dadosDia = horariosFuncionamentoLocal[dia.id] || { aberto: false, inicio: "18:00", fim: "23:00" };
+                
+                const row = document.createElement('div');
+                row.className = "dia-horario-row";
+                row.innerHTML = `
+                    <div class="dia-checkbox-block">
+                        <input type="checkbox" id="check-aberto-${dia.id}" class="checkbox-dia-toggle" ${dadosDia.aberto ? 'checked' : ''}>
+                        <label for="check-aberto-${dia.id}" class="label-dia-nome">${dia.nome}</label>
+                    </div>
+                    <div class="dia-times-block" id="block-times-${dia.id}">
+                        <input type="time" id="time-inicio-${dia.id}" value="${dadosDia.inicio || '18:00'}" class="input-time-picker">
+                        <span>até</span>
+                        <input type="time" id="time-fim-${dia.id}" value="${dadosDia.fim || '23:00'}" class="input-time-picker">
+                    </div>
+                `;
+                wrapper.appendChild(row);
+
+                const checkbox = row.querySelector(`#check-aberto-${dia.id}`);
+                const blockTimes = row.querySelector(`#block-times-${dia.id}`);
+                
+                const alternarEstadoCampos = (ativo) => {
+                    blockTimes.style.opacity = ativo ? "1" : "0.3";
+                    blockTimes.querySelectorAll('input').forEach(i => i.disabled = !ativo);
+                };
+                
+                checkbox.addEventListener('change', (e) => alternarEstadoCampos(e.target.checked));
+                alternarEstadoCampos(dadosDia.aberto);
+            });
+        }
+
+        document.getElementById('form-salvar-horarios').onsubmit = async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('btn-salvar-grade-horarios');
+            btn.disabled = true; btn.innerText = "Salvando Horários...";
+
+            const novaGrade = {};
+            diasDaSemanaChaves.forEach(dia => {
+                novaGrade[dia.id] = {
+                    aberto: document.getElementById(`check-aberto-${dia.id}`).checked,
+                    inicio: document.getElementById(`time-inicio-${dia.id}`).value,
+                    fim: document.getElementById(`time-fim-${dia.id}`).value
+                };
+            });
+
+            try {
+                await updateDoc(doc(db, "lojas", idLojaGlobal), {
+                    statusMaster: document.getElementById('edit-status-loja-master').value,
+                    horariosSemana: novaGrade
+                });
+                mostrarNotificacao("Grade de horários updated!");
+                window.fecharModal('modal-horarios');
+                await carregarDadosLoja();
+            } catch (err) {
+                console.error(err);
+                mostrarNotificacao("Erro ao salvar horários.", "error");
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "Salvar Grade de Funcionamento";
+            }
+        };
+
+        // --- SALVAR INFO BÁSICA ---
         document.getElementById('form-editar-loja').onsubmit = async (e) => {
             e.preventDefault();
             const btn = e.target.querySelector('button');
-            const arquivo = document.getElementById('edit-logo-file').files[0];
-            
-            btn.disabled = true;
-            btn.innerText = "Atualizando...";
-
+            btn.disabled = true; btn.innerText = "Processando...";
             try {
                 let urlLogo = document.getElementById('preview-logo').src;
-                if (arquivo) {
-                    urlLogo = await realizarUpload(arquivo, 'perfil');
-                }
+                if (blobLogoCurrent) urlLogo = await realizarUploadBlob(blobLogoCurrent, 'perfil', 'logo');
+                let urlBanner = document.getElementById('preview-banner').style.backgroundImage.replace(/^url\(['"]?/, '').replace(/['"]?\)$/, '');
+                if (blobBannerCurrent) urlBanner = await realizarUploadBlob(blobBannerCurrent, 'perfil', 'banner');
 
                 await updateDoc(doc(db, "lojas", idLojaGlobal), {
                     nome: document.getElementById('edit-nome').value,
@@ -335,40 +519,17 @@
                     bairroLoja: document.getElementById('edit-bairro').value,
                     numeroLoja: document.getElementById('edit-numero').value,
                     temaLoja: document.getElementById('edit-tema').value,
-                    logoUrl: urlLogo
+                    logoUrl: urlLogo,
+                    bannerLoja: urlBanner
                 });
-
-                mostrarNotificacao("Dados da loja atualizados!");
+                mostrarNotificacao("Dados básicos updated!");
                 window.fecharModal('modal-info');
-                await carregarDadosLoja();
-            } catch (err) {
-                mostrarNotificacao("Erro ao salvar alterações.", "error");
-            } finally {
-                btn.disabled = false;
-                btn.innerText = "Salvar Alterações";
-            }
+                carregarDadosLoja();
+            } catch (err) { mostrarNotificacao("Erro ao salvar.", "error"); }
+            finally { btn.disabled = false; btn.innerText = "Salvar Alterações"; }
         };
 
-        window.excluirProduto = async (id) => {
-            if (confirm("Remover este item?")) {
-                await deleteDoc(doc(db, "produtos", id));
-                mostrarNotificacao("Removido!");
-                window.abrirGerenciadorProdutos();
-            }
-        };
-
-        // --- AUTH & CARREGAMENTO ---
-        onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                const snap = await getDoc(doc(db, "usuarios", user.uid));
-                if (snap.exists() && snap.data().loja) {
-                    idLojaGlobal = snap.data().loja;
-                    await carregarDadosLoja();
-                    renderizarDashboard();
-                } else { window.location.href = 'login-loja.html'; }
-            } else { window.location.href = 'login.html'; }
-        });
-
+        // --- FUNÇÕES DE CARREGAMENTO ---
         async function carregarDadosLoja() {
             const snap = await getDoc(doc(db, "lojas", idLojaGlobal));
             if (snap.exists()) {
@@ -383,24 +544,135 @@
                 document.getElementById('preview-logo').src = d.logoUrl || '../assets/images/default-loja.png';
                 document.getElementById('edit-tema').value = d.temaLoja || "#ff4757";
                 document.getElementById('valor-hex').innerText = (d.temaLoja || "#ff4757").toUpperCase();
+                
+                const bannerElem = document.getElementById('preview-banner');
+                if (d.bannerLoja) bannerElem.style.backgroundImage = `url('${d.bannerLoja}')`;
+                else bannerElem.style.backgroundColor = d.temaLoja || "#ff4757";
+
+                document.getElementById('edit-frete-gratis-min').value = d.freteGratisMin || 0;
+                
+                logisticaCidadesLocal = d.logisticaCidades || {};
+                inicializarCheckboxesCidades();
+                renderizarPaineisCidadesAtivas();
+
+                horariosFuncionamentoLocal = d.horariosSemana || {};
+                document.getElementById('edit-status-loja-master').value = d.statusMaster || "automatico";
+                gerarInputsGradeSemanal();
             }
         }
 
-        async function carregarCategoriasSelects() {
-            const snap = await getDocs(collection(db, "categorias"));
-            const selects = [
-                document.getElementById('edit-categoria'),
-                document.getElementById('add-produto-categoria-select'),
-                document.getElementById('edit-produto-categoria-select')
-            ];
-            selects.forEach(s => { if(s) s.innerHTML = '<option value="">Selecione...</option>'; });
-            snap.forEach(doc => { 
-                selects.forEach(s => { if(s) s.innerHTML += `<option value="${doc.data().nome}">${doc.data().nome}</option>`; });
+        function obterImagemProduto(p) {
+            if (p.imagem && p.imagem.trim() !== "" && !p.imagem.includes("placeholder.png")) return p.imagem;
+            const arquivoCat = fotosCategorias[p.categoria];
+            return arquivoCat ? `../assets/images/${arquivoCat}` : '../assets/images/placeholder.png';
+        }
+
+        function otimizarImagem(arquivo, maxLargura, maxAltura, maxPesoBytes) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(arquivo);
+                reader.onload = (event) => {
+                    const img = new Image();
+                    img.src = event.target.result;
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        let largura = img.width, altura = img.height;
+                        if (largura > maxLargura || altura > maxAltura) {
+                            if (largura/altura > maxLargura/maxAltura) { largura = maxLargura; altura = Math.round(img.height * (maxLargura/img.width)); }
+                            else { altura = maxAltura; largura = Math.round(img.width * (maxAltura/img.height)); }
+                        }
+                        canvas.width = largura; canvas.height = altura;
+                        const ctx = canvas.getContext('2d');
+                        ctx.fillStyle = "#FFFFFF"; ctx.fillRect(0,0,largura,altura);
+                        ctx.drawImage(img,0,0,largura,altura);
+                        canvas.toBlob((blob) => { resolve(blob); }, 'image/jpeg', 0.8);
+                    };
+                };
             });
         }
 
-        window.abrirModal = (id) => { document.getElementById(id).classList.add('active'); document.body.style.overflow = 'hidden'; };
-        window.fecharModal = (id) => { document.getElementById(id).classList.remove('active'); document.body.style.overflow = 'auto'; };
+        async function realizarUploadBlob(blob, pasta, sufixo) {
+            const refStorage = ref(storage, `lojas/${idLojaGlobal}/${pasta}/${Date.now()}_${sufixo}.jpg`);
+            await uploadBytes(refStorage, blob);
+            return await getDownloadURL(refStorage);
+        }
+
+        document.getElementById('edit-logo-file').onchange = async (e) => {
+            const blob = await otimizarImagem(e.target.files[0], 500, 500, 500000);
+            blobLogoCurrent = blob;
+            document.getElementById('preview-logo').src = URL.createObjectURL(blob);
+        };
+        document.getElementById('edit-banner-file').onchange = async (e) => {
+            const blob = await otimizarImagem(e.target.files[0], 1200, 400, 1200000);
+            blobBannerCurrent = blob;
+            document.getElementById('preview-banner').style.backgroundImage = `url('${URL.createObjectURL(blob)}')`;
+        };
+
+        window.abrirGerenciadorProdutos = async () => {
+            window.abrirModal('modal-produtos');
+            const lista = document.getElementById('lista-produtos-dashboard');
+            lista.innerHTML = "<p class='loading-produtos-text'>Carregando...</p>";
+            const q = query(collection(db, "produtos"), where("lojaId", "==", idLojaGlobal));
+            const snap = await getDocs(q);
+            lista.innerHTML = "";
+            snap.forEach(docSnap => {
+                const p = docSnap.data();
+                const itemDiv = document.createElement('div');
+                itemDiv.className = "produto-item-admin";
+                itemDiv.innerHTML = `<img src="${obterImagemProduto(p)}" class="img-prod-admin">
+                    <div class="info-prod-admin"><h4>${p.nome}</h4><p>R$ ${p.preco.toFixed(2)}</p></div>
+                    <div class="actions-prod-admin">
+                        <button onclick="window.abrirEdicaoProduto('${docSnap.id}')"><i class="fa-solid fa-pencil"></i></button>
+                        <button onclick="window.excluirProduto('${docSnap.id}')"><i class="fa-solid fa-trash"></i></button>
+                    </div>`;
+                lista.appendChild(itemDiv);
+            });
+        };
+
+        async function carregarCategoriasSelects() {
+            const snap = await getDocs(collection(db, "categorias"));
+            const selects = [document.getElementById('edit-categoria'), document.getElementById('add-produto-categoria-select'), document.getElementById('edit-produto-categoria-select')];
+            selects.forEach(s => s.innerHTML = '<option value="">Selecione...</option>');
+            snap.forEach(docSnap => {
+                const d = docSnap.data();
+                fotosCategorias[d.nome] = d.fotoArquivo;
+                selects.forEach(s => s.innerHTML += `<option value="${d.nome}">${d.nome}</option>`);
+            });
+        }
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                const snap = await getDoc(doc(db, "usuarios", user.uid));
+                if (snap.exists() && snap.data().loja) { 
+                    idLojaGlobal = snap.data().loja; 
+                    await carregarRegioesDoBanco(); 
+                    await carregarDadosLoja(); 
+                    renderizarDashboard(); 
+                }
+                else window.location.href = 'login-loja.html';
+            } else window.location.href = 'login.html';
+        });
+
+        // MODIFICADO: Lógica de controle do clique e fechamento automático do Dropdown Flutuante
+        const btnDropdown = document.getElementById('btn-dropdown-cidades');
+        const listaDropdown = document.getElementById('wrapper-checkboxes-cidades');
+
+        if (btnDropdown && listaDropdown) {
+            btnDropdown.addEventListener('click', (e) => {
+                e.stopPropagation();
+                listaDropdown.classList.toggle('active');
+            });
+
+            // Fecha a lista flutuante automaticamente se o usuário clicar em qualquer outro lugar do modal
+            document.addEventListener('click', (e) => {
+                if (!btnDropdown.contains(e.target) && !listaDropdown.contains(e.target)) {
+                    listaDropdown.classList.remove('active');
+                }
+            });
+        }
+
+        window.abrirModal = (id) => document.getElementById(id).classList.add('active');
+        window.fecharModal = (id) => document.getElementById(id).classList.remove('active');
     </script>
 </body>
 </html>

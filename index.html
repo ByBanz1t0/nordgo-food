@@ -7,6 +7,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/styles-index.css">
 </head>
 <body>
     <div id="toast-container" class="toast-container"></div>
@@ -38,6 +39,14 @@
     <section class="hero">
         <h2>Os melhores estabelecimentos em um só lugar</h2>
         <p>Escolha, peça e aproveite.</p>
+        
+        <div class="search-cep-container">
+            <div class="search-cep-wrapper">
+                <i class="fa-solid fa-location-dot icon-cep"></i>
+                <input type="text" id="input-cep-cliente" placeholder="Digite seu CEP para encontrar lojas próximas...">
+                <button type="button" id="btn-buscar-cep">Ver Lojas</button>
+            </div>
+        </div>
     </section>
 
     <main class="container">
@@ -54,7 +63,10 @@
         import { collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
         import { atualizarCarrinhoFlutuante } from './js/cart-helper.js';
 
-        // Lógica de Busca
+        // Cache local das lojas carregadas para permitir filtros instantâneos sem novas requisições
+        let listaLojasGlobal = [];
+
+        // Lógica de Busca por Texto
         const inputBusca = document.getElementById('input-busca');
         inputBusca.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
@@ -69,6 +81,38 @@
         atualizarCarrinhoFlutuante();
         renderizarCategorias();
         renderizarLojas();
+
+        // --- SISTEMA DE FILTRAGEM GEOGRÁFICA POR CEP ---
+        function executarFiltroCEP() {
+            const inputCEP = document.getElementById('input-cep-cliente');
+            const cepValue = inputCEP.value.replace(/\D/g, '').substring(0, 4); // Captura os primeiros 4 dígitos
+
+            if (inputCEP.value.trim() === "") {
+                exibirLojasNaTela(listaLojasGlobal); // Se limpar o campo, exibe todas as lojas de volta
+                return;
+            }
+
+            if (cepValue.length < 4) {
+                alert("Digite pelo menos os 4 primeiros dígitos do seu CEP.");
+                return;
+            }
+
+            // Filtra as lojas comparando o prefixo do CEP
+            const lojasProximas = listaLojasGlobal.filter(loja => {
+                if (!loja.cepLoja) return false;
+                const cepLojaSimplificado = loja.cepLoja.replace(/\D/g, '').substring(0, 4);
+                return cepLojaSimplificado === cepValue;
+            });
+
+            exibirLojasNaTela(lojasProximas);
+
+            document.querySelector('.section-title').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        document.getElementById('btn-buscar-cep').addEventListener('click', executarFiltroCEP);
+        document.getElementById('input-cep-cliente').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') executarFiltroCEP();
+        });
 
         async function renderizarCategorias() {
             const container = document.getElementById('categorias-container');
@@ -87,35 +131,56 @@
             } catch (e) { container.innerHTML = "Erro ao carregar categorias."; }
         }
 
+        // Carrega os dados do Firestore apenas uma vez
         async function renderizarLojas() {
             const lista = document.getElementById('lista-lojas');
             try {
                 const querySnapshot = await getDocs(collection(db, "lojas"));
-                lista.innerHTML = ""; 
+                listaLojasGlobal = []; 
+                
                 querySnapshot.forEach(doc => {
-                    const d = doc.data();
-                    
-                    // Ajuste: Usando logoUrl (do novo sistema) ou fallback padrão
-                    const fotoExibir = d.logoUrl || 'assets/images/default-loja.png';
-
-                    lista.innerHTML += `
-                        <div class="card-loja" onclick="window.location.href='html/loja.html?loja=${doc.id}'">
-                            <div class="banner-loja" style="background-color: ${d.temaLoja || '#ff4757'}">
-                                <img src="${fotoExibir}" 
-                                     class="logo-loja" 
-                                     alt="Logo ${d.nome}"
-                                     onerror="this.src='assets/images/default-loja.png'">
-                            </div>
-                            <div class="info-loja">
-                                <h3>${d.nome}</h3>
-                                <p>${d.categoria} • ${d.bairroLoja || 'Centro'}</p>
-                            </div>
-                        </div>`;
+                    listaLojasGlobal.push({ id: doc.id, ...doc.data() });
                 });
+
+                exibirLojasNaTela(listaLojasGlobal);
             } catch (e) { 
                 console.error(e);
                 lista.innerHTML = "<p>Erro ao carregar lojas.</p>"; 
             }
+        }
+
+        // Desenha os elementos na tela com base no array enviado
+        function exibirLojasNaTela(lojas) {
+            const lista = document.getElementById('lista-lojas');
+            lista.innerHTML = "";
+
+            if (lojas.length === 0) {
+                lista.innerHTML = "<p style='grid-column: 1/-1; text-align: center; color: #747d8c; padding: 30px 10px;'>Nenhum estabelecimento disponível próximo à sua localização atual.</p>";
+                return;
+            }
+
+            lojas.forEach(loja => {
+                const fotoExibir = loja.logoUrl || 'assets/images/default-loja.png';
+                
+                // AJUSTE: Verifica se existe o banner físico, caso contrário aplica a cor do tema de fallback
+                const estiloBanner = loja.bannerLoja && loja.bannerLoja.trim() !== ""
+                    ? `background-image: url('${loja.bannerLoja}'); background-size: cover; background-position: center;`
+                    : `background-color: ${loja.temaLoja || '#ff4757'};`;
+
+                lista.innerHTML += `
+                    <div class="card-loja" onclick="window.location.href='html/loja.html?loja=${loja.id}'">
+                        <div class="banner-loja" style="${estiloBanner}">
+                            <img src="${fotoExibir}" 
+                                 class="logo-loja" 
+                                 alt="Logo ${loja.nome}"
+                                 onerror="this.src='assets/images/default-loja.png'">
+                        </div>
+                        <div class="info-loja">
+                            <h3>${loja.nome}</h3>
+                            <p>${loja.categoria} • ${loja.bairroLoja || 'Centro'}</p>
+                        </div>
+                    </div>`;
+            });
         }
     </script>
 </body>

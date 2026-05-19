@@ -1,0 +1,53 @@
+/* ============================================================
+   WIDGET DE FILTRAGEM POR CEP (HOME HERO)
+   ============================================================ */
+.search-cep-container {
+    margin-top: 20px;
+    display: flex;
+    justify-content: center;
+    width: 100%;
+}
+
+.search-cep-wrapper {
+    display: flex;
+    align-items: center;
+    background: #ffffff;
+    padding: 6px 12px;
+    border-radius: 50px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+    max-width: 450px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.icon-cep {
+    color: #ff4757;
+    font-size: 1.1rem;
+    margin-right: 8px;
+}
+
+.search-cep-wrapper input {
+    border: none;
+    outline: none;
+    flex: 1;
+    font-family: inherit;
+    font-size: 0.9rem;
+    color: #2f3542;
+    padding: 8px 4px;
+}
+
+.search-cep-wrapper button {
+    background: #ff4757;
+    color: #ffffff;
+    border: none;
+    padding: 8px 20px;
+    border-radius: 25px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.search-cep-wrapper button:hover {
+    background: #ff2a3a;
+}

@@ -60,7 +60,6 @@
 
 .modal-body label {
     display: block;
-    margin-bottom: 0.5rem;
     font-weight: 600;
     font-size: 0.85rem;
     color: #57606f;
@@ -338,4 +337,756 @@
 .btn-excluir:hover {
     background: #e74c3c;
     color: #fff;
+}
+
+/* ==========================================================================
+   UPLOAD COMPACTADO DE MINIATURAS E BANNER - CONFIGURAÇÃO DA LOJA
+   ========================================================================== */
+
+/* Caixa envolvente do Banner */
+.banner-preview-container {
+    width: 100%;
+    margin-bottom: 1rem;
+}
+
+/* Moldura Proporcional do Campo do Banner (Aspect Ratio ~3:1) */
+.wrapper-banner-input {
+    position: relative;
+    display: block;
+    width: 100%;
+    height: 10rem; /* 160px */
+    border-radius: 0.75rem;
+    overflow: hidden;
+    cursor: pointer;
+    box-shadow: 0 0.1875rem 0.625rem rgba(0, 0, 0, 0.05);
+    background-color: #fcfcfc;
+    border: 0.125rem dashed #e8e8e8;
+}
+
+/* Elemento interno que renderiza o background-image do Banner */
+.banner-preview-element {
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    transition: filter 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+/* Máscara de Hover que reveals o ícone de ação */
+.overlay-banner-input-upload {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    color: #ffffff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.overlay-banner-input-upload i {
+    font-size: 1.5rem;
+}
+
+.overlay-banner-input-upload span {
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05rem;
+}
+
+/* Gatilhos de Hover */
+.wrapper-banner-input:hover .overlay-banner-input-upload {
+    opacity: 1;
+}
+
+.wrapper-banner-input:hover .banner-preview-element {
+    filter: blur(0.0625rem); /* 1px */
+}
+
+/* Correções para o input color */
+.color-picker-container input[type="color"]::-webkit-color-swatch-wrapper {
+    padding: 0;
+}
+
+.color-picker-container input[type="color"]::-webkit-color-swatch {
+    border: none;
+    border-radius: 0.5rem;
+}
+
+/* ============================================================
+   ESTILOS COMPLEMENTARES - PAINEL ADMINISTRATIVO (NORDGO)
+   ============================================================ */
+
+/* Cabeçalho & Botão Ver Loja */
+.btn-ver-loja-header {
+    cursor: pointer;
+    background-color: #f5f5f5;
+    border-color: #e2e2e2;
+}
+
+.nome-loja-titulo-text {
+    font-weight: 600;
+    color: #333;
+}
+
+.icon-link-externo {
+    font-size: 0.7rem;
+    margin-left: 8px;
+    color: #999;
+}
+
+.user-loading-placeholder {
+    height: 3rem;
+    min-width: 120px;
+}
+
+/* Color Picker Customizado */
+.color-picker-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #f9f9f9;
+    padding: 10px;
+    border-radius: 1rem;
+    border: 1.5px solid #f1f1f1;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.color-picker-input {
+    border-radius: 8px;
+    width: 40px;
+    height: 40px;
+    background: none;
+    cursor: pointer;
+    border: none;
+}
+
+.color-picker-hex {
+    font-family: monospace;
+    font-weight: bold;
+    color: #333;
+}
+
+/* Modais e Subtítulos */
+.modal-subtitulo-frete {
+    font-size: 0.9rem;
+    color: #666;
+    margin-bottom: 20px;
+}
+
+/* Box de Inclusão de Bairros */
+.bairro-cadastro-box {
+    align-items: flex-end;
+    gap: 10px;
+    background: #fafafa;
+    padding: 15px;
+    border-radius: 0.75rem;
+    border: 1px dashed #ddd;
+    box-sizing: border-box;
+}
+
+.input-group-bairro-nome {
+    flex: 2;
+    margin-bottom: 0 !important;
+}
+
+.input-group-bairro-taxa {
+    flex: 1;
+    margin-bottom: 0 !important;
+}
+
+.btn-add-bairro-acao {
+    height: 45px;
+    width: 45px;
+    background: #2ed573;
+    color: white;
+    border: none;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+}
+
+.btn-add-bairro-acao:hover {
+    background: #26af5f;
+}
+
+/* Container de Rolagem dos Bairros */
+.bairros-lista-container-scroll {
+    margin-top: 15px;
+    max-height: 250px;
+    overflow-y: auto;
+    background: #f1f2f6;
+    padding: 10px;
+    border-radius: 0.75rem;
+    border: 1.5px solid #e4e7eb;
+    box-sizing: border-box;
+}
+
+.bairros-lista-vazia {
+    text-align: center;
+    color: #888;
+    font-size: 0.85rem;
+    margin: 20px 0;
+}
+
+/* Componentes de Linha de Bairro (Gerados no JS) */
+.bairro-item-lista-config {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px;
+    background: white;
+    margin-bottom: 8px;
+    border-radius: 8px;
+    border: 1px solid #eee;
+    box-sizing: border-box;
+    width: 100%;
+}
+
+.bairro-item-nome {
+    font-weight: 500;
+    color: #2f3542;
+}
+
+.bairro-item-wrapper-acoes {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.bairro-item-taxa-valor {
+    font-weight: 600;
+    color: #ff4757;
+}
+
+.bairro-item-btn-deletar {
+    background: none;
+    border: none;
+    color: #ff4757;
+    cursor: pointer;
+    font-size: 1rem;
+    padding: 0 4px;
+    transition: transform 0.1s;
+}
+
+.bairro-item-btn-deletar:hover {
+    transform: scale(1.1);
+}
+
+/* Espaçamentos Finais */
+.input-group-frete-gratis input {
+    width: 8.125rem !important; /* 130px */
+    height: 2.25rem !important; /* 36px */
+    padding: 0 0.75rem !important; /* 12px */
+    text-align: right;
+    margin: 0 !important;
+}
+
+.input-group-frete-gratis label {
+    margin: 0 !important;
+    white-space: nowrap;
+    color: #2f3542;
+    font-weight: 600;
+}
+
+.btn-salvar-frete-margin {
+    margin-top: 10px;
+}
+
+.loading-produtos-text {
+    text-align: center;
+    padding: 20px;
+    color: #747d8c;
+}
+
+/* ============================================================
+   ESTILOS DO MODAL DE HORÁRIOS (NORDGO ADMIN SYSTEM)
+   ============================================================ */
+
+.modal-content-horarios {
+    max-width: 32rem !important; /* Ajuste para caber as linhas confortavelmente */
+}
+
+.select-status-master {
+    width: 100%;
+    height: 45px;
+    border-radius: 0.75rem;
+    border: 1.5px solid #e4e7eb;
+    padding: 0 12px;
+    font-family: inherit;
+    font-size: 0.95rem;
+    color: #2f3542;
+    background-color: #fff;
+    cursor: pointer;
+}
+
+.divisor-sessao-horarios {
+    margin-top: 25px;
+    margin-bottom: 15px;
+    font-weight: 600;
+    color: #2f3542;
+    border-bottom: 2px solid #f1f1f1;
+    padding-bottom: 8px;
+    font-size: 1rem;
+}
+
+.divisor-sessao-horarios i {
+    color: #ff4757;
+    margin-right: 5px;
+}
+
+.grade-semanal-container {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* Linha de cada dia da semana */
+.dia-horario-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    background: #f8f9fa;
+    border-radius: 0.75rem;
+    border: 1px solid #e4e7eb;
+    gap: 15px;
+    box-sizing: border-box;
+    width: 100%;
+}
+
+.dia-checkbox-block {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+}
+
+.checkbox-dia-toggle {
+    width: 18px;
+    height: 18px;
+    accent-color: #ff4757; /* Força a cor da marca no checkbox */
+    cursor: pointer;
+}
+
+.label-dia-nome {
+    font-weight: 600;
+    color: #2f3542;
+    font-size: 0.95rem;
+    cursor: pointer;
+    user-select: none;
+}
+
+/* Bloco dos seletores de tempo */
+.dia-times-block {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: opacity 0.2s ease;
+}
+
+.dia-times-block span {
+    font-size: 0.85rem;
+    color: #747d8c;
+    font-weight: 500;
+}
+
+.input-time-picker {
+    height: 38px;
+    padding: 0 8px;
+    border-radius: 0.5rem;
+    border: 1.5px solid #ced4da;
+    font-family: monospace;
+    font-size: 0.95rem;
+    color: #2f3542;
+    background: white;
+    outline: none;
+    cursor: pointer;
+}
+
+.input-time-picker:focus {
+    border-color: #ff4757;
+}
+
+.btn-salvar-horarios-margin {
+    margin-top: 15px;
+}
+
+/* ============================================================
+   ESTILOS DO NOVO SISTEMA DE LOGÍSTICA DE ENTREGA MULTICIDADES
+   ============================================================ */
+
+/* MODIFICAÇÃO: Modal com comportamento de tamanho fixado e scroll interno isolado */
+.modal-content-logistica {
+    max-width: 44rem !important;
+    max-height: 85vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden !important; /* Trava o scroll da janela externa */
+}
+
+.modal-content-logistica .modal-body {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    flex: 1;
+    padding-right: 10px;
+}
+
+.modal-subtitulo-frete {
+    font-size: 0.85rem;
+    color: #747d8c;
+    margin-bottom: 15px;
+}
+
+/* Caixa cinza superior de cidades */
+.bloco-selecao-cidades {
+    background: #f1f2f6;
+    padding: 15px 15px 12px 15px;
+    border-radius: 8px;
+    border: 1px solid #e4e7eb;
+    margin-bottom: 5px;
+    flex-shrink: 0;
+}
+
+.label-secao-interna {
+    font-weight: 600;
+    color: #2f3542;
+    display: block;
+    margin-bottom: 10px;
+    font-size: 0.9rem;
+}
+
+.cidades-checkbox-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.checkbox-cidade-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: #ffffff;
+    padding: 5px 14px;
+    border-radius: 30px;
+    border: 1.5px solid #ced4da;
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.2s;
+    margin: 0 !important;
+}
+
+/* MODIFICAÇÃO: Reset cirúrgico para os checkboxes de Cidades e Bairros não herdarem o tamanho do input global do modal */
+.checkbox-cidade-item input[type="checkbox"],
+.bairro-check-block input[type="checkbox"] {
+    width: 16px !important;
+    height: 16px !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background: transparent !important;
+    border: none !important;
+    border-radius: 4px !important;
+    accent-color: #ff4757;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.checkbox-cidade-item label {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: #2f3542;
+    cursor: pointer;
+}
+
+/* MODIFICAÇÃO: Ativado com sucesso o scroll isolado de visualização apenas para as caixas de bairros das cidades */
+.logistica-cidades-scroll {
+    display: flex;
+    flex-direction: column;
+    gap: 0.9375rem; /* 15px */
+    max-height: 23.75rem; /* 380px */
+    overflow-y: auto !important;
+    padding-right: 0.5rem; /* 8px */
+    margin-top: 0.9375rem; /* 15px */
+    flex: 1;
+}
+
+/* Card Individual de cada Cidade Ativa */
+.card-logistica-cidade-painel {
+    border: 1px solid #e4e7eb;
+    border-radius: 8px;
+    background: #ffffff;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.header-cidade-painel {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #f8f9fa;
+    padding: 10px 15px;
+    border-bottom: 1px solid #e4e7eb;
+}
+
+.header-cidade-painel h4 {
+    margin: 0;
+    color: #2f3542;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.header-cidade-painel h4 i {
+    color: #ff4757;
+    margin-right: 5px;
+}
+
+/* Configuração de Prazos (Minutos) */
+.inputs-tempo-entrega {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.8rem;
+    color: #57606f;
+}
+
+.inputs-tempo-entrega i {
+    color: #ffa502;
+}
+
+/* Adicionada a exceção para que os inputs de tempo pequenos mantenham o seu design correto */
+.inputs-tempo-entrega input {
+    width: 45px !important;
+    height: 26px !important;
+    padding: 0 !important;
+    text-align: center;
+    border-radius: 4px;
+    border: 1px solid #ced4da;
+    outline: none;
+    font-family: inherit;
+    font-size: 0.8rem;
+}
+
+.inputs-tempo-entrega input:focus {
+    border-color: #ff4757;
+}
+
+.unidade-tempo {
+    font-weight: 600;
+    color: #2f3542;
+}
+
+/* Grade de Bairros */
+.grade-bairros-logistica {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 8px;
+    padding: 12px;
+    background: #fafafa;
+}
+
+.bairro-logistica-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #ffffff;
+    padding: 8px 12px;
+    border-radius: 6px;
+    border: 1px solid #e4e7eb;
+}
+
+/* MODIFICAÇÃO: Alinhamento fixo, colado no canto esquerdo com gap padronizado e seguro */
+.bairro-check-block {
+    display: flex;
+    align-items: center;
+    gap: 8px; /* Distância uniforme e limpa entre a caixa e o início do texto */
+    flex: 1;
+    min-width: 0;
+}
+
+/* MODIFICAÇÃO: Resolvido o sumiço dos nomes. O label ganhou flexibilidade para ocupar o espaço sem colapsar */
+.bairro-check-block label {
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: #2f3542;
+    cursor: pointer;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+    text-align: left !important;
+    margin: 0 !important;
+    flex: 1;
+    min-width: 0;
+}
+
+.bairro-taxa-block {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    font-size: 0.8rem;
+    color: #747d8c;
+    flex-shrink: 0;
+}
+
+/* Adicionada a exceção para que os inputs de taxa pequenos mantenham o seu design correto */
+.bairro-taxa-block input {
+    width: 60px !important;
+    height: 26px !important;
+    padding: 0 4px !important;
+    border-radius: 4px;
+    border: 1px solid #ced4da;
+    outline: none;
+    text-align: right;
+    font-family: monospace;
+}
+
+.bairro-taxa-block input:disabled {
+    background: #f1f2f6;
+    color: #a4b0be;
+    cursor: not-allowed;
+}
+
+.divisor-modal-frete {
+    margin: 10px 0;
+    border: 0;
+    border-top: 1px dashed #ced4da;
+    flex-shrink: 0;
+}
+
+.input-group-frete-gratis {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: space-between;
+    background: #f8f9fa;
+    padding: 0.75rem 0.9375rem; /* 12px 15px */
+    border-radius: 0.5rem; /* 8px */
+    margin-top: 0.9375rem !important; /* 15px */
+    margin-bottom: 0.9375rem !important; /* 15px */
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.btn-salvar-frete-margin {
+    margin-top: 0 !important;
+    flex-shrink: 0;
+}
+
+.logistica-vazia-text {
+    text-align: center;
+    color: #a4b0be;
+    padding: 15px;
+    font-size: 0.85rem;
+}
+
+/* ============================================================
+   MÓDULO NOVO: DROPDOWN SELETOR DE CIDADES FLUTUANTE (REM)
+   ============================================================ */
+
+.dropdown-cidades-container {
+    position: relative;
+    margin-bottom: 0.9375rem; /* 15px */
+    width: 100%;
+}
+
+/* O Botão de ativação do Menu */
+.dropdown-cidades-selecionador {
+    background: #ffffff;
+    padding: 0.75rem 1rem;
+    border: 1px solid #ced4da;
+    border-radius: 0.5rem; /* 8px */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.2s ease;
+    box-sizing: border-box;
+}
+
+.dropdown-cidades-selecionador:hover {
+    border-color: #ff4757;
+}
+
+/* Texto interno que resume quais cidades estão selecionadas */
+#texto-cidades-selecionadas {
+    font-size: 0.9rem;
+    font-weight: 500;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    padding-right: 0.625rem; /* 10px */
+}
+
+.dropdown-cidades-selecionador i {
+    color: #747d8c;
+    font-size: 0.85rem;
+    transition: transform 0.2s ease;
+}
+
+/* A Lista Flutuante de Opções (Escondida por padrão) */
+.dropdown-cidades-lista {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: #ffffff;
+    border: 1px solid #e4e7eb;
+    border-radius: 0.5rem; /* 8px */
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
+    max-height: 12.5rem; /* 200px max de altura com scroll interno */
+    overflow-y: auto !important;
+    z-index: 1000; /* Garante que flutue por cima dos cards de bairros */
+    display: none; /* Controlado pelo JS */
+    margin-top: 0.3125rem; /* 5px */
+    padding: 0.3125rem; /* 5px */
+    flex-direction: column;
+    gap: 0.25rem; /* 4px */
+    box-sizing: border-box;
+}
+
+/* Classe injetada pelo script para exibir o menu */
+.dropdown-cidades-lista.active {
+    display: flex;
+}
+
+/* Customização dos itens com checkboxes empilhados verticalmente dentro do painel */
+.dropdown-cidades-lista .checkbox-cidade-item {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem; /* 10px */
+    padding: 0.5rem 0.75rem; /* 8px 12px */
+    border-radius: 0.375rem; /* 6px */
+    border: none !important; /* Desfaz a moldura antiga estilo pílula */
+    background: transparent !important;
+    width: 100%;
+    box-sizing: border-box;
+    transition: background 0.2s ease;
+    justify-content: flex-start;
+}
+
+.dropdown-cidades-lista .checkbox-cidade-item:hover {
+    background: #f8f9fa !important;
+}
+
+.dropdown-cidades-lista .checkbox-cidade-item label {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #2f3542;
+    cursor: pointer;
+    flex: 1;
+    text-align: left;
 }

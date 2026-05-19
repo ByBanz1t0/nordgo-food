@@ -1,0 +1,6 @@
+/* Placeholder de carregamento da área do usuário (Cabeçalho da Loja) */
+.header-user-placeholder {
+    height: 3rem;
+    min-width: 7.5rem;
+    box-sizing: border-box;
+}

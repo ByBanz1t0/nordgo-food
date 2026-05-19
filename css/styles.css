@@ -595,111 +595,6 @@ body {
     to { bottom: 1.5rem; opacity: 1; }
 }
 
-
-/* ============================================================
-    ESTILOS DA PÁGINA DE LOGIN / CADASTRO
-   ============================================================ */
-
-.hidden { display: none !important; }
-
-.login-screen {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: calc(100vh - 5rem); /* Desconta o header */
-    padding: 2rem 1.5rem;
-    background-color: #f7f7f7;
-}
-
-.login-container {
-    width: 100%;
-    max-width: 30rem; /* Aprox 450px */
-    background: #fff;
-    padding: 2.5rem;
-    border-radius: 1rem;
-    box-shadow: 0 0.5rem 1.5rem rgba(0,0,0,0.08);
-}
-
-.login-header {
-    text-align: center;
-    margin-bottom: 2rem;
-}
-
-.login-header h2 {
-    font-size: 1.75rem;
-    color: #1a1a1a;
-}
-
-.login-header p {
-    color: #666;
-    font-size: 0.95rem;
-}
-
-/* Formulários e Grid */
-.login-form input[type="email"],
-.login-form input[type="password"],
-.login-form input[type="text"] {
-    width: 100%;
-    padding: 0.875rem;
-    margin-bottom: 0.75rem;
-    border: 0.0625rem solid #ddd;
-    border-radius: 0.5rem;
-    font-size: 0.9rem;
-    outline: none;
-    transition: border-color 0.2s;
-}
-
-.login-form input:focus {
-    border-color: #ff4757;
-}
-
-.grid-cadastro {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0.75rem; /* Ajustado para bater com o padrão de 12px */
-}
-
-.full-width {
-    grid-column: span 2;
-}
-
-/* Estilo para o link de "Esqueci minha senha" */
-#btn-esqueci-senha {
-    font-size: 0.8rem;
-    color: #ff4757;
-    text-decoration: none;
-    font-weight: 600;
-}
-
-#btn-esqueci-senha:hover {
-    color: #b91c1c !important; /* Um tom mais escuro de vermelho ao passar o mouse */
-    text-decoration: underline !important;
-}
-
-/* Estilo para o botão de "Voltar" no cadastro */
-.btn-secondary {
-    background-color: #6c757d;
-    border: none;
-    color: white;
-}
-
-.btn-secondary:hover {
-    background-color: #5a6268;
-}
-
-/* Feedback visual de erro nos inputs (opcional) */
-input.input-error {
-    border: 2px solid #e63946;
-    animation: shake 0.2s ease-in-out 0s 2;
-}
-
-@keyframes shake {
-    0% { margin-left: 0rem; }
-    25% { margin-left: 0.5rem; }
-    75% { margin-left: -0.5rem; }
-    100% { margin-left: 0rem; }
-}
-
 /* --- LOGIN-LOJA / CADASTRO DE VENDEDOR --- */
 
 /* Overlay de carregamento (Impede o flicker antes de verificar se é dono) */
@@ -1601,8 +1496,72 @@ input.input-error {
     }
 
     /* 4. CATEGORIAS */
-    .grid-produtos-detalhado { flex-direction: column !important; gap: 1rem !important; }
-    .card-produto-horizontal { width: 100% !important; }
+    /* Garante que a seção do cardápio não sangre para as bordas */
+    .cardapio-section {
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
+        box-sizing: border-box !important;
+    }
+
+    /* Força o grid a se comportar como uma lista vertical de 100% de largura */
+    .grid-produtos-detalhado { 
+        display: flex !important;
+        flex-direction: column !important; 
+        gap: 1rem !important; 
+        width: 100% !important;
+        box-sizing: border-box !important;
+    }
+    
+    /* O Card ocupa 100% do pai, sem margens externas para não vazar */
+    .card-produto-horizontal { 
+        width: 100% !important; 
+        max-width: 100% !important;
+        margin: 0 !important; 
+        box-sizing: border-box !important;
+        padding: 0.7rem !important; 
+        gap: 0.8rem !important; /* Espaço ideal entre a foto e o conteúdo */
+    }
+
+    /* Container do conteúdo ganha flex dinâmico sem colapsar */
+    .prod-conteudo {
+        display: flex !important;
+        flex-direction: row !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        flex: 1 !important;
+        min-width: 0 !important;
+        gap: 0.5rem !important;
+    }
+
+    /* Bloco de textos ocupa o espaço restante */
+    .prod-textos {
+        flex: 1 !important;
+        min-width: 0 !important;
+    }
+
+    /* CORREÇÃO DO BUG: Força o texto a quebrar por palavras, nunca por letras */
+    .prod-textos h4 {
+        font-size: 0.95rem !important;
+        white-space: normal !important;
+        word-break: normal !important; /* Impede a quebra letra por letra */
+        overflow-wrap: break-word !important; /* Quebra apenas palavras gigantes */
+    }
+
+    .prod-desc-completa {
+        font-size: 0.8rem !important;
+        white-space: normal !important;
+        word-break: normal !important;
+        overflow-wrap: break-word !important;
+    }
+
+    /* Mantém os botões e preços firmes na direita */
+    .prod-acoes-lateral {
+        flex-shrink: 0 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: flex-end !important;
+        gap: 0.3rem !important;
+    }
 
     /* 5. MENU DROPDOWN */
     .dropdown-content { 
@@ -1610,6 +1569,46 @@ input.input-error {
         left: auto !important; 
         min-width: 12rem !important;
         transform: translateY(10px) !important; 
+    }
+
+    /* 6. MEU CARRINHO (Empilhamento e Ajuste de Fluxo Mobile) */
+    
+    /* Transforma o layout lado a lado em uma lista vertical */
+    .carrinho-layout {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 1.5rem !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+    }
+
+    /* Força tanto a lista de itens quanto o resumo a ocuparem a largura total da tela */
+    .coluna-itens, 
+    .coluna-resumo {
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+    }
+
+    /* Ajusta o card de resumo para não estourar os limites internos */
+    .card-resumo {
+        width: 100% !important;
+        box-sizing: border-box !important;
+        padding: 1.5rem 1.2rem !important;
+    }
+
+    /* Ajuste fino para os inputs de cupom não quebrarem o layout em telas estreitas */
+    .cupom-global-area .input-group,
+    .cupom-loja-area .input-group {
+        width: 100% !important;
+        display: flex !important;
+        gap: 0.5rem !important;
+    }
+
+    .cupom-global-area input,
+    .cupom-loja-area input {
+        flex: 1 !important;
+        min-width: 0 !important;
     }
 }
 

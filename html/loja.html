@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Carregando Loja... | Nordgo Food</title>
     <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="../css/styles-loja.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
@@ -25,7 +26,7 @@
                 </div>
             </div>
             <div class="header-right" id="user-area">
-                <div style="height: 3rem; min-width: 7.5rem;"></div>
+                <div class="header-user-placeholder"></div>
             </div>
         </div>
     </header>
@@ -146,16 +147,18 @@
                 : parseFloat(loja.frete).toLocaleString('pt-br', { style: 'currency', currency: 'BRL' });
         }
 
-        // --- LÓGICA DE SELEÇÃO DE IMAGEM ---
+        // --- LÓGICA DE SELEÇÃO DE IMAGEM CORRIGIDA ---
         function obterImagemProduto(p) {
-            // 1. Se o produto tem imagem própria, usa ela
-            if (p.imagem && p.imagem.trim() !== "") return p.imagem;
+            // Se o produto tem imagem própria customizada que NÃO SEJA o texto do placeholder padrão
+            if (p.imagem && p.imagem.trim() !== "" && !p.imagem.includes("placeholder.png")) {
+                return p.imagem;
+            }
             
-            // 2. Se não tem, busca o arquivo mapeado na categoria
+            // Se caiu aqui, busca a imagem padrão da categoria dele (ex: "pizza.png", "cookie.png")
             const arquivoCat = fotosCategorias[p.categoria];
             if (arquivoCat) return `../assets/images/${arquivoCat}`;
             
-            // 3. Fallback final
+            // Fallback final de segurança absoluta caso a categoria não tenha imagem vinculada
             return '../assets/images/placeholder.png';
         }
 
@@ -189,26 +192,29 @@
                 <div class="card-produto-horizontal ${indisponivel ? 'prod-esgotado' : ''}">
                     <div class="prod-foto-lateral">
                         <img src="${imgUrl}" 
-                             alt="${p.nome}"
-                             onerror="this.src='../assets/images/placeholder.png'">
+                            alt="${p.nome}"
+                            onerror="this.src='../assets/images/placeholder.png'">
                     </div>
                     <div class="prod-conteudo">
                         <div class="prod-textos">
                             <div class="prod-header-info">
                                 <h4>${p.nome}</h4>
-                                <span class="status-badge ${indisponivel ? 'status-indisponivel' : 'status-disponivel'}">
-                                    <i class="fa-solid ${indisponivel ? 'fa-circle-xmark' : 'fa-circle-check'}"></i> 
-                                    ${indisponivel ? 'Indisponível' : 'Disponível'}
-                                </span>
                             </div>
                             <p class="prod-desc-completa">${p.descricao || 'Nenhuma descrição disponível.'}</p>
                         </div>
+                        
                         <div class="prod-acoes-lateral">
                             <span class="preco-detalhe">R$ ${p.preco.toLocaleString('pt-br', {minimumFractionDigits: 2})}</span>
+                            
                             ${!indisponivel ? `
                                 <button class="btn-add-carrinho" onclick="adicionarAoCarrinho('${p.id}', '${p.nome}', ${p.preco}, '${imgUrl}', '${lojaId}', '${nomeLojaGlobal}')">
                                     <i class="fa-solid fa-plus"></i><i class="fa-solid fa-cart-shopping"></i>
                                 </button>` : ''}
+                                
+                            <span class="status-badge ${indisponivel ? 'status-indisponivel' : 'status-disponivel'}">
+                                <i class="fa-solid ${indisponivel ? 'fa-circle-xmark' : 'fa-circle-check'}"></i> 
+                                ${indisponivel ? 'Indisponível' : 'Disponível'}
+                            </span>
                         </div>
                     </div>
                 </div>

@@ -1,0 +1,391 @@
+/* ============================================================
+    ESTILOS ESPECÍFICOS DA PÁGINA DE PERFIL (DASHBOARD MODAL)
+   ============================================================ */
+
+/* Classes universais utilitárias */
+.hidden { display: none !important; }
+.input-bloqueado {
+    background-color: #f1f2f6 !important;
+    color: #747d8c !important;
+    cursor: not-allowed !important;
+    border-color: #e4e7eb !important;
+}
+
+.perfil-screen {
+    padding: 2rem 1.5rem;
+    background-color: #f7f7f7;
+    min-height: calc(100vh - 5rem);
+}
+
+/* GRID DOS CARDS PEQUENOS (DASHBOARD PRINCIPAL) */
+.perfil-dashboard-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    max-width: 45rem; /* ~720px fixado para visual compacto */
+    margin: 2rem auto 0 auto;
+}
+
+/* O CARD PEQUENO CLICÁVEL */
+.card-resumo-perfil {
+    background: #ffffff;
+    padding: 1.5rem;
+    border-radius: 0.875rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    box-shadow: 0 0.25rem 1rem rgba(0, 0, 0, 0.04);
+    border: 0.0625rem solid #e4e7eb;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.card-resumo-perfil:hover {
+    transform: translateY(-0.125rem);
+    box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.08);
+    border-color: #ff4757;
+}
+
+.card-resumo-icon {
+    font-size: 1.5rem;
+    color: #747d8c;
+    margin-right: 1.25rem;
+    display: flex;
+    align-items: center;
+}
+
+.card-resumo-info {
+    display: flex;
+    align-items: center;
+    flex-grow: 1;
+    gap: 1.25rem;
+}
+
+/* Mini avatar redondo interno no card de dados */
+#avatar-dashboard-preview {
+    width: 3.5rem;
+    height: 3.5rem;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 0.125rem solid #fff;
+    box-shadow: 0 0.125rem 0.5rem rgba(0,0,0,0.1);
+}
+
+.textos-resumo h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    color: #2f3542;
+    font-weight: 600;
+}
+
+.textos-resumo p {
+    margin: 0.15rem 0;
+    font-size: 0.9rem;
+    color: #57606f;
+}
+
+.textos-resumo small {
+    font-size: 0.8rem;
+    color: #a4b0be;
+}
+
+.card-resumo-arrow {
+    color: #a4b0be;
+    font-size: 1rem;
+    padding-left: 1rem;
+}
+
+/* ============================================================
+    A ESTRUTURA DOS MODAIS (JANELAS FLUTUANTES)
+   ============================================================ */
+
+/* Cortina escura que cobre o fundo do site */
+.modal-perfil-wrapper {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+    padding: 1rem;
+    box-sizing: border-box;
+}
+
+/* Ativado via JS (.classList.add('active')) */
+.modal-perfil-wrapper.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* Corpo da caixa suspensa */
+.modal-perfil-container {
+    background: #ffffff;
+    width: 100%;
+    max-width: 35rem; /* ~560px */
+    border-radius: 1.25rem;
+    box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.25);
+    display: flex;
+    flex-direction: column;
+    max-height: 90vh; /* Não estoura a altura da janela */
+    transform: translateY(1.5rem);
+    transition: transform 0.3s ease;
+    overflow: hidden;
+}
+
+.modal-perfil-wrapper.active .modal-perfil-container {
+    transform: translateY(0);
+}
+
+/* Topo do modal */
+.modal-perfil-header {
+    padding: 1.5rem 2rem;
+    border-bottom: 0.0625rem solid #f1f1f1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #ffffff;
+}
+
+.modal-perfil-header h3 {
+    margin: 0;
+    font-size: 1.25rem;
+    color: #2f3542;
+}
+
+.btn-fechar-modal-perfil {
+    background: #f1f2f6;
+    border: none;
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 50%;
+    color: #57606f;
+    font-size: 1rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s, color 0.2s;
+}
+
+.btn-fechar-modal-perfil:hover {
+    background: #ff4757;
+    color: #ffffff;
+}
+
+/* Conteúdo interno rolável do modal */
+.modal-perfil-body {
+    padding: 2rem;
+    overflow-y: auto;
+    box-sizing: border-box;
+}
+
+/* Botão de Linha para Inserção dentro do Modal (ex: cadastrar novo) */
+.btn-adicionar-modal-item {
+    width: 100%;
+    background: #fff0f1;
+    color: #ff4757;
+    border: 0.0625rem dashed #ff4757;
+    padding: 1rem;
+    border-radius: 0.75rem;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    margin-bottom: 1.5rem;
+    transition: background 0.2s;
+}
+
+.btn-adicionar-modal-item:hover {
+    background: #ff4757;
+    color: #ffffff;
+}
+
+/* --- ESTILOS INTERNOS DOS FORMULÁRIOS DO MODAL --- */
+.perfil-foto-container {
+    text-align: center;
+    margin-bottom: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.wrapper-foto {
+    position: relative;
+    cursor: pointer;
+    width: 6.5rem;
+    height: 6.5rem;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 0.25rem solid #ffffff;
+    box-shadow: 0 0.25rem 0.75rem rgba(0,0,0,0.1);
+}
+
+.foto-perfil-edit {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.overlay-upload {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(0, 0, 0, 0.5);
+    color: #ffffff;
+    height: 35%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+}
+
+.instrucao-upload {
+    font-size: 0.7rem;
+    color: #888888;
+    margin-top: 0.5rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.input-file-hidden { display: none; }
+
+.login-form label {
+    display: block;
+    font-size: 0.85rem;
+    color: #57606f;
+    margin: 0.75rem 0 0.25rem 0;
+    font-weight: 600;
+}
+
+.login-form input[type="text"],
+.login-form input[type="email"],
+.login-form input[type="password"],
+.inline-form-box input[type="text"],
+.select-perfil {
+    width: 100%;
+    padding: 0.85rem;
+    margin-bottom: 0.5rem;
+    border: 0.0625rem solid #ddd;
+    border-radius: 0.5rem;
+    font-size: 0.9rem;
+    outline: none;
+    box-sizing: border-box;
+}
+
+.login-form input:focus, .inline-form-box input:focus {
+    border-color: #ff4757;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.inline-form-box {
+    background: #f8f9fa;
+    padding: 1.25rem;
+    border-radius: 0.75rem;
+    border: 0.0625rem solid #e4e7eb;
+    margin-bottom: 1.5rem;
+}
+
+.inline-form-box h4 { margin: 0 0 0.75rem 0; font-size: 0.95rem; }
+.form-actions-inline { display: flex; gap: 0.5rem; margin-top: 0.75rem; }
+
+/* --- LISTAS DE ITENS DE DENTRO DO MODAL --- */
+.lista-itens-perfil {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.item-lista-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    border: 0.0625rem solid #e4e7eb;
+    border-radius: 0.75rem;
+}
+
+.item-padrao-ativo {
+    border-color: #ff4757;
+    background-color: #fff0f1;
+}
+
+.item-lista-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+}
+
+.item-lista-info strong {
+    font-size: 0.9rem;
+    color: #2f3542;
+}
+
+.item-lista-info span {
+    font-size: 0.85rem;
+    color: #57606f;
+}
+
+.item-lista-actions button {
+    background: none;
+    border: none;
+    color: #a4b0be;
+    font-size: 0.95rem;
+    cursor: pointer;
+    padding: 0.25rem;
+    margin-left: 0.5rem;
+}
+
+.item-lista-actions button:hover {
+    color: #ff4757;
+}
+
+.badge-padrao {
+    background-color: #ff4757;
+    color: #ffffff;
+    font-size: 0.6rem;
+    padding: 0.1rem 0.3rem;
+    border-radius: 0.2rem;
+    margin-left: 0.5rem;
+}
+
+.txt-vazio-perfil {
+    text-align: center;
+    color: #a4b0be;
+    font-size: 0.85rem;
+    padding: 1rem 0;
+}
+
+/* --- BOTÕES DE SUBMIT E UTILITÁRIOS --- */
+.btn-principal, .btn-secundario, .btn-perigo {
+    width: 100%;
+    padding: 0.85rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    border: none;
+    margin-top: 0.75rem;
+    box-sizing: border-box;
+}
+
+.btn-principal { background-color: #ff4757; color: #fff; }
+.btn-secundario { background-color: #6c757d; color: #fff; }
+.btn-perigo { background-color: #fff0f1; color: #e63946; }
+.divider-perfil { margin: 1rem 0; border-bottom: 0.0625rem solid #f1f1f1; }

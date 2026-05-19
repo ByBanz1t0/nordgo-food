@@ -3,10 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nordgo Food | Login</title>
-    <link rel="stylesheet" href="../css/styles.css">
+    <title>Nordgo Food | Autenticação</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="../css/styles-login.css">
 </head>
 <body>
     <div id="toast-container" class="toast-container"></div>
@@ -14,15 +16,15 @@
     <header class="main-header">
         <div class="header-container">
             <div class="header-left">
-                <div class="pill-badge pill-back" onclick="window.location.href='../index.html'" style="cursor: pointer;">
+                <div class="pill-badge pill-back" id="btn-voltar-index">
                     <img src="../assets/images/voltar.png" alt="Voltar" class="back-icon-img">
-                    <span class="location-text" style="margin-left: 1rem;">Voltar</span>
+                    <span class="location-text">Voltar</span>
                 </div>
             </div>
 
             <div class="header-center">
-                <div class="pill-badge pill-page-title" style="cursor: default; background-color: #f5f5f5; border-color: #e2e2e2;">
-                    <span style="font-weight: 600; color: #333;">Login</span>
+                <div class="pill-badge pill-page-title">
+                    <span class="page-title-text" id="header-dinamico-titulo">Login</span>
                 </div>
             </div>
 
@@ -35,18 +37,18 @@
             
             <div id="section-skeleton">
                 <div class="login-header">
-                    <div class="skeleton" style="width: 150px; height: 30px; margin: 0 auto 10px; border-radius: 4px;"></div>
-                    <div class="skeleton" style="width: 100px; height: 15px; margin: 0 auto; border-radius: 4px;"></div>
+                    <div class="skeleton skeleton-title"></div>
+                    <div class="skeleton skeleton-subtitle"></div>
                 </div>
                 <div class="login-form">
-                    <div class="skeleton" style="width: 100%; height: 50px; margin-bottom: 15px; border-radius: 8px;"></div>
-                    <div class="skeleton" style="width: 100%; height: 50px; margin-bottom: 15px; border-radius: 8px;"></div>
-                    <div class="skeleton" style="width: 100%; height: 55px; border-radius: 8px; margin-top: 10px;"></div>
-                    <div class="skeleton" style="width: 60%; height: 15px; margin: 20px auto; border-radius: 4px;"></div>
+                    <div class="skeleton skeleton-input"></div>
+                    <div class="skeleton skeleton-input"></div>
+                    <div class="skeleton skeleton-button"></div>
+                    <div class="skeleton skeleton-link"></div>
                 </div>
             </div>
 
-            <div id="section-login" style="display: none;">
+            <div id="section-login" class="hidden">
                 <header class="login-header">
                     <h2>Bem-vindo</h2>
                     <p>Acesse sua conta</p>
@@ -88,8 +90,11 @@
                     <input type="text" id="reg-cpf" placeholder="CPF (000.000.000-00)" maxlength="14">
                     <input type="text" id="reg-telefone" placeholder="Telefone / WhatsApp" maxlength="15">
                     
-                    <input type="text" id="reg-cep" placeholder="CEP" maxlength="9">
+                    <input type="text" id="reg-cep" placeholder="CEP (00000-000)" maxlength="9">
                     <input type="text" id="reg-bairro" placeholder="Bairro">
+                    
+                    <input type="text" id="reg-cidade" placeholder="Cidade" readonly class="input-bloqueado">
+                    <input type="text" id="reg-estado" placeholder="UF" readonly class="input-bloqueado">
                     
                     <input type="text" id="reg-rua" class="full-width" placeholder="Rua / Avenida">
                     
@@ -119,18 +124,24 @@
         const sectionLogin = document.getElementById('section-login');
         const sectionCadastro = document.getElementById('section-cadastro');
         const sectionSkeleton = document.getElementById('section-skeleton');
+        const txtTituloHeader = document.getElementById('header-dinamico-titulo');
+
+        // Botão de voltar do header
+        document.getElementById('btn-voltar-index').onclick = () => {
+            window.location.href = '../index.html';
+        };
 
         // Lógica de Skeleton: Troca o placeholder pelo conteúdo real
         onAuthStateChanged(auth, (user) => {
-            sectionSkeleton.style.display = 'none';
-            sectionLogin.style.display = 'block';
+            sectionSkeleton.classList.add('hidden');
+            sectionLogin.classList.remove('hidden');
             
             if (user) {
                 window.location.href = '../index.html';
             }
         });
 
-        // --- MÁSCARAS ---
+        // --- MÁSCARAS DE INPUTS ---
         const aplicarMascaraCPF = (v) => {
             v = v.replace(/\D/g, "");
             v = v.replace(/(\d{3})(\d)/, "$1.$2");
@@ -146,24 +157,83 @@
             return v;
         };
 
+        const aplicarMascaraCEP = (v) => {
+            v = v.replace(/\D/g, "");
+            v = v.replace(/^(\d{5})(\d)/, "$1-$2");
+            return v;
+        };
+
         document.getElementById('reg-cpf').oninput = (e) => e.target.value = aplicarMascaraCPF(e.target.value);
         document.getElementById('reg-telefone').oninput = (e) => e.target.value = aplicarMascaraTel(e.target.value);
+        document.getElementById('reg-cep').oninput = (e) => e.target.value = aplicarMascaraCEP(e.target.value);
+
+        // --- MOTOR DE CAPTURA DA API VIACEP ---
+        document.getElementById('reg-cep').addEventListener('blur', async (e) => {
+            const cep = e.target.value.replace(/\D/g, "");
+            
+            if (cep.length !== 8) {
+                if (cep.length > 0) mostrarNotificacao("CEP incompleto. Digite os 8 números.", "error");
+                return;
+            }
+
+            const inputBairro = document.getElementById('reg-bairro');
+            const inputCidade = document.getElementById('reg-cidade');
+            const inputEstado = document.getElementById('reg-estado');
+            const inputRua = document.getElementById('reg-rua');
+
+            try {
+                inputCidade.value = "Buscando...";
+                
+                const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+                const dados = await response.json();
+
+                if (dados.erro) {
+                    mostrarNotificacao("CEP não localizado.", "error");
+                    inputCidade.value = "";
+                    return;
+                }
+
+                inputCidade.value = dados.localidade;
+                inputEstado.value = dados.uf;
+
+                if (dados.bairro && dados.bairro.trim() !== "") {
+                    inputBairro.value = dados.bairro;
+                    inputBairro.readOnly = true;
+                    inputBairro.classList.add('input-bloqueado');
+                } else {
+                    inputBairro.value = "";
+                    inputBairro.readOnly = false;
+                    inputBairro.classList.remove('input-bloqueado');
+                    inputBairro.placeholder = "Informe o seu bairro";
+                }
+
+                inputRua.value = dados.logradouro || "";
+                document.getElementById('reg-numero').focus();
+
+            } catch (err) {
+                console.error("Erro ViaCEP:", err);
+                mostrarNotificacao("Erro ao consultar serviço postal automático.", "error");
+                inputCidade.value = "";
+            }
+        });
 
         const validarSenhaForte = (senha) => {
             const regex = /^(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*])(?=.{8,})/;
             return regex.test(senha);
         };
 
-        // Alternância de Telas
+        // Alternância de abas
         document.getElementById('link-ir-cadastro').onclick = (e) => {
             e.preventDefault();
-            sectionLogin.style.display = 'none';
-            sectionCadastro.classList.remove('hidden');
+            sectionLogin.classList.add('hidden'); 
+            sectionCadastro.classList.remove('hidden'); 
+            txtTituloHeader.innerText = "Cadastro"; 
         };
 
         document.getElementById('btn-voltar-login').onclick = () => {
-            sectionCadastro.classList.add('hidden');
-            sectionLogin.style.display = 'block';
+            sectionCadastro.classList.add('hidden'); 
+            sectionLogin.classList.remove('hidden'); 
+            txtTituloHeader.innerText = "Login"; 
         };
 
         // Lógica de Login E-mail/Senha
@@ -188,27 +258,30 @@
             }
         };
 
-        // Cadastro de Novo Usuário (Salvando como cpfCliente)
+        // MODIFICADO: Cadastro de Novo Usuário injetando o mapa/objeto puro dentro do array
         document.getElementById('btn-cadastrar-final').onclick = async () => {
-            const campos = {
+            const formInputs = {
                 nome: document.getElementById('reg-nome').value.trim(),
                 email: document.getElementById('reg-email').value.trim(),
                 senha: document.getElementById('reg-senha').value,
                 cpfCliente: document.getElementById('reg-cpf').value.trim(),
                 telefoneCliente: document.getElementById('reg-telefone').value.trim(),
-                bairroCliente: document.getElementById('reg-bairro').value.trim(),
-                cepCliente: document.getElementById('reg-cep').value.trim(),
-                ruaCliente: document.getElementById('reg-rua').value.trim(),
-                nCliente: document.getElementById('reg-numero').value.trim(),
-                observacaoCliente: document.getElementById('reg-obs').value.trim()
+                
+                rua: document.getElementById('reg-rua').value.trim(),
+                numero: document.getElementById('reg-numero').value.trim(),
+                bairro: document.getElementById('reg-bairro').value.trim(),
+                cidade: document.getElementById('reg-cidade').value.trim(),
+                estado: document.getElementById('reg-estado').value.trim().toUpperCase(),
+                observacao: document.getElementById('reg-obs').value.trim() || "Sem observação",
+                cep: document.getElementById('reg-cep').value.trim()
             };
 
-            if(!campos.nome || !campos.email || !campos.senha || !campos.cpfCliente) {
-                mostrarNotificacao("Nome, E-mail, Senha e CPF são obrigatórios.", "error");
+            if(!formInputs.nome || !formInputs.email || !formInputs.senha || !formInputs.cpfCliente || !formInputs.rua || !formInputs.numero || !formInputs.bairro || !formInputs.cep) {
+                mostrarNotificacao("Preencha todos os dados obrigatórios, incluindo o endereço completo.", "error");
                 return;
             }
 
-            if (!validarSenhaForte(campos.senha)) {
+            if (!validarSenhaForte(formInputs.senha)) {
                 mostrarNotificacao("Senha fraca! Use 8+ caracteres, maiúscula, número e símbolo.", "error");
                 return;
             }
@@ -218,18 +291,33 @@
                 btn.disabled = true;
                 btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Criando conta...';
                 
-                // 1. Cria o usuário no Auth
-                const userCred = await createUserWithEmailAndPassword(auth, campos.email, campos.senha);
+                const userCred = await createUserWithEmailAndPassword(auth, formInputs.email, formInputs.senha);
                 
-                // 2. Remove a senha do objeto antes de salvar no Firestore
-                const { senha, ...dadosParaSalvar } = campos;
+                // CORRIGIDO: Monta um mapa/objeto puro estruturado para salvar no banco
+                const cidadeEstado = `${formInputs.cidade} - ${formInputs.estado}`;
+                const novoEnderecoObj = {
+                    id: Date.now().toString(),
+                    apelido: "Casa",
+                    rua: formInputs.rua,
+                    numero: formInputs.numero,
+                    bairro: formInputs.bairro,
+                    cidade: cidadeEstado,
+                    observacao: formInputs.observacao,
+                    padrao: true, // Salva o booleano puro (true)
+                    cep: formInputs.cep
+                };
                 
-                // 3. Salva no Firestore
                 await setDoc(doc(db, "usuarios", userCred.user.uid), {
-                    ...dadosParaSalvar,
+                    nome: formInputs.nome,
+                    email: formInputs.email,
+                    cpfCliente: formInputs.cpfCliente,
+                    telefoneCliente: formInputs.telefoneCliente,
                     tipo: "cliente",
                     dataCriacao: new Date(),
-                    fotoUrl: "" // Inicia sem foto
+                    fotoUrl: "",
+                    
+                    // CORRIGIDO: Gravando o array populado com o objeto map e não mais a string
+                    enderecoCliente: [novoEnderecoObj]
                 });
 
                 mostrarNotificacao("Conta criada com sucesso!");
@@ -265,14 +353,14 @@
                 const user = result.user;
                 const userDoc = await getDoc(doc(db, "usuarios", user.uid));
                 
-                // Se for a primeira vez do usuário, cria o documento dele
                 if (!userDoc.exists()) {
                     await setDoc(doc(db, "usuarios", user.uid), {
                         nome: user.displayName,
                         email: user.email,
                         tipo: "cliente",
                         fotoUrl: user.photoURL || "",
-                        dataCriacao: new Date()
+                        dataCriacao: new Date(),
+                        enderecoCliente: []
                     });
                 }
                 window.location.href = '../index.html';
