@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Painel da Loja | NordGo</title>
+    <link rel="icon" type="image/png" href="../assets/images/favicon.png">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
     <link rel="stylesheet" href="../css/styles.css">
     <link rel="stylesheet" href="../css/styles-perfil-loja.css">
 </head>
@@ -263,7 +263,6 @@
             }
         }
 
-        // MODIFICADO: Função auxiliar para atualizar o texto do gatilho do dropdown de forma responsiva
         function atualizarTextoCidadesSelecionadas() {
             const cidadesAtivas = Object.keys(logisticaCidadesLocal).sort();
             const txtSpan = document.getElementById('texto-cidades-selecionadas');
@@ -278,8 +277,8 @@
             }
         }
 
-        // --- SISTEMA LOGÍSTICO MULTICIDADES REATIVO ---
-        function inicializarCheckboxesCidades() {
+        // --- GESTÃO LOGÍSTICA ---
+        function inicializerCheckboxesCidades() {
             const wrapper = document.getElementById('wrapper-checkboxes-cidades');
             if (!wrapper) return;
             wrapper.innerHTML = "";
@@ -301,10 +300,10 @@
                         delete logisticaCidadesLocal[cidade];
                     }
                     renderizarPaineisCidadesAtivas();
-                    atualizarTextoCidadesSelecionadas(); // ADICIONADO: Atualiza texto ao marcar/desmarcar
+                    atualizarTextoCidadesSelecionadas();
                 });
             });
-            atualizarTextoCidadesSelecionadas(); // ADICIONADO: Sincroniza texto ao carregar a página
+            atualizarTextoCidadesSelecionadas();
         }
 
         function renderizarPaineisCidadesAtivas() {
@@ -500,7 +499,7 @@
             }
         };
 
-        // --- SALVAR INFO BÁSICA ---
+        // --- INFO BÁSICA ---
         document.getElementById('form-editar-loja').onsubmit = async (e) => {
             e.preventDefault();
             const btn = e.target.querySelector('button');
@@ -529,7 +528,6 @@
             finally { btn.disabled = false; btn.innerText = "Salvar Alterações"; }
         };
 
-        // --- FUNÇÕES DE CARREGAMENTO ---
         async function carregarDadosLoja() {
             const snap = await getDoc(doc(db, "lojas", idLojaGlobal));
             if (snap.exists()) {
@@ -552,7 +550,7 @@
                 document.getElementById('edit-frete-gratis-min').value = d.freteGratisMin || 0;
                 
                 logisticaCidadesLocal = d.logisticaCidades || {};
-                inicializarCheckboxesCidades();
+                inicializerCheckboxesCidades();
                 renderizarPaineisCidadesAtivas();
 
                 horariosFuncionamentoLocal = d.horariosSemana || {};
@@ -561,6 +559,7 @@
             }
         }
 
+        // --- SISTEMA DE PRODUTOS ---
         function obterImagemProduto(p) {
             if (p.imagem && p.imagem.trim() !== "" && !p.imagem.includes("placeholder.png")) return p.imagem;
             const arquivoCat = fotosCategorias[p.categoria];
@@ -629,6 +628,134 @@
             });
         };
 
+        window.abrirEdicaoProduto = async (idProduto) => {
+            try {
+                const docSnap = await getDoc(doc(db, "produtos", idProduto));
+                if (docSnap.exists()) {
+                    const p = docSnap.data();
+                    document.getElementById('edit-prod-id').value = idProduto;
+                    document.getElementById('edit-produto-nome').value = p.nome || "";
+                    document.getElementById('edit-produto-preco').value = p.preco || 0;
+                    document.getElementById('edit-produto-categoria-select').value = p.categoria || "";
+                    document.getElementById('edit-produto-descricao').value = p.descricao || "";
+                    document.getElementById('preview-produto-edit').src = obterImagemProduto(p);
+                    
+                    blobEditProdutoCurrent = null; 
+                    window.abrirModal('modal-editar-produto');
+                } else {
+                    mostrarNotificacao("Produto não localizado.", "error");
+                }
+            } catch (err) {
+                console.error("Erro ao buscar produto:", err);
+            }
+        };
+
+        window.excluirProduto = async (idProduto) => {
+            if (confirm("Tem certeza absoluta de que deseja excluir este item permanentemente do cardápio?")) {
+                try {
+                    await deleteDoc(doc(db, "produtos", idProduto));
+                    mostrarNotificacao("Produto removido com sucesso!");
+                    window.abrirGerenciadorProdutos();
+                } catch (err) {
+                    console.error("Erro ao deletar produto:", err);
+                    mostrarNotificacao("Erro ao remover o produto.", "error");
+                }
+            }
+        };
+
+        // MODIFICADO: Função onsubmit de edição com lógica reativa de placeholders corrigida
+        document.getElementById('form-editar-produto').onsubmit = async (e) => {
+            e.preventDefault();
+            const idProd = document.getElementById('edit-prod-id').value;
+            const btn = e.target.querySelector('button');
+            btn.disabled = true; btn.innerText = "Atualizando...";
+
+            try {
+                let imgUrl = "";
+
+                if (blobEditProdutoCurrent) {
+                    imgUrl = await realizarUploadBlob(blobEditProdutoCurrent, 'produtos', 'item');
+                } else {
+                    const docSnap = await getDoc(doc(db, "produtos", idProd));
+                    if (docSnap.exists()) {
+                        const dadosAtuais = docSnap.data();
+                        // Se continha imagem em nuvem e não um caminho local de assets, mantém o link
+                        if (dadosAtuais.imagem && !dadosAtuais.imagem.includes('../assets/images/')) {
+                            imgUrl = dadosAtuais.imagem;
+                        }
+                    }
+                }
+
+                await updateDoc(doc(db, "produtos", idProd), {
+                    nome: document.getElementById('edit-produto-nome').value.trim(),
+                    preco: parseFloat(document.getElementById('edit-produto-preco').value) || 0,
+                    categoria: document.getElementById('edit-produto-categoria-select').value,
+                    descricao: document.getElementById('edit-produto-descricao').value.trim(),
+                    imagem: imgUrl // Grava "" se herdar categoria flutuante, preservando o comportamento dinâmico
+                });
+
+                mostrarNotificacao("Item atualizado com sucesso!");
+                window.fecharModal('modal-editar-produto');
+                window.abrirGerenciadorProdutos();
+            } catch (err) {
+                console.error(err);
+                mostrarNotificacao("Erro ao atualizar o item.", "error");
+            } finally {
+                btn.disabled = false; btn.innerText = "Salvar Alterações";
+            }
+        };
+
+        document.getElementById('edit-produto-file').onchange = async (e) => {
+            if (e.target.files.length > 0) {
+                const blob = await otimizarImagem(e.target.files[0], 600, 600, 600000);
+                blobEditProdutoCurrent = blob;
+                document.getElementById('preview-produto-edit').src = URL.createObjectURL(blob);
+            }
+        };
+
+        document.getElementById('add-produto-file').onchange = async (e) => {
+            if (e.target.files.length > 0) {
+                const blob = await otimizarImagem(e.target.files[0], 600, 600, 600000);
+                blobAddProdutoCurrent = blob;
+                document.getElementById('preview-produto-add').src = URL.createObjectURL(blob);
+            }
+        };
+
+        document.getElementById('form-add-produto').onsubmit = async (e) => {
+            e.preventDefault();
+            const btn = e.target.querySelector('button');
+            btn.disabled = true; btn.innerText = "Cadastrando...";
+
+            try {
+                let imgUrl = "";
+                if (blobAddProdutoCurrent) {
+                    imgUrl = await realizarUploadBlob(blobAddProdutoCurrent, 'produtos', 'item');
+                }
+
+                await addDoc(collection(db, "produtos"), {
+                    lojaId: idLojaGlobal,
+                    nomeLoja: tituloLoja.innerText,
+                    nome: document.getElementById('add-produto-nome').value.trim(),
+                    preco: parseFloat(document.getElementById('add-produto-preco').value) || 0,
+                    categoria: document.getElementById('add-produto-categoria-select').value,
+                    descricao: document.getElementById('add-produto-descricao').value.trim(),
+                    imagem: imgUrl,
+                    dataCriacao: new Date().toISOString()
+                });
+
+                mostrarNotificacao("Item cadastrado no cardápio!");
+                e.target.reset();
+                document.getElementById('preview-produto-add').src = "../assets/images/placeholder.png";
+                blobAddProdutoCurrent = null;
+                window.fecharModal('modal-add-produto');
+            } catch (err) {
+                console.error(err);
+                mostrarNotificacao("Erro ao inserir produto.", "error");
+            } finally {
+                btn.disabled = false; btn.innerText = "Cadastrar Produto";
+            }
+        };
+
         async function carregarCategoriasSelects() {
             const snap = await getDocs(collection(db, "categorias"));
             const selects = [document.getElementById('edit-categoria'), document.getElementById('add-produto-categoria-select'), document.getElementById('edit-produto-categoria-select')];
@@ -653,7 +780,6 @@
             } else window.location.href = 'login.html';
         });
 
-        // MODIFICADO: Lógica de controle do clique e fechamento automático do Dropdown Flutuante
         const btnDropdown = document.getElementById('btn-dropdown-cidades');
         const listaDropdown = document.getElementById('wrapper-checkboxes-cidades');
 
@@ -663,7 +789,6 @@
                 listaDropdown.classList.toggle('active');
             });
 
-            // Fecha a lista flutuante automaticamente se o usuário clicar em qualquer outro lugar do modal
             document.addEventListener('click', (e) => {
                 if (!btnDropdown.contains(e.target) && !listaDropdown.contains(e.target)) {
                     listaDropdown.classList.remove('active');
