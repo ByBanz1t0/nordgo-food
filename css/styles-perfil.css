@@ -164,13 +164,19 @@
     border: none;
     width: 2.25rem;
     height: 2.25rem;
-    border-radius: 50%;
+    border-radius: 50%; /* Faz o elemento ser circular */
     color: #57606f;
     font-size: 1rem;
     cursor: pointer;
+    
+    /* Alinhamento do ícone interno centralizado */
     display: flex;
     align-items: center;
     justify-content: center;
+    
+    /* Proteção ativa para o botão nunca amassar ou virar uma elipse */
+    flex-shrink: 0; 
+    
     transition: background 0.2s, color 0.2s;
 }
 
