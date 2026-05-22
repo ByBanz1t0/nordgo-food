@@ -187,7 +187,8 @@
     <script type="module">
         import { auth, db, storage, mostrarNotificacao } from '../js/firebase-config.js';
         import { ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-storage.js";
-        import { doc, getDoc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
+        // MODIFICADO: Injetado o setDoc e arrayUnion nas dependências do módulo do Firestore
+        import { doc, getDoc, updateDoc, deleteDoc, setDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
         import { onAuthStateChanged, signOut, deleteUser } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
 
         const campos = {
@@ -283,7 +284,6 @@
                     
                     const padrao = listaEnderecosLocal.find(end => end && (end.padrao === true || end.padrao === "true"));
                     
-                    // CORRIGIDO: Fallback robusto adicionado
                     document.getElementById('txt-resumo-enderecos').innerText = padrao 
                         ? `${String(padrao.apelido || "Endereço").toUpperCase()}: ${padrao.rua || ""}, № ${padrao.numero || ""}` 
                         : `${listaEnderecosLocal.length} endereço(s) salvo(s)`;
@@ -316,7 +316,7 @@
                     telefoneCliente: campos.telefone.value.trim(),
                     fotoUrl: urlFotoFinal
                 });
-                mostrarNotificacao("Perfil atualizado!");
+                mostrarNotificacao("Perfil updated!");
                 fecharModal('modal-dados-basicos');
                 await atualizarSessaoPerfil(user.uid);
             } catch (e) { mostrarNotificacao("Erro ao salvar.", "error"); }
@@ -333,16 +333,25 @@
             const index = document.getElementById('edit-endereco-index').value;
             const apelido = document.getElementById('end-apelido').value.trim() || "Outro";
             const cep = document.getElementById('end-cep').value.trim();
-            const bairro = document.getElementById('end-bairro').value.trim();
-            const cidadeUf = document.getElementById('end-cidade-uf').value.trim();
+            const bairroCru = document.getElementById('end-bairro').value.trim();
+            const cidadeUfFull = document.getElementById('end-cidade-uf').value.trim();
             const rua = document.getElementById('end-rua').value.trim();
             const numero = document.getElementById('end-numero').value.trim();
             const obs = document.getElementById('end-obs').value.trim() || "Sem observação";
             const marcouPadrao = document.getElementById('end-padrao').checked;
 
-            if (!cep || !bairro || !cidadeUf || !rua || !numero) {
+            if (!cep || !bairroCru || !cidadeUfFull || !rua || !numero) {
                 mostrarNotificacao("Campos obrigatórios vazios.", "error"); return;
             }
+
+            // MODIFICADO: Split inteligente para capturar cidade e estado dinamicamente do campo do ViaCEP
+            const partesRegiao = cidadeUfFull.split(" - ");
+            const cidadeCru = partesRegiao[0] || "";
+            const estado = (partesRegiao[1] || "").toUpperCase();
+
+            // Padronização rigorosa (Ex: "arapiraca" -> "Arapiraca")
+            const cidade = cidadeCru.charAt(0).toUpperCase() + cidadeCru.slice(1).toLowerCase();
+            const bairro = bairroCru.charAt(0).toUpperCase() + bairroCru.slice(1).toLowerCase();
 
             const id = index !== "" ? listaEnderecosLocal[index].id : Date.now().toString();
 
@@ -352,7 +361,7 @@
                 rua: rua,
                 numero: numero,
                 bairro: bairro,
-                cidade: cidadeUf,
+                cidade: `${cidade} - ${estado}`,
                 observacao: obs,
                 padrao: marcouPadrao,
                 cep: cep
@@ -371,7 +380,35 @@
                 listaEnderecosLocal.push(novoEnderecoObj);
             }
 
+            // Atualiza os dados físicos do nó do cliente no Firestore
             await updateDoc(doc(db, "usuarios", auth.currentUser.uid), { enderecoCliente: listaEnderecosLocal });
+
+            // ==========================================================================
+            // 🔥 ADICIONADO: LOGÍSTICA DE MAPEAMENTO GEOGRÁFICO AUTOMÁTICO (NORDGO MAPS)
+            // ==========================================================================
+            if (cidade && estado && bairro) {
+                try {
+                    const idRegiaoDoc = `${cidade}-${estado}`;
+                    const regiaoRef = doc(db, "regioes", idRegiaoDoc);
+                    const regiaoSnap = await getDoc(regiaoRef);
+
+                    if (!regiaoSnap.exists()) {
+                        await setDoc(regiaoRef, {
+                            cidade: cidade,
+                            uf: estado,
+                            bairros: [bairro]
+                        });
+                    } else {
+                        await updateDoc(regiaoRef, {
+                            bairros: arrayUnion(bairro)
+                        });
+                    }
+                } catch (geoError) {
+                    console.warn("[NordGo Maps - Aviso de Permissão no Perfil]:", geoError.message);
+                }
+            }
+            // ==========================================================================
+
             formEndInline.classList.add('hidden');
             mostrarNotificacao("Endereço salvo!");
             await atualizarSessaoPerfil(auth.currentUser.uid);
@@ -387,7 +424,6 @@
                 const div = document.createElement('div');
                 div.className = `item-lista-card ${isPadrao ? 'item-padrao-ativo' : ''}`;
                 
-                // CORRIGIDO: Métodos toUpperCase blindados com string fallbacks
                 div.innerHTML = `
                     <div class="item-lista-info">
                         <strong>${String(end.apelido || 'Endereço').toUpperCase()} ${isPadrao ? '<span class="badge-padrao">Padrão</span>' : ''}</strong>
@@ -410,8 +446,6 @@
                     document.getElementById('edit-endereco-index').value = idx;
                     document.getElementById('end-apelido').value = end.apelido || "";
                     document.getElementById('end-rua').value = end.rua || "";
-                    
-                    // CORRIGIDO: Removida a linha com verificação incorreta 'reg-numero in end' que quebrava o script
                     document.getElementById('end-numero').value = end.numero || "";
                     document.getElementById('end-bairro').value = end.bairro || "";
                     document.getElementById('end-cidade-uf').value = end.cidade || "";

@@ -84,7 +84,8 @@
 
     <script type="module">
         import { auth, db, mostrarNotificacao } from '../js/firebase-config.js';
-        import { doc, getDoc, getDocs, updateDoc, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
+        // MODIFICADO: Adicionado setDoc e arrayUnion nos imports para suportar o mapeamento de regiões
+        import { doc, getDoc, getDocs, updateDoc, collection, addDoc, setDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
         import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
 
         const containerCadastro = document.getElementById('section-criar-loja');
@@ -202,7 +203,7 @@
             } catch (e) { console.error("Erro categories:", e); }
         }
 
-        // MONITOR DE SEGURANÇA: Bloqueia a criação de lojas por usuários banidos
+        // MONITOR DE SEGURANÇA
         onAuthStateChanged(auth, async (user) => {
             if (!user) { window.location.href = 'login.html'; return; }
 
@@ -210,7 +211,6 @@
                 const userDoc = await getDoc(doc(db, "usuarios", user.uid));
                 const userData = userDoc.data();
 
-                // Trava ativa antievasão
                 if (userData?.status === "suspenso") {
                     mostrarNotificacao("Sua conta está suspensa. Acesso negado.", "error");
                     await signOut(auth);
@@ -238,16 +238,20 @@
             
             const cidadeRaw = document.getElementById('loja-cidade').value.trim();
             const estadoRaw = document.getElementById('loja-estado').value.trim().toUpperCase();
+            const bairroRaw = document.getElementById('loja-bairro').value.trim();
 
-            // MODIFICADO: cidadeLoja agora salva no formato unificado 'Cidade - UF'
+            // Padronização estrita de capitalização (Ex: "arapiraca" -> "Arapiraca")
+            const cidade = cidadeRaw.charAt(0).toUpperCase() + cidadeRaw.slice(1).toLowerCase();
+            const bairro = bairroRaw.charAt(0).toUpperCase() + bairroRaw.slice(1).toLowerCase();
+
             const dadosLoja = {
                 nome: document.getElementById('loja-nome').value.trim(),
                 cpfCnpj: document.getElementById('loja-cpf-cnpj').value.trim(),
                 categoria: inputHiddenCategoria.value, 
                 descricao: document.getElementById('loja-descricao').value.trim(),
                 cepLoja: document.getElementById('loja-cep').value.trim(),
-                bairroLoja: document.getElementById('loja-bairro').value.trim(),
-                cidadeLoja: `${cidadeRaw} - ${estadoRaw}`, 
+                bairroLoja: bairro,
+                cidadeLoja: `${cidade} - ${estadoRaw}`, 
                 estadoLoja: estadoRaw,
                 ruaLoja: document.getElementById('loja-rua').value.trim(),
                 numeroLoja: document.getElementById('loja-numero').value.trim(),
@@ -258,7 +262,7 @@
                 temaLoja: "#ff4757"
             };
 
-            if (!dadosLoja.nome || !dadosLoja.cpfCnpj || !dadosLoja.categoria || !cidadeRaw) {
+            if (!dadosLoja.nome || !dadosLoja.cpfCnpj || !dadosLoja.categoria || !cidadeRaw || !bairroRaw) {
                 mostrarNotificacao("Preencha Nome, Documento, Categoria e um CEP válido.", "error");
                 return;
             }
@@ -267,18 +271,49 @@
                 btn.disabled = true;
                 btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Criando Loja...';
 
+                // 1. Cria o documento físico da loja
                 const lojaRef = await addDoc(collection(db, "lojas"), dadosLoja);
                 
+                // 2. Atualiza o papel do usuário no sistema
                 await updateDoc(doc(db, "usuarios", user.uid), { 
                     tipo: "dono",
                     loja: lojaRef.id 
                 });
+
+                // ==========================================================================
+                // 🔥 ADICIONADO: LOGÍSTICA DE MAPEAMENTO GEOGRÁFICO AUTOMÁTICO (NORDGO MAPS)
+                // ==========================================================================
+                if (cidade && estadoRaw && bairro) {
+                    try {
+                        const idRegiaoDoc = `${cidade}-${estadoRaw}`;
+                        const regiaoRef = doc(db, "regioes", idRegiaoDoc);
+                        const regiaoSnap = await getDoc(regiaoRef);
+
+                        if (!regiaoSnap.exists()) {
+                            // Se o lojista estiver abrindo em uma cidade inédita, inicializa o documento
+                            await setDoc(regiaoRef, {
+                                cidade: cidade,
+                                uf: estadoRaw,
+                                bairros: [bairro]
+                            });
+                        } else {
+                            // Se a cidade já existir, anexa o bairro da loja de forma atômica se for inédito
+                            await updateDoc(regiaoRef, {
+                                bairros: arrayUnion(bairro)
+                            });
+                        }
+                    } catch (geoError) {
+                        console.warn("[NordGo Maps - Aviso de Permissão no Cadastro da Loja]:", geoError.message);
+                    }
+                }
+                // ==========================================================================
 
                 mostrarNotificacao("Loja criada com sucesso!");
                 setTimeout(() => window.location.href = 'perfil-loja.html', 1500);
             } catch (e) {
                 btn.disabled = false;
                 btn.innerHTML = '<i class="fa-solid fa-rocket"></i> Criar minha loja';
+                console.error(e);
                 mostrarNotificacao("Erro ao salvar os dados.", "error");
             }
         };
