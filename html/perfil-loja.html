@@ -22,7 +22,8 @@
                 </div>
             </div>
             <div class="header-center">
-                <div class="pill-badge pill-page-title btn-ver-loja-header" id="btn-ver-loja" title="Ver minha loja">
+                <!-- MODIFICADO: Estilo cursor pointer adicionado em linha para indicar clique de forma explícita -->
+                <div class="pill-badge pill-page-title btn-ver-loja-header" id="btn-ver-loja" title="Ver minha loja" style="cursor: pointer;">
                     <span id="nome-loja-titulo" class="nome-loja-titulo-text">Carregando...</span>
                     <i class="fa-solid fa-arrow-up-right-from-square icon-link-externo"></i>
                 </div>
@@ -441,7 +442,7 @@
                 const bairrosDaCidade = databaseRegionalLocal[cidade] || [];
                 bairrosDaCidade.forEach(bairro => {
                     const dadosBairro = dadosCidade.bairros[bairro] || { ativo: false, taxa: 0 };
-                    const checkedBairro = dadosBairro.ativo ? "checked" : "";
+                    const checkedBairro = dadosBairro.active || dadosBairro.ativo ? "checked" : "";
                     
                     html += `
                         <div class="bairro-logistica-row">
@@ -451,7 +452,7 @@
                             </div>
                             <div class="bairro-taxa-block">
                                 <span>R$</span>
-                                <input type="number" id="taxa-bairro-${cidade.replace(/\s+/g, '')}-${bairro.replace(/\s+/g, '')}" step="0.01" min="0" value="${dadosBairro.taxa ? dadosBairro.taxa.toFixed(2) : '0.00'}" ${dadosBairro.ativo ? '' : 'disabled'}>
+                                <input type="number" id="taxa-bairro-${cidade.replace(/\s+/g, '')}-${bairro.replace(/\s+/g, '')}" step="0.01" min="0" value="${dadosBairro.taxa ? dadosBairro.taxa.toFixed(2) : '0.00'}" ${dadosBairro.ativo || dadosBairro.active ? '' : 'disabled'}>
                             </div>
                         </div>
                     `;
@@ -499,10 +500,11 @@
             let menorTaxaGeral = 999;
             let possuiBairroAtivo = false;
 
+            // Suporta chaves ativas mapeadas
             Object.keys(logisticaCidadesLocal).forEach(cidade => {
                 const bairrosObj = logisticaCidadesLocal[cidade].bairros || {};
                 Object.keys(bairrosObj).forEach(bairro => {
-                    if (bairrosObj[bairro].ativo) {
+                    if (bairrosObj[bairro].ativo || bairrosObj[bairro].active) {
                         const taxa = bairrosObj[bairro].taxa || 0;
                         taxasBairrosAchatado[bairro] = taxa;
                         possuiBairroAtivo = true;
@@ -521,7 +523,7 @@
                     freteGratisMin: parseFloat(document.getElementById('edit-frete-gratis-min').value) || 0
                 });
                 
-                mostrarNotificacao("Logística de distribuição atualizada!");
+                mostrarNotificacao("Logística de distribuição updated!");
                 window.fecharModal('modal-frete');
                 await carregarDadosLoja();
             } catch (err) { 
@@ -657,6 +659,15 @@
                 horariosFuncionamentoLocal = d.horariosSemana || {};
                 document.getElementById('edit-status-loja-master').value = d.statusMaster || "automatico";
                 gerarInputsGradeSemanal();
+
+                // ==========================================================================
+                // 🔥 SOLUÇÃO: MAPEAMENTO E REDIRECIONAMENTO DINÂMICO PARA A LOJA
+                // ==========================================================================
+                document.getElementById('btn-ver-loja').onclick = () => {
+                    // Redireciona para a página pública da loja passando o idLojaGlobal via parâmetro URL
+                    window.location.href = `../loja.html?id=${idLojaGlobal}`;
+                };
+                // ==========================================================================
             }
         }
 
@@ -752,13 +763,12 @@
         };
 
         window.excluirProduto = async (idProduto) => {
-            if (confirm("Tem certeza absoluta de que deseja excluir este item permanentemente do cardápio?")) {
+            if (confirm("Tem certeza de que deseja excluir este item permanentemente?")) {
                 try {
                     await deleteDoc(doc(db, "produtos", idProduto));
-                    mostrarNotificacao("Produto removido com sucesso!");
+                    mostrarNotificacao("Produto removido!");
                     window.abrirGerenciadorProdutos();
                 } catch (err) {
-                    console.error("Erro ao deletar produto:", err);
                     mostrarNotificacao("Erro ao remover o produto.", "error");
                 }
             }
@@ -793,7 +803,7 @@
                     imagem: imgUrl 
                 });
 
-                mostrarNotificacao("Item atualizado com sucesso!");
+                mostrarNotificacao("Item atualizado!");
                 window.fecharModal('modal-editar-produto');
                 window.abrirGerenciadorProdutos();
             } catch (err) {
@@ -848,7 +858,6 @@
                 blobAddProdutoCurrent = null;
                 window.fecharModal('modal-add-produto');
             } catch (err) {
-                console.error(err);
                 mostrarNotificacao("Erro ao inserir produto.", "error");
             } finally {
                 btn.disabled = false; btn.innerText = "Cadastrar Produto";
@@ -895,7 +904,7 @@
                             <p>${c.tipo === 'porcentagem' ? `${c.valor}% OFF` : `R$ ${c.valor.toFixed(2)} de desconto`}</p>
                             <p style="font-size:0.8rem; color:#747d8c; margin: 2px 0;">Usos: ${c.usosAtuais || 0} / ${c.limiteUsos || '∞'}</p>
                             <small style="color:${expirado || esgotado ? '#ff4757' : '#2ed573'}; font-size:0.75rem; font-weight:600;">
-                                ${expirado ? 'Expirado' : esgotado ? 'Esgotado (Limite atingido)' : `Válido até: ${new Date(c.dataExpiracao).toLocaleString('pt-br')}`}
+                                ${expirado ? 'Expirado' : esgotado ? 'Esgotado' : `Válido até: ${new Date(c.dataExpiracao).toLocaleString('pt-br')}`}
                             </small>
                         </div>
                         <div class="actions-prod-admin">
@@ -905,13 +914,12 @@
                     lista.appendChild(itemDiv);
                 });
             } catch (err) {
-                console.error(err);
                 lista.innerHTML = "<p class='loading-produtos-text'>Erro ao carregar cupons.</p>";
             }
         };
 
         window.excluirCupom = async (idCupom) => {
-            if (confirm("Deseja apagar esse cupom? Ele deixará de funcionar imediatamente para os clientes.")) {
+            if (confirm("Deseja apagar esse cupom?")) {
                 try {
                     await deleteDoc(doc(db, "cupons", idCupom));
                     mostrarNotificacao("Cupom removido!");
@@ -959,7 +967,6 @@
                 window.fecharModal('modal-add-cupom');
                 window.abrirGerenciadorCupons();
             } catch (err) {
-                console.error(err);
                 mostrarNotificacao("Erro ao cadastrar cupom.", "error");
             } finally {
                 btn.disabled = false; btn.innerText = "Cadastrar Cupom";
@@ -1057,7 +1064,6 @@
                     strEntrega = `<strong>Delivery:</strong> ${end.rua}, Nº ${end.numero} - ${end.bairro} (${end.cidade}) ${end.observacao ? ` | Obs: ${end.observacao}` : ''}`;
                 }
 
-                // MODIFICADO: O botão recusar agora abre o Modal customizado em vez de rodar o alert/prompt nativo
                 let htmlBotoesAcao = "";
                 if (p.status === "pendente") {
                     htmlBotoesAcao = `
@@ -1075,7 +1081,6 @@
                     `;
                 }
 
-                // Injeta exibição visual do motivo do cancelamento caso esteja na aba de históricos
                 let htmlMotivoExibicao = "";
                 if (p.status === "cancelado" && p.motivoCancelamento) {
                     htmlMotivoExibicao = `<p style="margin-top: 4px; padding: 8px; background: #fff5f5; border-radius: 6px; color: #ff4757; font-size: 0.85rem;"><strong>Justificativa da recusa:</strong> "${p.motivoCancelamento}"</p>`;
@@ -1104,32 +1109,22 @@
             });
         }
 
-        // MODIFICADO: Função padrão de alteração de status gerencia o fluxo linear (Aceitar, Despachar, Concluir)
         window.alterarStatusPedido = async (idPedido, novoStatus) => {
             try {
                 await updateDoc(doc(db, "pedidos", idPedido), { status: novoStatus });
                 mostrarNotificacao(`Pedido atualizado para: ${novoStatus}!`);
             } catch (err) {
-                console.error("Erro ao transicionar status do pedido:", err);
                 mostrarNotificacao("Permissão negada ao alterar status.", "error");
             }
         };
 
-        // ADICIONADO: Abre o mini-modal capturando a referência correta do documento
-        // Localize esta função no seu script do perfil-loja.html e substitua por esta:
         window.abrirModalRecusa = (idPedido) => {
-            // 1. Fecha o modal de pedidos para não ter conflito de sobreposição
             window.fecharModal('modal-pedidos'); 
-            
-            // 2. Prepara os dados
             document.getElementById('cancelar-pedido-id').value = idPedido;
             document.getElementById('txt-motivo-recusa').value = "";
-            
-            // 3. Abre o modal de recusa
             window.abrirModal('modal-motivo-cancelamento');
         };
 
-        // ADICIONADO: Evento de submissão do formulário de recusa com payload casado
         document.getElementById('form-motivo-cancelamento').onsubmit = async (e) => {
             e.preventDefault();
             const idPedido = document.getElementById('cancelar-pedido-id').value;
@@ -1148,7 +1143,6 @@
                 mostrarNotificacao("Pedido recusado e cliente notificado.");
                 window.fecharModal('modal-motivo-cancelamento');
             } catch (err) {
-                console.error("Erro ao registrar cancelamento:", err);
                 mostrarNotificacao("Falha ao salvar recusa.", "error");
             } finally {
                 btnSubmit.disabled = false;
