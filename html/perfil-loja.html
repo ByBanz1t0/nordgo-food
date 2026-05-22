@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Painel da Loja | NordGo</title>
+    <link class="jsbin" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1/themes/base/jquery-ui.css" rel="stylesheet" type="text/css" />
     <link rel="icon" type="image/png" href="../assets/images/favicon.png">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -22,7 +23,6 @@
                 </div>
             </div>
             <div class="header-center">
-                <!-- MODIFICADO: Estilo cursor pointer adicionado em linha para indicar clique de forma explícita -->
                 <div class="pill-badge pill-page-title btn-ver-loja-header" id="btn-ver-loja" title="Ver minha loja" style="cursor: pointer;">
                     <span id="nome-loja-titulo" class="nome-loja-titulo-text">Carregando...</span>
                     <i class="fa-solid fa-arrow-up-right-from-square icon-link-externo"></i>
@@ -35,7 +35,30 @@
     </header>
 
     <main class="dashboard-container">
-        <div class="grid-dashboard" id="grid-main"></div>
+        <!-- Estrutura de embrulho para dividir o dashboard e o painel de pedidos na folha de estilos -->
+        <div class="dashboard-layout-wrapper">
+            
+            <!-- Coluna: Ações do Dashboard -->
+            <div class="grid-dashboard" id="grid-main"></div>
+
+            <!-- Coluna: Painel Fixo Vertical de Pedidos -->
+            <aside class="painel-pedidos-fixo">
+                <div class="header-pedidos-fixo">
+                    <h2>
+                        <i class="fa-solid fa-receipt"></i> Painel de Cozinha 
+                        <span id="txt-contador-pedidos-badge">0</span>
+                    </h2>
+                    <div class="tabs-pedidos-fixo">
+                        <button id="tab-pedidos-ativos" class="btn-salvar" style="background:#ff4757;">Ativos / Cozinha</button>
+                        <button id="tab-pedidos-historico" class="btn-salvar" style="background:#747d8c;">Histórico</button>
+                    </div>
+                </div>
+                <div id="lista-pedidos-dashboard" class="lista-pedidos-fixo-scroll">
+                    <p>Conectando à cozinha...</p>
+                </div>
+            </aside>
+
+        </div>
     </main>
 
     <div id="modal-info" class="modal-overlay">
@@ -268,22 +291,6 @@
         </div>
     </div>
 
-    <div id="modal-pedidos" class="modal-overlay">
-        <div class="modal-content" style="max-width: 850px; width: 90%;">
-            <div class="modal-header">
-                <h2><i class="fa-solid fa-receipt"></i> Painel de Pedidos Recebidos</h2>
-                <button class="btn-fechar" onclick="window.fecharModal('modal-pedidos')">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div style="display: flex; gap: 10px; margin-bottom: 1.5rem; border-bottom: 2px solid #f1f2f6; padding-bottom: 10px;">
-                    <button id="tab-pedidos-ativos" class="btn-salvar" style="background:#ff4757;">Ativos / Na Cozinha</button>
-                    <button id="tab-pedidos-historico" class="btn-salvar" style="background:#747d8c;">Histórico / Concluídos</button>
-                </div>
-                <div id="lista-pedidos-dashboard" style="display: flex; flex-direction: column; gap: 15px; max-height: 550px; overflow-y: auto; padding-right: 5px;"></div>
-            </div>
-        </div>
-    </div>
-
     <div id="modal-motivo-cancelamento" class="modal-overlay" style="z-index: 1100;">
         <div class="modal-content" style="max-width: 450px;">
             <div class="modal-header" style="background: #fff5f5; color: #ff4757;">
@@ -342,7 +349,6 @@
         // --- DASHBOARD ---
         function renderizarDashboard() {
             gridMain.innerHTML = `
-                <div class="card-dash" onclick="window.abrirGerenciadorPedidos()"><i class="fa-solid fa-receipt"></i><h3>Pedidos</h3><p id="txt-contador-pedidos">Monitorando cozinha...</p></div>
                 <div class="card-dash" onclick="window.abrirModal('modal-info')"><i class="fa-solid fa-store"></i><h3>Informações</h3><p>Nome, Banner e CEP</p></div>
                 <div class="card-dash" onclick="window.abrirModal('modal-frete')"><i class="fa-solid fa-truck-fast"></i><h3>Entregas</h3><p>Bairros e taxas</p></div>
                 <div class="card-dash" onclick="window.abrirModal('modal-horarios')"><i class="fa-solid fa-clock"></i><h3>Horários</h3><p>Status e horários semanais</p></div>
@@ -500,7 +506,6 @@
             let menorTaxaGeral = 999;
             let possuiBairroAtivo = false;
 
-            // Suporta chaves ativas mapeadas
             Object.keys(logisticaCidadesLocal).forEach(cidade => {
                 const bairrosObj = logisticaCidadesLocal[cidade].bairros || {};
                 Object.keys(bairrosObj).forEach(bairro => {
@@ -523,7 +528,7 @@
                     freteGratisMin: parseFloat(document.getElementById('edit-frete-gratis-min').value) || 0
                 });
                 
-                mostrarNotificacao("Logística de distribuição updated!");
+                mostrarNotificacao("Logística de distribuição atualizada!");
                 window.fecharModal('modal-frete');
                 await carregarDadosLoja();
             } catch (err) { 
@@ -590,7 +595,7 @@
                     statusMaster: document.getElementById('edit-status-loja-master').value,
                     horariosSemana: novaGrade
                 });
-                mostrarNotificacao("Grade de horários atualizada!");
+                mostrarNotificacao("Grade de horários updated!");
                 window.fecharModal('modal-horarios');
                 await carregarDadosLoja();
             } catch (err) {
@@ -660,14 +665,9 @@
                 document.getElementById('edit-status-loja-master').value = d.statusMaster || "automatico";
                 gerarInputsGradeSemanal();
 
-                // ==========================================================================
-                // 🔥 SOLUÇÃO: MAPEAMENTO E REDIRECIONAMENTO DINÂMICO PARA A LOJA
-                // ==========================================================================
                 document.getElementById('btn-ver-loja').onclick = () => {
-                    // Redireciona para a página pública da loja passando o idLojaGlobal via parâmetro URL
                     window.location.href = `../loja.html?id=${idLojaGlobal}`;
                 };
-                // ==========================================================================
             }
         }
 
@@ -763,7 +763,7 @@
         };
 
         window.excluirProduto = async (idProduto) => {
-            if (confirm("Tem certeza de que deseja excluir este item permanentemente?")) {
+            if (confirm("Tem certeza de que deseja excluir este item?")) {
                 try {
                     await deleteDoc(doc(db, "produtos", idProduto));
                     mostrarNotificacao("Produto removido!");
@@ -803,7 +803,7 @@
                     imagem: imgUrl 
                 });
 
-                mostrarNotificacao("Item atualizado!");
+                mostrarNotificacao("Item updated!");
                 window.fecharModal('modal-editar-produto');
                 window.abrirGerenciadorProdutos();
             } catch (err) {
@@ -974,7 +974,7 @@
         };
 
         // --- MONITOR DE PEDIDOS EM TEMPO REAL ---
-        function inicializarEscutaPedidosRealtime() {
+        function initializeEscutaPedidosRealtime() {
             const q = query(collection(db, "pedidos"), where("lojaId", "==", idLojaGlobal));
             
             onSnapshot(q, (snapshot) => {
@@ -991,25 +991,16 @@
                     }
                 });
 
-                const pContador = document.getElementById('txt-contador-pedidos');
-                if (pContador) {
-                    pContador.innerText = contagemPendentes > 0 ? `${contagemPendentes} pedidos ativos na fila!` : "Nenhum pedido pendente.";
-                    pContador.style.color = contagemPendentes > 0 ? "#ff4757" : "#747d8c";
-                    pContador.style.fontWeight = contagemPendentes > 0 ? "600" : "400";
+                const badgeContador = document.getElementById('txt-contador-pedidos-badge');
+                if (badgeContador) {
+                    badgeContador.innerText = contagemPendentes;
                 }
 
-                if (document.getElementById('modal-pedidos').classList.contains('active')) {
-                    renderizarListaPedidosModal();
-                }
+                renderizarListaPedidosModal();
             }, (error) => {
                 console.error("Erro na escuta em tempo real dos pedidos:", error);
             });
         }
-
-        window.abrirGerenciadorPedidos = () => {
-            window.abrirModal('modal-pedidos');
-            renderizarListaPedidosModal();
-        };
 
         document.getElementById('tab-pedidos-ativos').onclick = (e) => {
             filtroAbaPedidos = "ativos";
@@ -1027,6 +1018,7 @@
 
         function renderizarListaPedidosModal() {
             const container = document.getElementById('lista-pedidos-dashboard');
+            if (!container) return;
             container.innerHTML = "";
 
             const pedidosFiltrados = listaPedidosLocal.filter(p => {
@@ -1046,7 +1038,7 @@
 
             pedidosFiltrados.forEach(p => {
                 const itemDiv = document.createElement('div');
-                itemDiv.style.cssText = "background:#f8f9fa; border:1px solid #e4e7eb; border-radius:12px; padding:20px; display:flex; flex-direction:column; gap:12px;";
+                itemDiv.style.cssText = "background:#f8f9fa; border:1px solid #e4e7eb; border-radius:12px; padding:15px; display:flex; flex-direction:column; gap:10px; flex-shrink: 0;";
 
                 let strItens = p.itens.map(i => `<span style="font-weight:600; color:#2f3542;">${i.quantidade}x</span> ${i.nome}`).join('<br>');
 
@@ -1061,48 +1053,48 @@
                     strEntrega = `<span style="color:#1e90ff; font-weight:600;"><i class="fa-solid fa-store"></i> Retirada no Balcão</span>`;
                 } else if (p.enderecoEntrega) {
                     const end = p.enderecoEntrega;
-                    strEntrega = `<strong>Delivery:</strong> ${end.rua}, Nº ${end.numero} - ${end.bairro} (${end.cidade}) ${end.observacao ? ` | Obs: ${end.observacao}` : ''}`;
+                    strEntrega = `<strong>Delivery:</strong> ${end.rua}, Nº ${end.numero} - ${end.bairro}`;
                 }
 
                 let htmlBotoesAcao = "";
                 if (p.status === "pendente") {
                     htmlBotoesAcao = `
-                        <button class="btn-salvar" onclick="window.alterarStatusPedido('${p.id}', 'preparo')" style="background:#1e90ff; padding: 6px 15px; font-size:0.85rem;"><i class="fa-solid fa-utensils"></i> Aceitar e Preparar</button>
-                        <button class="btn-salvar" onclick="window.abrirModalRecusa('${p.id}')" style="background:#ff4757; padding: 6px 15px; font-size:0.85rem;"><i class="fa-solid fa-xmark"></i> Recusar</button>
+                        <button class="btn-salvar" onclick="window.alterarStatusPedido('${p.id}', 'preparo')" style="background:#1e90ff; padding: 6px 10px; font-size:0.75rem;"><i class="fa-solid fa-utensils"></i> Aceitar</button>
+                        <button class="btn-salvar" onclick="window.abrirModalRecusa('${p.id}')" style="background:#ff4757; padding: 6px 10px; font-size:0.75rem;"><i class="fa-solid fa-xmark"></i> Recusar</button>
                     `;
                 } else if (p.status === "preparo") {
-                    const txtBotao = p.tipoEntrega === "retirada" ? "Pronto p/ Retirada" : "Saiu para Entrega";
+                    const txtBotao = p.tipoEntrega === "retirada" ? "Pronto" : "Despachar";
                     htmlBotoesAcao = `
-                        <button class="btn-salvar" onclick="window.alterarStatusPedido('${p.id}', 'entrega')" style="background:#9b59b6; padding: 6px 15px; font-size:0.85rem;"><i class="fa-solid fa-motorcycle"></i> ${txtBotao}</button>
+                        <button class="btn-salvar" onclick="window.alterarStatusPedido('${p.id}', 'entrega')" style="background:#9b59b6; padding: 6px 10px; font-size:0.75rem;"><i class="fa-solid fa-motorcycle"></i> ${txtBotao}</button>
                     `;
                 } else if (p.status === "entrega") {
                     htmlBotoesAcao = `
-                        <button class="btn-salvar" onclick="window.alterarStatusPedido('${p.id}', 'concluido')" style="background:#2ed573; padding: 6px 15px; font-size:0.85rem;"><i class="fa-solid fa-circle-check"></i> Finalizar / Entregue</button>
+                        <button class="btn-salvar" onclick="window.alterarStatusPedido('${p.id}', 'concluido')" style="background:#2ed573; padding: 6px 10px; font-size:0.75rem;"><i class="fa-solid fa-circle-check"></i> Finalizar</button>
                     `;
                 }
 
                 let htmlMotivoExibicao = "";
                 if (p.status === "cancelado" && p.motivoCancelamento) {
-                    htmlMotivoExibicao = `<p style="margin-top: 4px; padding: 8px; background: #fff5f5; border-radius: 6px; color: #ff4757; font-size: 0.85rem;"><strong>Justificativa da recusa:</strong> "${p.motivoCancelamento}"</p>`;
+                    htmlMotivoExibicao = `<p style="margin-top: 4px; padding: 6px; background: #fff5f5; border-radius: 6px; color: #ff4757; font-size: 0.8rem;">Recusa: "${p.motivoCancelamento}"</p>`;
                 }
 
                 itemDiv.innerHTML = `
-                    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #e4e7eb; padding-bottom:8px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #e4e7eb; padding-bottom:6px;">
                         <div>
-                            <span style="font-size:0.85rem; color:#747d8c;">ID: ${p.id.slice(0,8).toUpperCase()}...</span>
-                            <h4 style="color:#2f3542; margin-top:2px;"><i class="fa-regular fa-user"></i> ${p.clientNome || "Cliente"}</h4>
+                            <span style="font-size:0.8rem; color:#747d8c;">ID: ${p.id.slice(0,6).toUpperCase()}</span>
+                            <h4 style="color:#2f3542; margin-top:2px; font-size:0.9rem;"><i class="fa-regular fa-user"></i> ${p.clientNome || "Cliente"}</h4>
                         </div>
-                        <span style="background:${corStatus}; color:white; padding:4px 12px; border-radius:20px; font-size:0.75rem; font-weight:600; text-transform:uppercase;">${p.status}</span>
+                        <span style="background:${corStatus}; color:white; padding:2px 8px; border-radius:20px; font-size:0.7er; font-weight:600; text-transform:uppercase;">${p.status}</span>
                     </div>
-                    <div style="font-size:0.9rem; color:#57606f; line-height:1.5;">
-                        <div style="background:white; border:1px solid #e4e7eb; padding:10px; border-radius:8px; margin-bottom:8px;">${strItens}</div>
-                        <p style="margin-bottom:4px;">${strEntrega}</p>
-                        <p><strong>Pagamento:</strong> ${p.formaPagamento} ${p.troco && p.troco !== 'Não se aplica' ? ` (Troco para: ${p.troco})` : ''}</p>
+                    <div style="font-size:0.85rem; color:#57606f; line-height:1.4;">
+                        <div style="background:white; border:1px solid #e4e7eb; padding:8px; border-radius:6px; margin-bottom:6px;">${strItens}</div>
+                        <p style="margin-bottom:2px;">${strEntrega}</p>
+                        <p><strong>Pagamento:</strong> ${p.formaPagamento} ${p.troco && p.troco !== 'Não se aplica' ? ` (Troco: ${p.troco})` : ''}</p>
                         ${htmlMotivoExibicao}
                     </div>
-                    <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid #e4e7eb; padding-top:10px; margin-top:4px;">
-                        <span style="font-size:1.1rem; color:#2f3542; font-weight:600;">Total: R$ ${p.total.toFixed(2)}</span>
-                        <div style="display:flex; gap:8px;">${htmlBotoesAcao}</div>
+                    <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid #e4e7eb; padding-top:8px; margin-top:2px;">
+                        <span style="font-size:0.95rem; color:#2f3542; font-weight:600;">R$ ${p.total.toFixed(2)}</span>
+                        <div style="display:flex; gap:6px;">${htmlBotoesAcao}</div>
                     </div>
                 `;
                 container.appendChild(itemDiv);
@@ -1112,14 +1104,13 @@
         window.alterarStatusPedido = async (idPedido, novoStatus) => {
             try {
                 await updateDoc(doc(db, "pedidos", idPedido), { status: novoStatus });
-                mostrarNotificacao(`Pedido atualizado para: ${novoStatus}!`);
+                mostrarNotificacao(`Pedido alterado com sucesso!`);
             } catch (err) {
                 mostrarNotificacao("Permissão negada ao alterar status.", "error");
             }
         };
 
         window.abrirModalRecusa = (idPedido) => {
-            window.fecharModal('modal-pedidos'); 
             document.getElementById('cancelar-pedido-id').value = idPedido;
             document.getElementById('txt-motivo-recusa').value = "";
             window.abrirModal('modal-motivo-cancelamento');
@@ -1159,7 +1150,7 @@
                     await carregarRegioesDoBanco(); 
                     await carregarDadosLoja(); 
                     renderizarDashboard(); 
-                    inicializarEscutaPedidosRealtime(); 
+                    initializeEscutaPedidosRealtime(); 
                 }
                 else window.location.href = 'login-loja.html';
             } else window.location.href = 'login.html';
