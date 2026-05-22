@@ -1090,3 +1090,22 @@
     flex: 1;
     text-align: left;
 }
+
+/* ============================================================
+   AJUSTE DE SOBREPOSIÇÃO DE MODAIS (Z-INDEX)
+   ============================================================ */
+
+/* Garante que o Modal de Pedidos (o principal) tenha uma base */
+#modal-pedidos {
+    z-index: 1000 !important;
+}
+
+/* Garante que o Modal de Cancelamento fique sempre ACIMA de qualquer outro */
+#modal-motivo-cancelamento {
+    z-index: 2000 !important;
+}
+
+/* Garante que o toast (notificação) apareça acima de todos os modais */
+.toast-container {
+    z-index: 3000 !important;
+}

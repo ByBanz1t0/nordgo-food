@@ -17,7 +17,7 @@
             <div class="header-left">
                 <div class="pill-badge pill-back" onclick="history.back()">
                     <img src="../assets/images/voltar.png" alt="Voltar" class="back-icon-img">
-                    <span href="../index.html" class="location-text">Voltar</span>
+                    <span class="location-text">Voltar</span>
                 </div>
             </div>
 
@@ -50,7 +50,8 @@
 
     <script type="module">
         import { auth, db, mostrarNotificacao } from '../js/firebase-config.js';
-        import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
+        // MODIFICADO: Adicionado 'query' e 'where' para realizar os filtros de segurança
+        import { collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
         import { atualizarCarrinhoFlutuante } from '../js/cart-helper.js';
 
         const params = new URLSearchParams(window.location.search);
@@ -71,16 +72,30 @@
         async function executarBusca() {
             atualizarCarrinhoFlutuante();
             try {
+                // CORREÇÃO: Filtra as lojas direto no banco para trazer apenas as aprovadas
+                const qLojasAtivas = query(collection(db, "lojas"), where("status", "==", "aprovado"));
+
                 const [snapshotLojas, snapshotProdutos] = await Promise.all([
-                    getDocs(collection(db, "lojas")),
+                    getDocs(qLojasAtivas),
                     getDocs(collection(db, "produtos"))
                 ]);
 
                 let lojas = [];
                 let produtos = [];
 
+                // Alimenta o array de lojas ativas
                 snapshotLojas.forEach(doc => lojas.push({ id: doc.id, ...doc.data(), tipo: 'loja' }));
-                snapshotProdutos.forEach(doc => produtos.push({ id: doc.id, ...doc.data(), tipo: 'produto' }));
+
+                // O PULO DO GATO: Cria um Set com os IDs das lojas que estão ativas/aprovadas
+                const lojasAprovadasIds = new Set(lojas.map(l => l.id));
+
+                // Varre os produtos e barra aqueles cujas lojas estão suspensas ou pendentes
+                snapshotProdutos.forEach(doc => {
+                    const dadosProduto = doc.data();
+                    if (lojasAprovadasIds.has(dadosProduto.lojaId)) {
+                        produtos.push({ id: doc.id, ...dadosProduto, tipo: 'produto' });
+                    }
+                });
 
                 const catUrl = categoriaFiltro ? categoriaFiltro.toLowerCase() : null;
                 const buscaUrl = termoBusca ? termoBusca.toLowerCase() : null;
@@ -117,7 +132,7 @@
             }
 
             const lojasOrdenadas = resultados.filter(item => item.tipo === 'loja');
-            const produtosOrdenados = resultados.filter(item => item.tipo === 'produto');
+            const produtosOrdenadas = resultados.filter(item => item.tipo === 'produto');
 
             // --- SEÇÃO DE LOJAS ---
             if (lojasOrdenadas.length > 0) {
@@ -127,7 +142,6 @@
                 scrollContainer.className = 'horizontal-scroll-container';
                 
                 lojasOrdenadas.forEach(item => {
-                    // Validação para evitar strings vazias do Firebase
                     const logoUrl = (item.logoLoja && item.logoLoja.trim() !== "") 
                                     ? item.logoLoja 
                                     : '../assets/images/default-loja.png';
@@ -148,20 +162,17 @@
             }
 
             // --- SEÇÃO DE PRODUTOS ---
-            if (produtosOrdenados.length > 0) {
+            if (produtosOrdenadas.length > 0) {
                 const secaoProdutos = document.createElement('div');
                 secaoProdutos.innerHTML = `<h3 class="section-divider">Produtos encontrados</h3>`;
                 const gridProdutos = document.createElement('div');
                 gridProdutos.className = 'grid-lojas';
                 
-                produtosOrdenados.forEach(item => {
-                    // Validação de imagem do produto
+                produtosOrdenadas.forEach(item => {
                     let imagemUrl = (item.imagem && item.imagem.trim() !== "") ? item.imagem : null;
                     
                     if (!imagemUrl) {
-                        // Lógica de fallback por categoria/slug
                         if (item.categoria === "Doces & Bolos" || item.slugCategoria === "doces") {
-                            // Mantendo o nome com o erro de digitação identificado no seu arquivo
                             imagemUrl = '../assets/images/default-doces.png'; 
                         } else {
                             imagemUrl = '../assets/images/placeholder.png';
@@ -186,7 +197,7 @@
                 secaoProdutos.appendChild(gridProdutos);
                 listaResultados.appendChild(secaoProdutos);
             }
-            subtitulo.innerText = `Encontramos ${lojasOrdenadas.length} lojas e ${produtosOrdenados.length} produtos.`;
+            subtitulo.innerText = `Encontramos ${lojasOrdenadas.length} lojas e ${produtosOrdenadas.length} produtos.`;
         }
 
         executarBusca();

@@ -117,7 +117,8 @@
             GoogleAuthProvider, 
             signInWithPopup,
             sendPasswordResetEmail,
-            onAuthStateChanged
+            onAuthStateChanged,
+            signOut
         } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
         import { doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
 
@@ -132,11 +133,32 @@
             window.location.href = '../index.html';
         };
 
-        onAuthStateChanged(auth, (user) => {
-            sectionSkeleton.classList.add('hidden');
+        // INTERCEPTOR DE CONTAS SUSPENSAS: Monitora o estado de autenticação global nesta página
+        onAuthStateChanged(auth, async (user) => {
             if (user && !cadastrandoUsuario) {
-                window.location.href = '../index.html';
+                try {
+                    const userDoc = await getDoc(doc(db, "usuarios", user.uid));
+                    if (userDoc.exists()) {
+                        const userData = userDoc.data();
+                        
+                        if (userData.status === "suspenso") {
+                            mostrarNotificacao("Sua conta está suspensa. Contate o administrador.", "error");
+                            await signOut(auth);
+                            localStorage.removeItem('nordgo_cep_usuario'); 
+                            sectionSkeleton.classList.add('hidden');
+                            sectionLogin.classList.remove('hidden');
+                            return;
+                        }
+                    }
+                    sectionSkeleton.classList.add('hidden');
+                    window.location.href = '../index.html';
+                } catch (err) {
+                    console.error("Erro na verificação de acesso:", err);
+                    sectionSkeleton.classList.add('hidden');
+                    sectionLogin.classList.remove('hidden');
+                }
             } else if (!user) {
+                sectionSkeleton.classList.add('hidden');
                 sectionLogin.classList.remove('hidden');
             }
         });
@@ -229,7 +251,7 @@
             txtTituloHeader.innerText = "Login"; 
         };
 
-        // --- LOGIN ---
+        // --- LOGIN COM E-MAIL E SENHA ---
         document.getElementById('btn-login').onclick = async () => {
             const email = document.getElementById('email').value.trim();
             const senha = document.getElementById('senha').value;
@@ -247,19 +269,18 @@
             }
         };
 
-        // --- CADASTRO SEGURO (CONTRA ERRO 400) ---
+        // --- CADASTRO SEGURO POR FORMULÁRIO ---
         document.getElementById('btn-cadastrar-final').onclick = async () => {
-            // Garante fallback string caso qualquer elemento traga undefined por falha de renderização
-            const obterValor = (id) => {
+            const obtenerValor = (id) => {
                 const el = document.getElementById(id);
                 return el ? el.value.trim() : "";
             };
 
-            const nome = obterValor('reg-nome');
-            const email = obterValor('reg-email');
+            const nome = obtenerValor('reg-nome');
+            const email = obtenerValor('reg-email');
             const senha = document.getElementById('reg-senha')?.value || "";
             const cpfCliente = obterValor('reg-cpf');
-            const telefoneCliente = obterValor('reg-telefone');
+            const telefoneCliente = obtenerValor('reg-telefone');
             const rua = obterValor('reg-rua');
             const numero = obterValor('reg-numero');
             const bairro = obterValor('reg-bairro');
@@ -308,12 +329,13 @@
                     cpfCliente: cpfCliente,
                     telefoneCliente: telefoneCliente,
                     tipo: "cliente",
+                    isAdmin: false,
+                    status: "ativo",
                     dataCriacao: new Date().toISOString(),
                     fotoUrl: "",
                     enderecoCliente: [novoEnderecoObj]
                 };
 
-                // Executa a gravação com o ID limpo e verificado
                 await setDoc(doc(db, "usuarios", userCred.user.uid), payloadFinal);
 
                 mostrarNotificacao("Conta criada com sucesso!");
@@ -340,26 +362,51 @@
             } catch (e) { mostrarNotificacao("Erro.", "error"); }
         };
 
-        // Google
+        // --- LOGIN COM O GOOGLE (CORRIGIDO CONTRA CORRIDA DE REDIRECIONAMENTO) ---
         document.getElementById('btn-google').onclick = async () => {
             const provider = new GoogleAuthProvider();
             try {
+                // FIX CRÍTICO: Segura temporariamente o gatilho automático de redirecionamento
+                cadastrandoUsuario = true; 
+
                 const result = await signInWithPopup(auth, provider);
                 const user = result.user;
+                
                 const userDoc = await getDoc(doc(db, "usuarios", user.uid));
                 
                 if (!userDoc.exists()) {
+                    // Grava os dados iniciais do cliente novo com segurança total no Firestore
                     await setDoc(doc(db, "usuarios", user.uid), {
                         nome: user.displayName || "Usuário Google",
                         email: user.email,
                         tipo: "cliente",
+                        isAdmin: false,
+                        status: "ativo",
                         fotoUrl: user.photoURL || "",
                         dataCriacao: new Date().toISOString(),
                         enderecoCliente: []
                     });
+                    mostrarNotificacao("Conta criada com sucesso via Google!");
+                } else if (userDoc.data().status === "suspenso") {
+                    mostrarNotificacao("Esta conta Google está suspensa pelo administrador.", "error");
+                    await signOut(auth);
+                    localStorage.removeItem('nordgo_cep_usuario');
+                    cadastrandoUsuario = false; // Desbloqueia o monitor global
+                    return;
+                } else {
+                    mostrarNotificacao("Bem-vindo de volta!");
                 }
-                window.location.href = '../index.html';
-            } catch (e) { mostrarNotificacao("Falha no login Google.", "error"); }
+
+                // Força um pequeno delay para garantir o salvamento físico do Firestore antes da troca de página
+                setTimeout(() => {
+                    window.location.href = '../index.html';
+                }, 1000);
+
+            } catch (e) { 
+                cadastrandoUsuario = false; // Desbloqueia o monitor em caso de fechamento do popup
+                console.error("Erro completo no fluxo do Google Auth:", e);
+                mostrarNotificacao("Falha no login Google ou permissão negada.", "error"); 
+            }
         };
     </script>
 </body>

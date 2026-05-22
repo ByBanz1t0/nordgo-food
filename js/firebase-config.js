@@ -5,7 +5,7 @@ import { getAuth, GoogleAuthProvider, onAuthStateChanged, signOut } from "https:
 import { getStorage } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-storage.js";
 
 const firebaseConfig = {
-    apiKey: "AIzaSyDt8z1zNvG43sgiUKwcGQCx79KRNq_5Cjc", // Adicionado o 'K' aqui
+    apiKey: "AIzaSyDt8z1zNvG43sgiUKwcGQCx79KRNq_5Cjc", 
     authDomain: "nordgo-food.firebaseapp.com",
     projectId: "nordgo-food",
     storageBucket: "nordgo-food.firebasestorage.app",
@@ -22,9 +22,9 @@ const storage = getStorage(app);
 const googleProvider = new GoogleAuthProvider();
 
 /**
- * REDIRECIONAMENTO INTELIGENTE PARA LOJISTAS
+ * REDIRECIONAMENTO INTELIGENTE PARA LOJISTAS (Módulo + Global)
  */
-window.irParaMinhaLoja = async function() {
+export async function irParaMinhaLoja() {
     const user = auth.currentUser;
     const isRoot = window.location.pathname.includes('index.html') || window.location.pathname.endsWith('/');
     const pathPrefix = isRoot ? 'html/' : '';
@@ -38,24 +38,28 @@ window.irParaMinhaLoja = async function() {
         const userSnap = await getDoc(doc(db, "usuarios", user.uid));
         if (userSnap.exists()) {
             const userData = userSnap.data();
-            if (userData.loja && userData.loja.trim() !== "") {
+            
+            // CORREÇÃO SEGURA: Só tenta rodar o .trim() se tiver certeza absoluta de que o dado existe e é uma string
+            if (userData && typeof userData.loja === 'string' && userData.loja.trim() !== "") {
                 window.location.href = `${pathPrefix}perfil-loja.html`;
             } else {
                 window.location.href = `${pathPrefix}login-loja.html`;
             }
+        } else {
+            window.location.href = `${pathPrefix}login-loja.html`;
         }
     } catch (e) {
-        console.error("Erro ao redirecionar para loja:", e);
+        console.error("Erro crítico ao redirecionar para loja:", e);
     }
-};
+}
+
+// Garante o mapeamento no objeto global window para chamadas inline antigas
+window.irParaMinhaLoja = irParaMinhaLoja;
 
 /**
- * MONITOR DE AUTENTICAÇÃO E CONSTRUÇÃO DO MENU
+ * MONITOR DE AUTENTICAÇÃO E CONSTRUÇÃO DO MENU (Com trava global antievasão)
  */
 onAuthStateChanged(auth, async (user) => {
-    const headerRight = document.getElementById('user-area') || document.querySelector('.header-right');
-    if (!headerRight) return;
-
     const isRoot = window.location.pathname.includes('index.html') || window.location.pathname.endsWith('/');
     const pathPrefix = isRoot ? 'html/' : '';
 
@@ -63,13 +67,35 @@ onAuthStateChanged(auth, async (user) => {
         try {
             const userDoc = await getDoc(doc(db, "usuarios", user.uid));
             const userData = userDoc.data();
+            
+            // 🛡️ FIREWALL GLOBAL CRÍTICO: Se o status no banco for suspenso, desloga imediatamente em qualquer página!
+            if (userData?.status === "suspenso") {
+                mostrarNotificacao("Sua conta está suspensa. Contate o administrador.", "error");
+                localStorage.removeItem('nordgo_cep_usuario'); // Limpa a sessão geográfica residual
+                await signOut(auth);
+                
+                // Evita loops infinitos de redirecionamento caso o usuário já esteja na tela de login
+                if (!window.location.pathname.includes('login.html')) {
+                    setTimeout(() => {
+                        window.location.href = `${pathPrefix}login.html`;
+                    }, 1500);
+                }
+                return;
+            }
+
+            // Se o usuário passou no teste de segurança, o app renderiza a área do menu normalmente
+            const headerRight = document.getElementById('user-area') || document.querySelector('.header-right');
+            if (!headerRight) return;
+
             const nomeExibir = userData?.nome ? userData.nome.split(' ')[0] : "Usuário";
             const fotoPerfil = userData?.fotoUrl || (isRoot ? 'assets/images/default-user.png' : '../assets/images/default-user.png');
             
-            const linkMinhaLoja = userData?.tipo === 'dono' 
-                ? `<a href="#" id="link-loja-global"><i class="fa-solid fa-store"></i> Minha Loja</a>` 
+            // Validação de segurança para renderizar o link administrativo apenas se for admin real
+            const linkAdminHtml = userData?.isAdmin === true 
+                ? `<a href="${pathPrefix}gerenciamento.html"><i class="fa-solid fa-sliders"></i> Painel Admin</a>` 
                 : '';
-
+            
+            // MODIFICADO: Inserido o link dinâmico direcionando para "pedidos.html" com seu pathPrefix correspondente
             headerRight.innerHTML = `
                 <div class="user-menu-container">
                     <div class="pill-badge pill-user">
@@ -81,8 +107,10 @@ onAuthStateChanged(auth, async (user) => {
                     </div>
                     
                     <div class="dropdown-content">
+                        <a href="${pathPrefix}pedidos.html"><i class="fa-solid fa-clock-rotate-left"></i> Meus Pedidos</a>
                         <a href="${pathPrefix}perfil.html"><i class="fa-regular fa-user"></i> Meu Perfil</a>
-                        ${linkMinhaLoja}
+                        <a href="javascript:void(0);" id="link-loja-global"><i class="fa-solid fa-store"></i> Minha Loja</a>
+                        ${linkAdminHtml} 
                         <button id="btn-logout-global" class="btn-logout-menu">
                             <i class="fa-solid fa-right-from-bracket"></i> Sair
                         </button>
@@ -90,16 +118,7 @@ onAuthStateChanged(auth, async (user) => {
                 </div>
             `;
 
-            if (userData?.tipo === 'dono') {
-                const btnLoja = document.getElementById('link-loja-global');
-                if (btnLoja) {
-                    btnLoja.onclick = (e) => {
-                        e.preventDefault();
-                        window.irParaMinhaLoja();
-                    };
-                }
-            }
-
+            // Configura o botão de logout
             document.getElementById('btn-logout-global').onclick = async () => {
                 await signOut(auth);
                 window.location.href = isRoot ? 'index.html' : '../index.html';
@@ -109,12 +128,26 @@ onAuthStateChanged(auth, async (user) => {
             console.error("Erro ao carregar menu:", error);
         }
     } else {
+        const headerRight = document.getElementById('user-area') || document.querySelector('.header-right');
+        if (!headerRight) return;
+
         const loginPath = isRoot ? 'html/login.html' : 'login.html';
         headerRight.innerHTML = `
             <button onclick="window.location.href='${loginPath}'" class="btn-login">
                 <i class="fa-solid fa-right-to-bracket"></i> Entrar
             </button>
         `;
+    }
+});
+
+// DELEGAÇÃO DE EVENTOS: O clique esquerdo intercepta perfeitamente sem conflitos de URL
+document.addEventListener('click', function(e) {
+    const botaoMinhaLoja = e.target.closest('#link-loja-global');
+    
+    if (botaoMinhaLoja) {
+        e.preventDefault();
+        e.stopPropagation();
+        irParaMinhaLoja(); 
     }
 });
 
@@ -140,5 +173,5 @@ export function mostrarNotificacao(mensagem, tipo = 'success') {
     }, 3000);
 }
 
-// 3. Incluir storage nas exportações
+// Incluir storage nas exportações
 export { app, db, auth, storage, googleProvider };

@@ -1,5 +1,5 @@
 /* ============================================================
-   WIDGET DE FILTRAGEM POR CEP (HOME HERO)
+   WIDGET DE FILTRAGEM POR CEP (HOME HERO) - CORRIGIDO
    ============================================================ */
 .search-cep-container {
     margin-top: 20px;
@@ -30,6 +30,7 @@
     border: none;
     outline: none;
     flex: 1;
+    min-width: 0; /* CORREÇÃO: Força o input a encolher em telas pequenas e respeitar o flex */
     font-family: inherit;
     font-size: 0.9rem;
     color: #2f3542;
@@ -46,8 +47,28 @@
     font-size: 0.85rem;
     cursor: pointer;
     transition: background 0.2s;
+    flex-shrink: 0;    /* CORREÇÃO: Impede o flexbox de esmagar o botão ou jogá-lo para fora */
+    white-space: nowrap; /* CORREÇÃO: Garante que o texto "Ver Lojas" nunca quebre em duas linhas */
 }
 
 .search-cep-wrapper button:hover {
     background: #ff2a3a;
+}
+
+.badge-proximidade {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3125rem;            /* 5px */
+    background-color: #f1f2f6;
+    color: #2f3542;
+    padding: 0.25rem 0.625rem; /* 4px 10px */
+    border-radius: 0.75rem;    /* 12px */
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-top: 0.5rem;
+    border: 0.0625rem solid #dfe4ea;
+}
+
+.badge-proximidade i {
+    color: #2ed573; /* Ícone de motinha verde indicando entrega ativa */
 }

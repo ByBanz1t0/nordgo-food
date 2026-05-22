@@ -113,6 +113,7 @@
                     <div class="checkout-grupo-select">
                         <select id="select-pagamento-checkout" class="select-checkout">
                             <option value="">Escolha como pagar...</option>
+                            <option value="Pix">Pix</option>
                             <optgroup label="Pagar no Aplicativo (Cartões Salvos)" id="optgroup-cartoes-salvos"></optgroup>
                             <optgroup label="Pagar na Entrega">
                                 <option value="Dinheiro">Dinheiro</option>
@@ -176,7 +177,7 @@
         
         let listaEnderecosUsuario = [];
         let bairroClienteLogado = "";
-        let nomeClienteLogado = ""; // ADICIONADO: Variável global para armazenar o nome limpo do Firestore
+        let nomeClienteLogado = ""; 
         let enderecoCompletoObjetoSelecionado = null;
 
         // --- CONTROLE DA JANELA FLUTUANTE ---
@@ -187,7 +188,7 @@
         };
         document.getElementById('btn-fechar-checkout').onclick = () => modalCheckout.classList.remove('active');
 
-        // --- MONITOR DE SESSÃO E BANCO DE DADOS EM MAPAS ---
+        // --- MONITOR DE SESSÃO ---
         onAuthStateChanged(auth, async (user) => {
             usuarioLogado = user;
             if (user) {
@@ -198,7 +199,7 @@
                         listaEnderecosUsuario = d.enderecoCliente || [];
                         const listaCartoes = d.cartoesCliente || [];
                         
-                        nomeClienteLogado = d.nome || ""; // ADICIONADO: Vincula o nome vindo do Firestore
+                        nomeClienteLogado = d.nome || ""; 
                         
                         popularSeletorEnderecos();
                         popularSeletorCartoes(listaCartoes);
@@ -238,7 +239,7 @@
         function popularSeletorCartoes(cartoes) {
             const group = document.getElementById('optgroup-cartoes-salvos');
             group.innerHTML = "";
-            if (cartoes.length === 0) {
+            if (!cartoes || cartoes.length === 0) {
                 group.innerHTML = `<option disabled>Nenhum cartão salvo no perfil</option>`;
                 return;
             }
@@ -271,7 +272,7 @@
             itens.forEach(i => {
                 const div = document.createElement('div');
                 div.className = "item-resumo-modal-linha";
-                div.innerHTML = `<span>${i.whitespace || i.quantidade}x ${i.nome} <small>(${i.nomeLoja})</small></span> <span>R$ ${(i.preco * i.quantidade).toFixed(2)}</span>`;
+                div.innerHTML = `<span>${i.quantidade}x ${i.nome} <small>(${i.nomeLoja})</small></span> <span>R$ ${(i.preco * i.quantidade).toFixed(2)}</span>`;
                 container.appendChild(div);
             });
         }
@@ -299,45 +300,62 @@
             else containerTroco.classList.add('hidden');
         });
 
-        // --- SISTEMA DE CUPONS ---
+        // --- MODIFICADO: SISTEMA DE VALIDAÇÃO DE CUPONS REALINHADO ---
         async function validarCupom(codigo, lojaId = null, subtotalAtual = 0) {
             if (!usuarioLogado) { mostrarNotificacao("Faça login para usar cupons.", "error"); return null; }
             if (!codigo) { mostrarNotificacao("Digite o código do cupom.", "error"); return null; }
 
             try {
-                const q = query(collection(db, "cupons"), where("codigo", "==", codigo.toUpperCase()), where("ativo", "==", true), limit(1));
+                // Nota: Removido where("ativo") pois o controle agora baseia-se cronologicamente e quantitativamente
+                const q = query(collection(db, "cupons"), where("codigo", "==", codigo.toUpperCase()), limit(1));
                 const snapshot = await getDocs(q);
-                if (snapshot.empty) { mostrarNotificacao("Cupom inválido ou expirado.", "error"); return null; }
+                if (snapshot.empty) { mostrarNotificacao("Cupom inválido ou inexistente.", "error"); return null; }
 
                 const cupomDoc = snapshot.docs[0];
                 const data = cupomDoc.data();
                 const agora = new Date();
 
+                // 1. Validação de Escopo Estrito
                 if (lojaId === null) {
                     if (data.escopo !== "global") { mostrarNotificacao("Este cupom pertence a uma loja específica.", "error"); return null; }
                 } else {
-                    if (data.escopo === "global") { mostrarNotificacao("Insira este cupom no painel geral.", "error"); return null; }
-                    if (data.escopo === "local" && data.lojaId !== lojaId) { mostrarNotificacao("Cupom inválido para esta loja.", "error"); return null; }
+                    if (data.escopo === "global") { mostrarNotificacao("Insira este cupom no painel de resumo geral.", "error"); return null; }
+                    if (data.escopo === "loja" && data.lojaId !== lojaId) { mostrarNotificacao("Cupom inválido para esta loja.", "error"); return null; }
                 }
 
+                // 2. Ticket Mínimo de Compra
                 if (data.valorMinimo && subtotalAtual < data.valorMinimo) {
-                    mostrarNotificacao(`Compra mínima: R$ ${data.valorMinimo.toFixed(2)}`, "error"); return null;
+                    mostrarNotificacao(`Compra mínima para este cupom: R$ ${data.valorMinimo.toFixed(2)}`, "error"); return null;
                 }
-                if (data.usuariosQueUsaram && data.usuariosQueUsaram.includes(usuarioLogado.uid)) { mostrarNotificacao("Você já usou este cupom.", "error"); return null; }
-                if (data.validadeTipo === "usos" && data.usosAtuais >= parseInt(data.validade)) { mostrarNotificacao("Cupom esgotado.", "error"); return null; }
-                if (data.validadeTipo === "tempo") {
-                    const diffMinutos = (agora - data.dataCriacao.toDate()) / (1000 * 60);
-                    if (diffMinutos > parseInt(data.validade)) { mostrarNotificacao("Cupom expirado.", "error"); return null; }
+
+                // 3. Validação Antifraude: Uso Único por UID de Cliente
+                if (data.usuariosQueUsaram && data.usuariosQueUsaram.includes(usuarioLogado.uid)) { 
+                    mostrarNotificacao("Você já utilizou este cupom anteriormente.", "error"); return null; 
+                }
+
+                // 4. Validação Quantitativa: Limite de Usos Globais Estourado
+                if (data.limiteUsos && data.usosAtuais >= data.limiteUsos) { 
+                    mostrarNotificacao("Este cupom já esgotou.", "error"); return null; 
+                }
+
+                // 5. Validação Cronológica: Prazo de validade em Horas expirado
+                if (data.dataExpiracao) {
+                    if (new Date(data.dataExpiracao) < agora) { 
+                        mostrarNotificacao("Este cupom já está expirado.", "error"); return null; 
+                    }
                 }
 
                 return { id: cupomDoc.id, ...data };
-            } catch (error) { console.error(error); return null; }
+            } catch (error) { 
+                console.error("Erro de validação do cupom:", error); 
+                return null; 
+            }
         }
 
         document.getElementById('btn-aplicar-global').addEventListener('click', async () => {
             const codigo = document.getElementById('cupom-plataforma').value;
             const itens = JSON.parse(localStorage.getItem('nordgo_carrinho')) || [];
-            const subtotalGeral = itens.reduce((acc, i) => acc + (i.preco * i.whitespace || i.quantidade), 0);
+            const subtotalGeral = itens.reduce((acc, i) => acc + (i.preco * i.quantidade), 0);
 
             const validado = await validarCupom(codigo, null, subtotalGeral);
             if (validado) {
@@ -563,7 +581,8 @@
             try {
                 for (const lid in agrupadosPorLoja) {
                     const itensDaLoja = agrupadosPorLoja[lid];
-                    const subtotalLoja = itensDaLoja.reduce((acc, i) => acc + (i.preco * i.whitespace || i.quantidade), 0);
+                    // CORRIGIDO: Fórmula matemática limpa (i.preco * i.quantidade) em substituição ao termo flutuante 'whitespace'
+                    const subtotalLoja = itensDaLoja.reduce((acc, i) => acc + (i.preco * i.quantidade), 0);
                     
                     let freteLojaIndividual = 0;
                     if (tipoEntrega === 'entrega') {
@@ -578,6 +597,7 @@
                     if (cuponsLocaisAtivos[lid]) {
                         const cp = cuponsLocaisAtivos[lid];
                         descontoLojaIndividual = cp.tipo === "porcentagem" ? (subtotalLoja * cp.valor / 100) : cp.valor;
+                        // Gravação Atômica das travas: Incrementa usos gerais e anexa o UID do cliente à lista do cupom
                         await updateDoc(doc(db, "cupons", cp.id), { usosAtuais: increment(1), usuariosQueUsaram: arrayUnion(usuarioLogado.uid) });
                     }
 
@@ -589,7 +609,6 @@
 
                     const valorTotalLoja = subtotalLoja + freteLojaIndividual - descontoLojaIndividual;
 
-                    // CORRIGIDO: Agora gravando clientNome dinâmico vindo do Firestore ("Ezequias Melo")
                     await addDoc(collection(db, "pedidos"), {
                         clientId: usuarioLogado.uid,
                         clientNome: nomeClienteLogado || usuarioLogado.displayName || "Cliente NordGo",
@@ -609,6 +628,7 @@
                     });
                 }
 
+                // Aplica o incremento de uso atômico se o cliente usou um cupom global da plataforma
                 if (cupomAtivo) {
                     await updateDoc(doc(db, "cupons", cupomAtivo.id), { usosAtuais: increment(1), usuariosQueUsaram: arrayUnion(usuarioLogado.uid) });
                 }

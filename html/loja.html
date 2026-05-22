@@ -113,6 +113,23 @@
             }
 
             const loja = lojaSnap.data();
+
+            // TRAVA DE SEGURANÇA CRÍTICA: Bloqueia o carregamento se o estabelecimento não estiver aprovado
+            if (loja.status !== 'aprovado') {
+                document.title = "Estabelecimento Indisponível | Nordgo Food";
+                document.getElementById('header-nome-loja').innerText = "Indisponível";
+                
+                document.getElementById('loja-content').innerHTML = `
+                    <div class="loja-indisponivel-container" style="text-align: center; padding: 5rem 1rem; font-family: 'Poppins', sans-serif;">
+                        <i class="fa-solid fa-store-slash" style="font-size: 4rem; color: #ff4757; margin-bottom: 1.5rem;"></i>
+                        <h2 style="color: #2f3542; font-size: 1.5rem; margin-bottom: 0.5rem; font-weight: 600;">Estabelecimento Indisponível</h2>
+                        <p style="color: #747d8c; margin-bottom: 2rem; font-size: 0.95rem;">Desculpe, este estabelecimento está temporariamente fechado ou foi desativado pela plataforma.</p>
+                        <button onclick="window.location.href='../index.html'" class="btn-principal" style="max-width: 200px; margin: 0 auto; display: block;">Voltar para o Início</button>
+                    </div>
+                `;
+                return;
+            }
+
             nomeLojaGlobal = loja.nome; 
             renderizarDadosLoja(loja);
 
@@ -132,7 +149,6 @@
             document.getElementById('detalhe-avaliacao').innerText = loja.avaliacao || "Novo";
             document.getElementById('detalhe-tempo').innerText = `${loja.tempoEntrega || '20-30'} min`;
             
-            // Prioridade: logoUrl (Upload Storage) > logoLoja (Link antigo)
             document.getElementById('detalhe-logo-loja').src = loja.logoUrl || loja.logoLoja || '../assets/images/default-store.png'; 
             
             const banner = document.getElementById('loja-img-fundo');
@@ -148,18 +164,14 @@
                 : parseFloat(loja.frete).toLocaleString('pt-br', { style: 'currency', currency: 'BRL' });
         }
 
-        // --- LÓGICA DE SELEÇÃO DE IMAGEM CORRIGIDA ---
         function obterImagemProduto(p) {
-            // Se o produto tem imagem própria customizada que NÃO SEJA o texto do placeholder padrão
             if (p.imagem && p.imagem.trim() !== "" && !p.imagem.includes("placeholder.png")) {
                 return p.imagem;
             }
             
-            // Se caiu aqui, busca a imagem padrão da categoria dele (ex: "pizza.png", "cookie.png")
             const arquivoCat = fotosCategorias[p.categoria];
             if (arquivoCat) return `../assets/images/${arquivoCat}`;
             
-            // Fallback final de segurança absoluta caso a categoria não tenha imagem vinculada
             return '../assets/images/placeholder.png';
         }
 

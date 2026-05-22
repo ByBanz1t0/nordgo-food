@@ -208,16 +208,116 @@
         </div>
     </div>
 
+    <div id="modal-cupons" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fa-solid fa-ticket"></i> Meus Cupons</h2>
+                <button class="btn-fechar" onclick="window.fecharModal('modal-cupons')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <button class="btn-salvar" onclick="window.abrirModal('modal-add-cupom'); window.fecharModal('modal-cupons');" style="margin-bottom: 1.25rem;">
+                    <i class="fa-solid fa-plus"></i> Criar Novo Cupom
+                </button>
+                <div id="lista-cupons-dashboard" class="produtos-admin-list"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-add-cupom" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fa-solid fa-plus"></i> Criar Cupom Próprio</h2>
+                <button class="btn-fechar" onclick="window.fecharModal('modal-add-cupom')">&times;</button>
+            </div>
+            <form id="form-add-cupom" class="modal-body">
+                <div class="input-group">
+                    <label>Código do Cupom</label>
+                    <input type="text" id="add-cupom-codigo" placeholder="EX: MEUDESCONTO10" style="text-transform: uppercase;" required>
+                </div>
+                <div class="input-row">
+                    <div class="input-group">
+                        <label>Tipo de Desconto</label>
+                        <select id="add-cupom-tipo" required>
+                            <option value="porcentagem">Porcentagem (%)</option>
+                            <option value="fixo">Valor Fixo (R$)</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label>Valor do Desconto</label>
+                        <input type="number" id="add-cupom-valor" step="0.01" min="0.01" placeholder="Ex: 10.00" required>
+                    </div>
+                </div>
+                <div class="input-row">
+                    <div class="input-group">
+                        <label>Pedido Mínimo (R$)</label>
+                        <input type="number" id="add-cupom-minimo" step="0.01" min="0" value="0.00">
+                    </div>
+                    <div class="input-group">
+                        <label>Limite Total de Usos</label>
+                        <input type="number" id="add-cupom-limite" min="1" placeholder="Ex: 50" required>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label>Prazo para Expiração (Horas)</label>
+                    <input type="number" id="add-cupom-expiracao" min="1" placeholder="Ex: 24" required>
+                </div>
+                <p style="font-size: 0.8rem; color: #747d8c; margin-bottom: 1rem;"><i class="fa-solid fa-circle-info"></i> Proteção Ativa: Este cupom é de uso único por cliente e expira automaticamente no fim do prazo.</p>
+                <button type="submit" class="btn-salvar">Cadastrar Cupom</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="modal-pedidos" class="modal-overlay">
+        <div class="modal-content" style="max-width: 850px; width: 90%;">
+            <div class="modal-header">
+                <h2><i class="fa-solid fa-receipt"></i> Painel de Pedidos Recebidos</h2>
+                <button class="btn-fechar" onclick="window.fecharModal('modal-pedidos')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div style="display: flex; gap: 10px; margin-bottom: 1.5rem; border-bottom: 2px solid #f1f2f6; padding-bottom: 10px;">
+                    <button id="tab-pedidos-ativos" class="btn-salvar" style="background:#ff4757;">Ativos / Na Cozinha</button>
+                    <button id="tab-pedidos-historico" class="btn-salvar" style="background:#747d8c;">Histórico / Concluídos</button>
+                </div>
+                <div id="lista-pedidos-dashboard" style="display: flex; flex-direction: column; gap: 15px; max-height: 550px; overflow-y: auto; padding-right: 5px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-motivo-cancelamento" class="modal-overlay" style="z-index: 1100;">
+        <div class="modal-content" style="max-width: 450px;">
+            <div class="modal-header" style="background: #fff5f5; color: #ff4757;">
+                <h2><i class="fa-solid fa-circle-xmark"></i> Recusar Pedido</h2>
+                <button class="btn-fechar" onclick="window.fecharModal('modal-motivo-cancelamento')">&times;</button>
+            </div>
+            <form id="form-motivo-cancelamento" class="modal-body">
+                <input type="hidden" id="cancelar-pedido-id">
+                <div class="input-group">
+                    <label style="color: #2f3542; font-weight: 600;">Informe o motivo da recusa:</label>
+                    <textarea id="txt-motivo-recusa" rows="3" placeholder="Ex: Ingredientes esgotados, estabelecimento fechando, endereço fora da região de entrega..." required style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ced6e0; font-family: 'Poppins', sans-serif; resize: none; margin-top: 5px;"></textarea>
+                </div>
+                <p style="font-size: 0.8rem; color: #747d8c; margin-bottom: 1.25rem;"><i class="fa-solid fa-circle-info"></i> Esta justificativa aparecerá imediatamente na tela do cliente.</p>
+                <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                    <button type="button" class="btn-salvar" style="background: #747d8c;" onclick="window.fecharModal('modal-motivo-cancelamento')">Voltar</button>
+                    <button type="submit" class="btn-salvar" style="background: #ff4757;">Confirmar Recusa</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script type="module">
         import { auth, db, storage, mostrarNotificacao } from '../js/firebase-config.js';
         import { ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-storage.js";
-        import { doc, getDoc, updateDoc, deleteDoc, collection, getDocs, addDoc, query, where } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
+        import { 
+            doc, getDoc, updateDoc, deleteDoc, collection, getDocs, addDoc, query, where, orderBy, onSnapshot 
+        } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
         import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
 
         let idLojaGlobal = "";
         let horariosFuncionamentoLocal = {};
         let logisticaCidadesLocal = {};
         let databaseRegionalLocal = {};
+        let listaPedidosLocal = []; 
+        let filtroAbaPedidos = "ativos"; 
         
         const gridMain = document.getElementById('grid-main');
         const tituloLoja = document.getElementById('nome-loja-titulo');
@@ -241,11 +341,13 @@
         // --- DASHBOARD ---
         function renderizarDashboard() {
             gridMain.innerHTML = `
+                <div class="card-dash" onclick="window.abrirGerenciadorPedidos()"><i class="fa-solid fa-receipt"></i><h3>Pedidos</h3><p id="txt-contador-pedidos">Monitorando cozinha...</p></div>
                 <div class="card-dash" onclick="window.abrirModal('modal-info')"><i class="fa-solid fa-store"></i><h3>Informações</h3><p>Nome, Banner e CEP</p></div>
                 <div class="card-dash" onclick="window.abrirModal('modal-frete')"><i class="fa-solid fa-truck-fast"></i><h3>Entregas</h3><p>Bairros e taxas</p></div>
                 <div class="card-dash" onclick="window.abrirModal('modal-horarios')"><i class="fa-solid fa-clock"></i><h3>Horários</h3><p>Status e horários semanais</p></div>
                 <div class="card-dash" onclick="window.abrirModal('modal-add-produto')"><i class="fa-solid fa-circle-plus"></i><h3>Novo Produto</h3><p>Cadastrar rápido</p></div>
                 <div class="card-dash" onclick="window.abrirGerenciadorProdutos()"><i class="fa-solid fa-utensils"></i><h3>Cardápio</h3><p>Editar e excluir itens</p></div>
+                <div class="card-dash" onclick="window.abrirGerenciadorCupons()"><i class="fa-solid fa-ticket"></i><h3>Cupons</h3><p>Criar e remover cupons</p></div>
             `;
             carregarCategoriasSelects();
         }
@@ -259,7 +361,6 @@
                 });
             } catch (err) {
                 console.error("Erro ao carregar regiões globais:", err);
-                mostrarNotificacao("Erro ao carregar mapa de cidades.", "error");
             }
         }
 
@@ -288,8 +389,8 @@
                 const div = document.createElement('div');
                 div.className = "checkbox-cidade-item";
                 div.innerHTML = `
-                    <input type="checkbox" id="check-cidade-${cidade}" value="${cidade}" ${checked}>
-                    <label for="check-cidade-${cidade}">${cidade}</label>
+                    <input type="checkbox" id="check-cidade-${cidade.replace(/\s+/g, '')}" value="${cidade}" ${checked}>
+                    <label for="check-cidade-${cidade.replace(/\s+/g, '')}">${cidade}</label>
                 `;
                 wrapper.appendChild(div);
 
@@ -314,7 +415,7 @@
             const ciudadesAtivas = Object.keys(logisticaCidadesLocal).sort();
 
             if (ciudadesAtivas.length === 0) {
-                container.innerHTML = `<p class="logistica-vazia-text">Nenhuma cidade selecionada para rota de entrega.</p>`;
+                container.innerHTML = `<p class="logistica-vazia-text">Nenhuma cidade violentada para rota de entrega.</p>`;
                 return;
             }
 
@@ -328,9 +429,9 @@
                         <h4><i class="fa-solid fa-city"></i> ${cidade}</h4>
                         <div class="inputs-tempo-entrega">
                             <i class="fa-solid fa-stopwatch"></i>
-                            <input type="number" id="time-min-${cidade}" value="${dadosCidade.tempoMin || 40}" min="1" placeholder="Min">
+                            <input type="number" id="time-min-${cidade.replace(/\s+/g, '')}" value="${dadosCidade.tempoMin || 40}" min="1" placeholder="Min">
                             <span>a</span>
-                            <input type="number" id="time-max-${cidade}" value="${dadosCidade.tempoMax || 80}" min="1" placeholder="Max">
+                            <input type="number" id="time-max-${cidade.replace(/\s+/g, '')}" value="${dadosCidade.tempoMax || 80}" min="1" placeholder="Max">
                             <span class="unidade-tempo">min</span>
                         </div>
                     </div>
@@ -345,12 +446,12 @@
                     html += `
                         <div class="bairro-logistica-row">
                             <div class="bairro-check-block">
-                                <input type="checkbox" id="check-bairro-${cidade}-${bairro}" ${checkedBairro}>
-                                <label for="check-bairro-${cidade}-${bairro}">${bairro}</label>
+                                <input type="checkbox" id="check-bairro-${cidade.replace(/\s+/g, '')}-${bairro.replace(/\s+/g, '')}" ${checkedBairro}>
+                                <label for="check-bairro-${cidade.replace(/\s+/g, '')}-${bairro.replace(/\s+/g, '')}">${bairro}</label>
                             </div>
                             <div class="bairro-taxa-block">
                                 <span>R$</span>
-                                <input type="number" id="taxa-bairro-${cidade}-${bairro}" step="0.01" min="0" value="${dadosBairro.taxa ? dadosBairro.taxa.toFixed(2) : '0.00'}" ${dadosBairro.ativo ? '' : 'disabled'}>
+                                <input type="number" id="taxa-bairro-${cidade.replace(/\s+/g, '')}-${bairro.replace(/\s+/g, '')}" step="0.01" min="0" value="${dadosBairro.taxa ? dadosBairro.taxa.toFixed(2) : '0.00'}" ${dadosBairro.ativo ? '' : 'disabled'}>
                             </div>
                         </div>
                     `;
@@ -360,12 +461,12 @@
                 cardCidade.innerHTML = html;
                 container.appendChild(cardCidade);
 
-                document.getElementById(`time-min-${cidade}`).oninput = (e) => dadosCidade.tempoMin = parseInt(e.target.value) || 0;
-                document.getElementById(`time-max-${cidade}`).oninput = (e) => dadosCidade.tempoMax = parseInt(e.target.value) || 0;
+                document.getElementById(`time-min-${cidade.replace(/\s+/g, '')}`).oninput = (e) => dadosCidade.tempoMin = parseInt(e.target.value) || 0;
+                document.getElementById(`time-max-${cidade.replace(/\s+/g, '')}`).oninput = (e) => dadosCidade.tempoMax = parseInt(e.target.value) || 0;
 
                 bairrosDaCidade.forEach(bairro => {
-                    const checkBairro = document.getElementById(`check-bairro-${cidade}-${bairro}`);
-                    const inputTaxa = document.getElementById(`taxa-bairro-${cidade}-${bairro}`);
+                    const checkBairro = document.getElementById(`check-bairro-${cidade.replace(/\s+/g, '')}-${bairro.replace(/\s+/g, '')}`);
+                    const inputTaxa = document.getElementById(`taxa-bairro-${cidade.replace(/\s+/g, '')}-${bairro.replace(/\s+/g, '')}`);
 
                     if (checkBairro && inputTaxa) {
                         checkBairro.addEventListener('change', (e) => {
@@ -420,7 +521,7 @@
                     freteGratisMin: parseFloat(document.getElementById('edit-frete-gratis-min').value) || 0
                 });
                 
-                mostrarNotificacao("Logística de distribuição updated!");
+                mostrarNotificacao("Logística de distribuição atualizada!");
                 window.fecharModal('modal-frete');
                 await carregarDadosLoja();
             } catch (err) { 
@@ -487,7 +588,7 @@
                     statusMaster: document.getElementById('edit-status-loja-master').value,
                     horariosSemana: novaGrade
                 });
-                mostrarNotificacao("Grade de horários updated!");
+                mostrarNotificacao("Grade de horários atualizada!");
                 window.fecharModal('modal-horarios');
                 await carregarDadosLoja();
             } catch (err) {
@@ -521,7 +622,7 @@
                     logoUrl: urlLogo,
                     bannerLoja: urlBanner
                 });
-                mostrarNotificacao("Dados básicos updated!");
+                mostrarNotificacao("Dados básicos atualizados!");
                 window.fecharModal('modal-info');
                 carregarDadosLoja();
             } catch (err) { mostrarNotificacao("Erro ao salvar.", "error"); }
@@ -663,7 +764,6 @@
             }
         };
 
-        // MODIFICADO: Função onsubmit de edição com lógica reativa de placeholders corrigida
         document.getElementById('form-editar-produto').onsubmit = async (e) => {
             e.preventDefault();
             const idProd = document.getElementById('edit-prod-id').value;
@@ -679,7 +779,6 @@
                     const docSnap = await getDoc(doc(db, "produtos", idProd));
                     if (docSnap.exists()) {
                         const dadosAtuais = docSnap.data();
-                        // Se continha imagem em nuvem e não um caminho local de assets, mantém o link
                         if (dadosAtuais.imagem && !dadosAtuais.imagem.includes('../assets/images/')) {
                             imgUrl = dadosAtuais.imagem;
                         }
@@ -691,7 +790,7 @@
                     preco: parseFloat(document.getElementById('edit-produto-preco').value) || 0,
                     categoria: document.getElementById('edit-produto-categoria-select').value,
                     descricao: document.getElementById('edit-produto-descricao').value.trim(),
-                    imagem: imgUrl // Grava "" se herdar categoria flutuante, preservando o comportamento dinâmico
+                    imagem: imgUrl 
                 });
 
                 mostrarNotificacao("Item atualizado com sucesso!");
@@ -767,6 +866,297 @@
             });
         }
 
+        // --- GESTÃO DE CUPONS PRÓPRIOS ---
+        window.abrirGerenciadorCupons = async () => {
+            window.abrirModal('modal-cupons');
+            const lista = document.getElementById('lista-cupons-dashboard');
+            lista.innerHTML = "<p class='loading-produtos-text'>Buscando cupons...</p>";
+            
+            try {
+                const q = query(collection(db, "cupons"), where("lojaId", "==", idLojaGlobal));
+                const snap = await getDocs(q);
+                lista.innerHTML = "";
+
+                if (snap.empty) {
+                    lista.innerHTML = "<p class='loading-produtos-text' style='color:#747d8c;'>Você não possui cupons ativos.</p>";
+                    return;
+                }
+
+                snap.forEach(docSnap => {
+                    const c = docSnap.data();
+                    const expirado = new Date(c.dataExpiracao) < new Date();
+                    const esgotado = c.limiteUsos && (c.usosAtuais >= c.limiteUsos);
+                    const itemDiv = document.createElement('div');
+                    itemDiv.className = "produto-item-admin";
+                    
+                    itemDiv.innerHTML = `
+                        <div class="info-prod-admin" style="padding-left: 0.5rem;">
+                            <h4 style="color:#ff4757; font-weight:600;">${c.codigo}</h4>
+                            <p>${c.tipo === 'porcentagem' ? `${c.valor}% OFF` : `R$ ${c.valor.toFixed(2)} de desconto`}</p>
+                            <p style="font-size:0.8rem; color:#747d8c; margin: 2px 0;">Usos: ${c.usosAtuais || 0} / ${c.limiteUsos || '∞'}</p>
+                            <small style="color:${expirado || esgotado ? '#ff4757' : '#2ed573'}; font-size:0.75rem; font-weight:600;">
+                                ${expirado ? 'Expirado' : esgotado ? 'Esgotado (Limite atingido)' : `Válido até: ${new Date(c.dataExpiracao).toLocaleString('pt-br')}`}
+                            </small>
+                        </div>
+                        <div class="actions-prod-admin">
+                            <button onclick="window.excluirCupom('${docSnap.id}')" title="Excluir Cupom"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                    `;
+                    lista.appendChild(itemDiv);
+                });
+            } catch (err) {
+                console.error(err);
+                lista.innerHTML = "<p class='loading-produtos-text'>Erro ao carregar cupons.</p>";
+            }
+        };
+
+        window.excluirCupom = async (idCupom) => {
+            if (confirm("Deseja apagar esse cupom? Ele deixará de funcionar imediatamente para os clientes.")) {
+                try {
+                    await deleteDoc(doc(db, "cupons", idCupom));
+                    mostrarNotificacao("Cupom removido!");
+                    window.abrirGerenciadorCupons();
+                } catch (err) {
+                    mostrarNotificacao("Falha ao remover cupom.", "error");
+                }
+            }
+        };
+
+        document.getElementById('form-add-cupom').onsubmit = async (e) => {
+            e.preventDefault();
+            const btn = e.target.querySelector('button');
+            const codigoInput = document.getElementById('add-cupom-codigo').value.trim().toUpperCase();
+            const tipo = document.getElementById('add-cupom-tipo').value;
+            const valor = parseFloat(document.getElementById('add-cupom-valor').value) || 0;
+            const valorMinimo = parseFloat(document.getElementById('add-cupom-minimo').value) || 0;
+            const limiteUsos = parseInt(document.getElementById('add-cupom-limite').value) || 10;
+            const horasExpiracao = parseInt(document.getElementById('add-cupom-expiracao').value) || 1;
+
+            btn.disabled = true; btn.innerText = "Cadastrando Cupom...";
+
+            const dataCriacao = new Date();
+            const dataExpiracao = new Date(dataCriacao.getTime() + horasExpiracao * 60 * 60 * 1000);
+
+            try {
+                await addDoc(collection(db, "cupons"), {
+                    codigo: codigoInput,
+                    tipo: tipo,
+                    valor: valor,
+                    valorMinimo: valorMinimo,
+                    limiteUsos: limiteUsos, 
+                    escopo: "loja", 
+                    lojaId: idLojaGlobal, 
+                    nomeLoja: tituloLoja.innerText,
+                    validadeHoras: horasExpiracao,
+                    dataCriacao: dataCriacao.toISOString(),
+                    dataExpiracao: dataExpiracao.toISOString(),
+                    usosAtuais: 0,
+                    usuariosQueUsaram: [] 
+                });
+
+                mostrarNotificacao("Cupom criado com sucesso!");
+                e.target.reset();
+                window.fecharModal('modal-add-cupom');
+                window.abrirGerenciadorCupons();
+            } catch (err) {
+                console.error(err);
+                mostrarNotificacao("Erro ao cadastrar cupom.", "error");
+            } finally {
+                btn.disabled = false; btn.innerText = "Cadastrar Cupom";
+            }
+        };
+
+        // --- MONITOR DE PEDIDOS EM TEMPO REAL ---
+        function inicializarEscutaPedidosRealtime() {
+            const q = query(collection(db, "pedidos"), where("lojaId", "==", idLojaGlobal));
+            
+            onSnapshot(q, (snapshot) => {
+                listaPedidosLocal = [];
+                let contagemPendentes = 0;
+
+                snapshot.forEach(docSnap => {
+                    const p = docSnap.data();
+                    p.id = docSnap.id;
+                    listaPedidosLocal.push(p);
+
+                    if (p.status === "pendente" || p.status === "preparo") {
+                        contagemPendentes++;
+                    }
+                });
+
+                const pContador = document.getElementById('txt-contador-pedidos');
+                if (pContador) {
+                    pContador.innerText = contagemPendentes > 0 ? `${contagemPendentes} pedidos ativos na fila!` : "Nenhum pedido pendente.";
+                    pContador.style.color = contagemPendentes > 0 ? "#ff4757" : "#747d8c";
+                    pContador.style.fontWeight = contagemPendentes > 0 ? "600" : "400";
+                }
+
+                if (document.getElementById('modal-pedidos').classList.contains('active')) {
+                    renderizarListaPedidosModal();
+                }
+            }, (error) => {
+                console.error("Erro na escuta em tempo real dos pedidos:", error);
+            });
+        }
+
+        window.abrirGerenciadorPedidos = () => {
+            window.abrirModal('modal-pedidos');
+            renderizarListaPedidosModal();
+        };
+
+        document.getElementById('tab-pedidos-ativos').onclick = (e) => {
+            filtroAbaPedidos = "ativos";
+            e.target.style.background = "#ff4757";
+            document.getElementById('tab-pedidos-historico').style.background = "#747d8c";
+            renderizarListaPedidosModal();
+        };
+
+        document.getElementById('tab-pedidos-historico').onclick = (e) => {
+            filtroAbaPedidos = "historico";
+            e.target.style.background = "#ff4757";
+            document.getElementById('tab-pedidos-ativos').style.background = "#747d8c";
+            renderizarListaPedidosModal();
+        };
+
+        function renderizarListaPedidosModal() {
+            const container = document.getElementById('lista-pedidos-dashboard');
+            container.innerHTML = "";
+
+            const pedidosFiltrados = listaPedidosLocal.filter(p => {
+                if (filtroAbaPedidos === "ativos") {
+                    return p.status === "pendente" || p.status === "preparo" || p.status === "entrega";
+                } else {
+                    return p.status === "concluido" || p.status === "cancelado";
+                }
+            });
+
+            if (pedidosFiltrados.length === 0) {
+                container.innerHTML = `<p style='text-align:center; padding:2rem; color:#747d8c;'>Nenhum pedido nesta seção.</p>`;
+                return;
+            }
+
+            pedidosFiltrados.sort((a, b) => new Date(b.dataPedido || b.dataCriacao) - new Date(a.dataPedido || a.dataCriacao));
+
+            pedidosFiltrados.forEach(p => {
+                const itemDiv = document.createElement('div');
+                itemDiv.style.cssText = "background:#f8f9fa; border:1px solid #e4e7eb; border-radius:12px; padding:20px; display:flex; flex-direction:column; gap:12px;";
+
+                let strItens = p.itens.map(i => `<span style="font-weight:600; color:#2f3542;">${i.quantidade}x</span> ${i.nome}`).join('<br>');
+
+                let corStatus = "#ffa502"; 
+                if (p.status === "preparo") corStatus = "#1e90ff"; 
+                if (p.status === "entrega") corStatus = "#9b59b6"; 
+                if (p.status === "concluido") corStatus = "#2ed573"; 
+                if (p.status === "cancelado") corStatus = "#ff4757"; 
+
+                let strEntrega = "";
+                if (p.tipoEntrega === "retirada" || p.enderecoEntrega === "Retirada no Balcão") {
+                    strEntrega = `<span style="color:#1e90ff; font-weight:600;"><i class="fa-solid fa-store"></i> Retirada no Balcão</span>`;
+                } else if (p.enderecoEntrega) {
+                    const end = p.enderecoEntrega;
+                    strEntrega = `<strong>Delivery:</strong> ${end.rua}, Nº ${end.numero} - ${end.bairro} (${end.cidade}) ${end.observacao ? ` | Obs: ${end.observacao}` : ''}`;
+                }
+
+                // MODIFICADO: O botão recusar agora abre o Modal customizado em vez de rodar o alert/prompt nativo
+                let htmlBotoesAcao = "";
+                if (p.status === "pendente") {
+                    htmlBotoesAcao = `
+                        <button class="btn-salvar" onclick="window.alterarStatusPedido('${p.id}', 'preparo')" style="background:#1e90ff; padding: 6px 15px; font-size:0.85rem;"><i class="fa-solid fa-utensils"></i> Aceitar e Preparar</button>
+                        <button class="btn-salvar" onclick="window.abrirModalRecusa('${p.id}')" style="background:#ff4757; padding: 6px 15px; font-size:0.85rem;"><i class="fa-solid fa-xmark"></i> Recusar</button>
+                    `;
+                } else if (p.status === "preparo") {
+                    const txtBotao = p.tipoEntrega === "retirada" ? "Pronto p/ Retirada" : "Saiu para Entrega";
+                    htmlBotoesAcao = `
+                        <button class="btn-salvar" onclick="window.alterarStatusPedido('${p.id}', 'entrega')" style="background:#9b59b6; padding: 6px 15px; font-size:0.85rem;"><i class="fa-solid fa-motorcycle"></i> ${txtBotao}</button>
+                    `;
+                } else if (p.status === "entrega") {
+                    htmlBotoesAcao = `
+                        <button class="btn-salvar" onclick="window.alterarStatusPedido('${p.id}', 'concluido')" style="background:#2ed573; padding: 6px 15px; font-size:0.85rem;"><i class="fa-solid fa-circle-check"></i> Finalizar / Entregue</button>
+                    `;
+                }
+
+                // Injeta exibição visual do motivo do cancelamento caso esteja na aba de históricos
+                let htmlMotivoExibicao = "";
+                if (p.status === "cancelado" && p.motivoCancelamento) {
+                    htmlMotivoExibicao = `<p style="margin-top: 4px; padding: 8px; background: #fff5f5; border-radius: 6px; color: #ff4757; font-size: 0.85rem;"><strong>Justificativa da recusa:</strong> "${p.motivoCancelamento}"</p>`;
+                }
+
+                itemDiv.innerHTML = `
+                    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #e4e7eb; padding-bottom:8px;">
+                        <div>
+                            <span style="font-size:0.85rem; color:#747d8c;">ID: ${p.id.slice(0,8).toUpperCase()}...</span>
+                            <h4 style="color:#2f3542; margin-top:2px;"><i class="fa-regular fa-user"></i> ${p.clientNome || "Cliente"}</h4>
+                        </div>
+                        <span style="background:${corStatus}; color:white; padding:4px 12px; border-radius:20px; font-size:0.75rem; font-weight:600; text-transform:uppercase;">${p.status}</span>
+                    </div>
+                    <div style="font-size:0.9rem; color:#57606f; line-height:1.5;">
+                        <div style="background:white; border:1px solid #e4e7eb; padding:10px; border-radius:8px; margin-bottom:8px;">${strItens}</div>
+                        <p style="margin-bottom:4px;">${strEntrega}</p>
+                        <p><strong>Pagamento:</strong> ${p.formaPagamento} ${p.troco && p.troco !== 'Não se aplica' ? ` (Troco para: ${p.troco})` : ''}</p>
+                        ${htmlMotivoExibicao}
+                    </div>
+                    <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid #e4e7eb; padding-top:10px; margin-top:4px;">
+                        <span style="font-size:1.1rem; color:#2f3542; font-weight:600;">Total: R$ ${p.total.toFixed(2)}</span>
+                        <div style="display:flex; gap:8px;">${htmlBotoesAcao}</div>
+                    </div>
+                `;
+                container.appendChild(itemDiv);
+            });
+        }
+
+        // MODIFICADO: Função padrão de alteração de status gerencia o fluxo linear (Aceitar, Despachar, Concluir)
+        window.alterarStatusPedido = async (idPedido, novoStatus) => {
+            try {
+                await updateDoc(doc(db, "pedidos", idPedido), { status: novoStatus });
+                mostrarNotificacao(`Pedido atualizado para: ${novoStatus}!`);
+            } catch (err) {
+                console.error("Erro ao transicionar status do pedido:", err);
+                mostrarNotificacao("Permissão negada ao alterar status.", "error");
+            }
+        };
+
+        // ADICIONADO: Abre o mini-modal capturando a referência correta do documento
+        // Localize esta função no seu script do perfil-loja.html e substitua por esta:
+        window.abrirModalRecusa = (idPedido) => {
+            // 1. Fecha o modal de pedidos para não ter conflito de sobreposição
+            window.fecharModal('modal-pedidos'); 
+            
+            // 2. Prepara os dados
+            document.getElementById('cancelar-pedido-id').value = idPedido;
+            document.getElementById('txt-motivo-recusa').value = "";
+            
+            // 3. Abre o modal de recusa
+            window.abrirModal('modal-motivo-cancelamento');
+        };
+
+        // ADICIONADO: Evento de submissão do formulário de recusa com payload casado
+        document.getElementById('form-motivo-cancelamento').onsubmit = async (e) => {
+            e.preventDefault();
+            const idPedido = document.getElementById('cancelar-pedido-id').value;
+            const motivoTexto = document.getElementById('txt-motivo-recusa').value.trim();
+            const btnSubmit = e.target.querySelector('button[type="submit"]');
+
+            btnSubmit.disabled = true;
+            btnSubmit.innerText = "Processando...";
+
+            try {
+                await updateDoc(doc(db, "pedidos", idPedido), {
+                    status: "cancelado",
+                    motivoCancelamento: motivoTexto
+                });
+                
+                mostrarNotificacao("Pedido recusado e cliente notificado.");
+                window.fecharModal('modal-motivo-cancelamento');
+            } catch (err) {
+                console.error("Erro ao registrar cancelamento:", err);
+                mostrarNotificacao("Falha ao salvar recusa.", "error");
+            } finally {
+                btnSubmit.disabled = false;
+                btnSubmit.innerText = "Confirmar Recusa";
+            }
+        };
+
+        // --- MONITOR DE PERMISSÃO E AUTH ---
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 const snap = await getDoc(doc(db, "usuarios", user.uid));
@@ -775,6 +1165,7 @@
                     await carregarRegioesDoBanco(); 
                     await carregarDadosLoja(); 
                     renderizarDashboard(); 
+                    inicializarEscutaPedidosRealtime(); 
                 }
                 else window.location.href = 'login-loja.html';
             } else window.location.href = 'login.html';

@@ -22,9 +22,9 @@
 
 .login-container {
     width: 100%;
-    max-width: 30rem; /* Aprox 450px */
+    max-width: 35rem;
     background: #fff;
-    padding: 2.5rem;
+    padding: 2rem;
     border-radius: 1rem;
     box-shadow: 0 0.5rem 1.5rem rgba(0,0,0,0.08);
 }
@@ -107,4 +107,166 @@ input.input-error {
     25% { margin-left: 0.5rem; }
     75% { margin-left: -0.5rem; }
     100% { margin-left: 0rem; }
+}
+
+/* ============================================================
+    SELECT DE CATEGORIAS PREMIUM (NORDGO FOOD)
+   ============================================================ */
+
+#loja-categoria {
+    width: 100%;
+    height: 3.2rem;
+    padding: 0 2.5rem 0 1.2rem;
+    background-color: #ffffff;
+    color: #2f3542;
+    font-size: 0.95rem;
+    font-weight: 500;
+    font-family: 'Poppins', sans-serif;
+    border: 1px solid #ff4757; /* Mantém a borda vermelha ativa como no print */
+    border-radius: 0.5rem;
+    outline: none;
+    cursor: pointer;
+    
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23ff4757' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    background-size: 1.1rem;
+    
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 12px rgba(255, 71, 87, 0.05);
+}
+
+#loja-categoria:focus {
+    box-shadow: 0 0 0 4px rgba(255, 71, 87, 0.15);
+}
+
+/* Estilização das Opções Internas (Garante remoção do azul do Windows) */
+#loja-categoria option {
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.95rem;
+    padding: 15px 12px; /* Aumenta a área de clique */
+    background-color: #ffffff;
+    color: #2f3542;
+}
+
+/* CORREÇÃO DO AZUL NATIVO: Sobrescreve a cor de seleção do sistema */
+#loja-categoria option:hover,
+#loja-categoria option:focus,
+#loja-categoria option:active,
+#loja-categoria option:checked {
+    background: #ff4757 linear-gradient(0deg, #ff4757 0%, #ff4757 100%) !important;
+    color: #ffffff !important;
+    background-color: #ff4757 !important;
+}
+
+.custom-select-wrapper {
+    position: relative;
+    width: 100%;
+    font-family: 'Poppins', sans-serif;
+}
+
+.custom-select-trigger {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 3.2rem;
+    padding: 0 1.2rem;
+    background: #ffffff;
+    border: 1px solid #ff4757;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    font-weight: 500;
+    color: #2f3542;
+    font-size: 0.95rem;
+    transition: all 0.2s;
+}
+
+.custom-select-trigger i {
+    color: #ff4757;
+    font-size: 0.85rem;
+    transition: transform 0.2s;
+}
+
+/* A Lista Flutuante Arredondada Real */
+.custom-options-box {
+    position: absolute;
+    top: calc(100% + 5px);
+    left: 0;
+    right: 0;
+    background: #ffffff;
+    border-radius: 0.8rem; /* Cantos arredondados na lista */
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+    border: 1px solid #eee;
+    z-index: 999;
+    max-height: 220px;
+    overflow-y: auto; /* Permite a barra de rolagem */
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: all 0.2s ease;
+
+    /* --- Estilização da Barra de Rolagem --- */
+    /* 1. Define a largura da barra */
+    scrollbar-width: thin; /* Para Firefox: torna a barra mais fina */
+    scrollbar-color: #ff4757 #f0f0f0; /* Para Firefox: cor do thumb e da track */
+}
+
+/* Estilização para Navegadores Webkit (Chrome, Edge, Safari) */
+/* 2. O contêiner da barra de rolagem */
+.custom-options-box::-webkit-scrollbar {
+    width: 10px; /* Largura da barra vertical */
+    height: 10px; /* Altura da barra horizontal, se houver */
+}
+
+/* 3. A "Track" (o caminho onde a barra corre) */
+.custom-options-box::-webkit-scrollbar-track {
+    background: #f0f0f0; /* Cor de fundo do caminho */
+    border-radius: 10px; /* ARREDONDA A BORDA DA TRACK */
+}
+
+/* 4. O "Thumb" (a parte que você arrasta) */
+.custom-options-box::-webkit-scrollbar-thumb {
+    background-color: #ff4757; /* Cor da barra de arrastar (vermelho NordGo) */
+    border-radius: 10px; /* ARREDONDA A BORDA DO THUMB */
+    border: 2px solid #f0f0f0; /* Adiciona uma borda para criar um espaçamento e destacar o arredondamento */
+}
+
+/* 5. Efeito no Thumb ao passar o mouse */
+.custom-options-box::-webkit-scrollbar-thumb:hover {
+    background-color: #e03646; /* Cor ligeiramente mais escura ao passar o mouse */
+}
+
+/* Quando abrir a lista */
+.custom-select-wrapper.active .custom-options-box {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.custom-select-wrapper.active .custom-select-trigger i {
+    transform: rotate(180deg);
+}
+
+/* Cada item da lista */
+.custom-option {
+    padding: 12px 15px;
+    cursor: pointer;
+    font-size: 0.95rem;
+    color: #2f3542;
+    transition: all 0.15s;
+}
+
+.custom-option:hover {
+    background-color: #ff4757;
+    color: #ffffff;
+}
+
+.custom-option.selected {
+    background-color: #fffafb;
+    color: #ff4757;
+    font-weight: 600;
 }

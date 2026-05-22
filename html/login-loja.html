@@ -5,9 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Venda na Nordgo | Nordgo Food</title>
     <link rel="icon" type="image/png" href="../assets/images/favicon.png">
-    <link rel="stylesheet" href="../css/styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="../css/styles-login.css">
 </head>
 <body>
     <div id="toast-container" class="toast-container"></div>
@@ -15,22 +17,26 @@
     <header class="main-header">
         <div class="header-container">
             <div class="header-left">
-                <button onclick="window.location.href='../index.html'" class="btn-back">
-                    <i class="fa-solid fa-arrow-left"></i>
-                    <span>Sair</span>
-                </button>
+                <div class="pill-badge pill-back" onclick="window.location.href='../index.html'">
+                    <img src="../assets/images/voltar.png" alt="Voltar" class="back-icon-img">
+                    <span class="location-text">Voltar</span>
+                </div>
             </div>
+            
             <div class="header-center">
-                <img src="../assets/images/nordgo-logo.png" alt="NordGo Food" class="main-logo">
+                <div class="pill-badge pill-page-title">
+                    <span class="page-title-text">Seja Parceiro</span>
+                </div>
             </div>
-            <div class="header-right"></div>
+            
+            <div class="header-right" id="user-area">
+                <div class="user-loading-placeholder"></div>
+            </div>
         </div>
     </header>
 
     <main class="container">
-        
         <div class="login-container profile-page">
-
             <div id="section-criar-loja" class="hidden">
                 <header class="login-header">
                     <div class="badge-vendedor">Nova Loja</div>
@@ -45,9 +51,14 @@
                     
                     <input type="text" id="loja-cpf-cnpj" placeholder="CPF ou CNPJ" maxlength="18">
                     
-                    <select id="loja-categoria">
-                        <option value="">Selecione uma Categoria</option>
-                    </select>
+                    <div class="custom-select-wrapper">
+                        <div class="custom-select-trigger" id="categoria-trigger">
+                            <span id="categoria-selected-text" style="color: #a0a8b5;">Categoria da Loja</span>
+                            <i class="fa-solid fa-chevron-down"></i>
+                        </div>
+                        <div class="custom-options-box" id="categoria-options"></div>
+                        <input type="hidden" id="loja-categoria" value="">
+                    </div>
 
                     <textarea id="loja-descricao" class="full-width" placeholder="Descrição curta da loja" rows="2"></textarea>
 
@@ -74,10 +85,24 @@
     <script type="module">
         import { auth, db, mostrarNotificacao } from '../js/firebase-config.js';
         import { doc, getDoc, getDocs, updateDoc, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
-        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
+        import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
 
         const containerCadastro = document.getElementById('section-criar-loja');
-        const selectCategoria = document.getElementById('loja-categoria');
+        
+        const selectWrapper = document.querySelector('.custom-select-wrapper');
+        const selectTrigger = document.getElementById('categoria-trigger');
+        const selectedText = document.getElementById('categoria-selected-text');
+        const optionsBox = document.getElementById('categoria-options');
+        const inputHiddenCategoria = document.getElementById('loja-categoria');
+
+        selectTrigger.addEventListener('click', (e) => {
+            e.stopPropagation();
+            selectWrapper.classList.toggle('active');
+        });
+
+        document.addEventListener('click', () => {
+            selectWrapper.classList.remove('active');
+        });
 
         // Máscara Dinâmica CPF/CNPJ
         document.getElementById('loja-cpf-cnpj').oninput = (e) => {
@@ -90,7 +115,7 @@
             e.target.value = v;
         };
 
-        // Máscara Dinâmica de CEP + Evento Blur para consultar a API postal ViaCEP
+        // Máscara Dinâmica de CEP
         const aplicarMascaraCEP = (valor) => {
             return valor.replace(/\D/g, "").replace(/^(\d{5})(\d)/, "$1-$2");
         };
@@ -149,15 +174,35 @@
         async function carregarCategorias() {
             try {
                 const querySnapshot = await getDocs(collection(db, "categorias"));
-                querySnapshot.forEach((doc) => {
-                    const opt = document.createElement('option');
-                    opt.value = doc.data().nome; 
-                    opt.textContent = doc.data().nome;
-                    selectCategoria.appendChild(opt);
+                optionsBox.innerHTML = ""; 
+
+                querySnapshot.forEach((docSnap) => {
+                    const nomeCat = docSnap.data().nome;
+                    
+                    const optionDiv = document.createElement('div');
+                    optionDiv.className = 'custom-option';
+                    optionDiv.textContent = nomeCat;
+                    optionDiv.setAttribute('data-value', nomeCat);
+
+                    optionDiv.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        
+                        inputHiddenCategoria.value = nomeCat;
+                        selectedText.textContent = nomeCat;
+                        selectedText.removeAttribute('style'); 
+
+                        document.querySelectorAll('.custom-option').forEach(opt => opt.classList.remove('selected'));
+                        optionDiv.classList.add('selected');
+
+                        selectWrapper.classList.remove('active');
+                    });
+
+                    optionsBox.appendChild(optionDiv);
                 });
-            } catch (e) { console.error("Erro categorias:", e); }
+            } catch (e) { console.error("Erro categories:", e); }
         }
 
+        // MONITOR DE SEGURANÇA: Bloqueia a criação de lojas por usuários banidos
         onAuthStateChanged(auth, async (user) => {
             if (!user) { window.location.href = 'login.html'; return; }
 
@@ -165,14 +210,20 @@
                 const userDoc = await getDoc(doc(db, "usuarios", user.uid));
                 const userData = userDoc.data();
 
+                // Trava ativa antievasão
+                if (userData?.status === "suspenso") {
+                    mostrarNotificacao("Sua conta está suspensa. Acesso negado.", "error");
+                    await signOut(auth);
+                    setTimeout(() => window.location.href = 'login.html', 1500);
+                    return;
+                }
+
                 if (userData?.loja) {
                     window.location.href = 'perfil-loja.html';
                     return; 
                 }
 
                 await carregarCategorias();
-                
-                // Exibe o formulário diretamente sem dependência de esqueleto
                 containerCadastro.classList.remove('hidden');
 
             } catch (error) {
@@ -185,15 +236,19 @@
             const user = auth.currentUser;
             const btn = document.getElementById('btn-finalizar-loja');
             
+            const cidadeRaw = document.getElementById('loja-cidade').value.trim();
+            const estadoRaw = document.getElementById('loja-estado').value.trim().toUpperCase();
+
+            // MODIFICADO: cidadeLoja agora salva no formato unificado 'Cidade - UF'
             const dadosLoja = {
                 nome: document.getElementById('loja-nome').value.trim(),
                 cpfCnpj: document.getElementById('loja-cpf-cnpj').value.trim(),
-                categoria: selectCategoria.value,
+                categoria: inputHiddenCategoria.value, 
                 descricao: document.getElementById('loja-descricao').value.trim(),
                 cepLoja: document.getElementById('loja-cep').value.trim(),
                 bairroLoja: document.getElementById('loja-bairro').value.trim(),
-                cidadeLoja: document.getElementById('loja-cidade').value.trim(),
-                estadoLoja: document.getElementById('loja-estado').value.trim(),
+                cidadeLoja: `${cidadeRaw} - ${estadoRaw}`, 
+                estadoLoja: estadoRaw,
                 ruaLoja: document.getElementById('loja-rua').value.trim(),
                 numeroLoja: document.getElementById('loja-numero').value.trim(),
                 complementoLoja: document.getElementById('loja-complemento').value.trim(),
@@ -203,7 +258,7 @@
                 temaLoja: "#ff4757"
             };
 
-            if (!dadosLoja.nome || !dadosLoja.cpfCnpj || !dadosLoja.categoria || !dadosLoja.cidadeLoja) {
+            if (!dadosLoja.nome || !dadosLoja.cpfCnpj || !dadosLoja.categoria || !cidadeRaw) {
                 mostrarNotificacao("Preencha Nome, Documento, Categoria e um CEP válido.", "error");
                 return;
             }

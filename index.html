@@ -44,7 +44,7 @@
         <div class="search-cep-container">
             <div class="search-cep-wrapper">
                 <i class="fa-solid fa-location-dot icon-cep"></i>
-                <input type="text" id="input-cep-cliente" placeholder="Digite seu CEP para encontrar lojas próximas...">
+                <input type="text" id="input-cep-cliente" placeholder="Busque lojas usando seu CEP...">
                 <button type="button" id="btn-buscar-cep">Ver Lojas</button>
             </div>
         </div>
@@ -56,16 +56,38 @@
         <div id="lista-lojas" class="grid-lojas"></div>
     </main>
 
-    <script type="module" src="./js/firebase-config.js"></script>
     <script type="module" src="./js/cart-helper.js"></script>
 
     <script type="module">
         import { auth, db } from './js/firebase-config.js';
-        import { collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
+        import { collection, getDocs, query, orderBy, where, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
+        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
         import { atualizarCarrinhoFlutuante } from './js/cart-helper.js';
 
-        // Cache local das lojas carregadas para permitir filtros instantâneos sem novas requisições
+        // Cache local das lojas carregadas para permitir filtros instantâneos
         let listaLojasGlobal = [];
+
+        // EVOLUÇÃO: Cálculo progressivo de proximidade por precisão de dígitos do CEP
+        function calcularIndicadorProximidade(cepUsuario, cepLoja) {
+            if (!cepLoja) return "Distância indisponível";
+            
+            const u = cepUsuario.replace(/\D/g, '');
+            const l = cepLoja.replace(/\D/g, '');
+            
+            // 1ª Prioridade: CEP idêntico (Mesma rua ou complexo)
+            if (u === l) return "Muito próximo (Mesmo CEP)";
+            
+            // 2ª Prioridade: Mesmos 5 dígitos iniciais (Geralmente define o mesmo bairro/setor)
+            if (u.substring(0, 5) === l.substring(0, 5)) return "No seu bairro (Muito Próximo)";
+            
+            // 3ª Prioridade: Mesmos 4 dígitos iniciais (Zonas ou bairros vizinhos próximos)
+            if (u.substring(0, 4) === l.substring(0, 4)) return "Próximo (Bairro Vizinho)";
+            
+            // 4ª Prioridade: Mesmos 3 dígitos (Mesma cidade ou microrregião)
+            if (u.substring(0, 3) === l.substring(0, 3)) return "Mesma Cidade";
+            
+            return "Outra Região";
+        }
 
         // Lógica de Busca por Texto
         const inputBusca = document.getElementById('input-busca');
@@ -73,7 +95,7 @@
             if (e.key === 'Enter') {
                 const valor = inputBusca.value.trim();
                 if (valor !== "") {
-                    window.location.href = `html/pesquisa.html?busca=${encodeURIComponent(valor)}`;
+                    window.location.href = `./html/pesquisa.html?busca=${encodeURIComponent(valor)}`;
                 }
             }
         });
@@ -83,36 +105,67 @@
         renderizarCategorias();
         renderizarLojas();
 
-        // --- SISTEMA DE FILTRAGEM GEOGRÁFICA POR CEP ---
-        function executarFiltroCEP() {
-            const inputCEP = document.getElementById('input-cep-cliente');
-            const cepValue = inputCEP.value.replace(/\D/g, '').substring(0, 4); // Captura os primeiros 4 dígitos
+        // AUTOMAÇÃO GEOGRÁFICA SILENCIOSA
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                try {
+                    const userDoc = await getDoc(doc(db, "usuarios", user.uid));
+                    if (userDoc.exists()) {
+                        const userData = userDoc.data();
+                        let cepPerfil = null;
+                        
+                        if (userData.enderecoCliente && Array.isArray(userData.enderecoCliente)) {
+                            const enderecoPadrao = userData.enderecoCliente.find(end => end.padrao === true) || userData.enderecoCliente[0];
+                            if (enderecoPadrao && enderecoPadrao.cep) {
+                                cepPerfil = enderecoPadrao.cep;
+                            }
+                        }
+                        
+                        if (cepPerfil) {
+                            localStorage.setItem('nordgo_cep_usuario', cepPerfil);
+                            if (listaLojasGlobal.length > 0) {
+                                exibirLojasNaTela(listaLojasGlobal, cepPerfil);
+                            }
+                        }
+                    }
+                } catch (err) {
+                    console.error("Erro ao sincronizar localização do perfil:", err);
+                }
+            }
+        });
 
-            if (inputCEP.value.trim() === "") {
-                exibirLojasNaTela(listaLojasGlobal); // Se limpar o campo, exibe todas as lojas de volta
+        // --- SISTEMA DE FILTRAGEM GEOGRÁFICA POR CEP ---
+        function ejecutarFiltroCEP() {
+            const inputCEP = document.getElementById('input-cep-cliente');
+            const cepValue = inputCEP.value.trim();
+
+            if (cepValue === "") {
+                localStorage.removeItem('nordgo_cep_usuario');
+                exibirLojasNaTela(listaLojasGlobal, null); 
                 return;
             }
 
-            if (cepValue.length < 4) {
+            const cepSimplificado = cepValue.replace(/\D/g, '').substring(0, 4);
+            if (cepSimplificado.length < 4) {
                 alert("Digite pelo menos os 4 primeiros dígitos do seu CEP.");
                 return;
             }
 
-            // Filtra as lojas comparando o prefixo do CEP
+            localStorage.setItem('nordgo_cep_usuario', cepValue);
+
             const lojasProximas = listaLojasGlobal.filter(loja => {
                 if (!loja.cepLoja) return false;
                 const cepLojaSimplificado = loja.cepLoja.replace(/\D/g, '').substring(0, 4);
-                return cepLojaSimplificado === cepValue;
+                return cepLojaSimplificado === cepSimplificado;
             });
 
-            exibirLojasNaTela(lojasProximas);
-
+            exibirLojasNaTela(lojasProximas, cepValue);
             document.querySelector('.section-title').scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
 
-        document.getElementById('btn-buscar-cep').addEventListener('click', executarFiltroCEP);
+        document.getElementById('btn-buscar-cep').addEventListener('click', ejecutarFiltroCEP);
         document.getElementById('input-cep-cliente').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') executarFiltroCEP();
+            if (e.key === 'Enter') ejecutarFiltroCEP();
         });
 
         async function renderizarCategorias() {
@@ -126,32 +179,33 @@
                     const div = document.createElement('div');
                     div.className = 'cat-item';
                     div.innerText = cat.nome;
-                    div.onclick = () => window.location.href = `html/pesquisa.html?categoria=${encodeURIComponent(cat.slug || cat.nome)}`;
+                    div.onclick = () => window.location.href = `./html/pesquisa.html?categoria=${encodeURIComponent(cat.slug || cat.nome)}`;
                     container.appendChild(div);
                 });
             } catch (e) { container.innerHTML = "Erro ao carregar categorias."; }
         }
 
-        // Carrega os dados do Firestore apenas uma vez
         async function renderizarLojas() {
             const lista = document.getElementById('lista-lojas');
             try {
-                const querySnapshot = await getDocs(collection(db, "lojas"));
+                const q = query(collection(db, "lojas"), where("status", "==", "aprovado"));
+                const querySnapshot = await getDocs(q);
                 listaLojasGlobal = []; 
                 
                 querySnapshot.forEach(doc => {
                     listaLojasGlobal.push({ id: doc.id, ...doc.data() });
                 });
 
-                exibirLojasNaTela(listaLojasGlobal);
+                const cepExistente = localStorage.getItem('nordgo_cep_usuario');
+                exibirLojasNaTela(listaLojasGlobal, cepExistente);
             } catch (e) { 
                 console.error(e);
                 lista.innerHTML = "<p>Erro ao carregar lojas.</p>"; 
             }
         }
 
-        // Desenha os elementos na tela com base no array enviado
-        function exibirLojasNaTela(lojas) {
+        // EVOLUÇÃO CRÍTICA: Ordenação matemática baseada na diferença real numérica de 8 dígitos
+        function exibirLojasNaTela(lojas, cepUsuario = null) {
             const lista = document.getElementById('lista-lojas');
             lista.innerHTML = "";
 
@@ -160,25 +214,53 @@
                 return;
             }
 
-            lojas.forEach(loja => {
-                const fotoExibir = loja.logoUrl || 'assets/images/default-loja.png';
+            let lojasProcessadas = [...lojas];
+            if (cepUsuario) {
+                // Remove caracteres especiais e converte o CEP do usuário para um número inteiro puro
+                const uFull = parseInt(cepUsuario.replace(/\D/g, ''));
                 
-                // AJUSTE: Verifica se existe o banner físico, caso contrário aplica a cor do tema de fallback
+                lojasProcessadas.sort((a, b) => {
+                    if (!a.cepLoja) return 1;
+                    if (!b.cepLoja) return -1;
+                    
+                    const aFull = parseInt(a.cepLoja.replace(/\D/g, ''));
+                    const bFull = parseInt(b.cepLoja.replace(/\D/g, ''));
+                    
+                    // Calcula a distância matemática absoluta de desvio do CEP
+                    const diffA = Math.abs(uFull - aFull);
+                    const diffB = Math.abs(uFull - bFull);
+                    
+                    return diffA - diffB; // Menor desvio numérico (mais perto) assume o topo da lista
+                });
+            }
+
+            lojasProcessadas.forEach(loja => {
+                const fotoExibir = loja.logoUrl || './assets/images/default-loja.png';
+                
                 const estiloBanner = loja.bannerLoja && loja.bannerLoja.trim() !== ""
                     ? `background-image: url('${loja.bannerLoja}'); background-size: cover; background-position: center;`
                     : `background-color: ${loja.temaLoja || '#ff4757'};`;
 
+                let indicadorProximidadeHtml = "";
+                if (cepUsuario && loja.cepLoja) {
+                    const proximidadeTexto = calcularIndicadorProximidade(cepUsuario, loja.cepLoja);
+                    indicadorProximidadeHtml = `<span class="badge-proximidade"><i class="fa-solid fa-person-biking"></i> ${proximidadeTexto}</span>`;
+                } else {
+                    indicadorProximidadeHtml = `<span class="badge-proximidade" style="color: #a0a8b5;"><i class="fa-solid fa-location-crosshairs"></i> Informe seu CEP para calcular</span>`;
+                }
+
                 lista.innerHTML += `
-                    <div class="card-loja" onclick="window.location.href='html/loja.html?loja=${loja.id}'">
+                    <div class="card-loja" onclick="window.location.href='./html/loja.html?loja=${loja.id}'">
                         <div class="banner-loja" style="${estiloBanner}">
                             <img src="${fotoExibir}" 
                                  class="logo-loja" 
                                  alt="Logo ${loja.nome}"
-                                 onerror="this.src='assets/images/default-loja.png'">
+                                 onerror="this.src='./assets/images/default-loja.png'">
                         </div>
                         <div class="info-loja">
                             <h3>${loja.nome}</h3>
                             <p>${loja.categoria} • ${loja.bairroLoja || 'Centro'}</p>
+                            ${indicadorProximidadeHtml}
                         </div>
                     </div>`;
             });
