@@ -1,4 +1,122 @@
 /* ============================================================
+   MÓDULO: DASHBOARD INTEGRADO (LAYOUT DE DUAS COLUNAS)
+   ============================================================ */
+
+/* Container mestre reconfigurado para suportar o fluxo lado a lado */
+.dashboard-container { 
+    max-width: 1440px; 
+    margin: 2rem auto; 
+    padding: 0 1.5rem; 
+}
+
+/* Envoltório do layout de duas colunas */
+.dashboard-layout-wrapper {
+    display: grid;
+    grid-template-columns: 1fr 440px; /* Divide ações do lojista (esquerda) e cozinha (direita) */
+    gap: 2rem;
+    align-items: start;
+}
+
+/* Coluna da Esquerda: Ações do Dashboard */
+.grid-dashboard { 
+    display: grid; 
+    grid-template-columns: repeat(auto-fit, minmax(17.5rem, 1fr)); 
+    gap: 1.5625rem; 
+}
+
+/* Coluna da Direita: Painel Fixo Vertical de Pedidos (Estilo Monitor de Cozinha) */
+.painel-pedidos-fixo {
+    background: #ffffff;
+    border-radius: 1.5625rem;
+    padding: 1.875rem;
+    border: 0.0625rem solid #f0f0f0;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 140px); /* Ocupa a altura útil da tela */
+    position: sticky;
+    top: 100px; /* Trava no topo ao rolar a página */
+    box-sizing: border-box;
+}
+
+/* Cabeçalho interno do monitor fixo */
+.header-pedidos-fixo {
+    border-bottom: 2px solid #f1f1f1;
+    padding-bottom: 1rem;
+    margin-bottom: 1.25rem;
+    flex-shrink: 0;
+}
+
+.header-pedidos-fixo h2 {
+    font-size: 1.2rem;
+    color: #2f3542;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 0;
+    margin-bottom: 1rem;
+    font-weight: 600;
+}
+
+.header-pedidos-fixo h2 i {
+    color: #ff4757;
+}
+
+/* Badge numérico de controle */
+#txt-contador-pedidos-badge {
+    font-size: 0.8rem;
+    background: #f1f2f6;
+    color: #2f3542;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+/* Abas seletoras de visualização interna do monitor */
+.tabs-pedidos-fixo {
+    display: flex;
+    gap: 10px;
+}
+
+.tabs-pedidos-fixo button {
+    flex: 1;
+    padding: 0.625rem !important;
+    font-size: 0.85rem !important;
+    border-radius: 0.75rem !important;
+    margin: 0 !important;
+}
+
+/* Container de Rolagem Isolado dos Pedidos */
+.lista-pedidos-fixo-scroll {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    overflow-y: auto !important; /* Rolagem interna macia */
+    flex-content: start;
+    flex: 1;
+    padding-right: 4px;
+}
+
+.lista-pedidos-fixo-scroll p {
+    text-align: center;
+    padding: 2rem 0;
+    color: #747d8c;
+    font-size: 0.9rem;
+}
+
+/* Responsividade para telas menores e tablets */
+@media (max-width: 1024px) {
+    .dashboard-layout-wrapper {
+        grid-template-columns: 1fr; /* Empilha os blocos em telas compactas */
+    }
+    .painel-pedidos-fixo {
+        position: static;
+        height: 600px;
+    }
+}
+
+/* ============================================================
    PAINEL DO LOJISTA (PERFIL-LOJA.HTML) - VERSÃO PADRONIZADA
    ============================================================ */
 
@@ -35,7 +153,7 @@
     padding: 1.875rem;
     position: relative;
     overflow-y: auto;
-    transform: scale(0.9); /* Efeito de zoom suave em vez de deslize */
+    transform: scale(0.9);
     transition: all 0.3s ease;
     box-shadow: 0 20px 50px rgba(0,0,0,0.2);
 }
@@ -91,13 +209,12 @@
 
 .logo-preview-container {
     display: flex;
-    flex-direction: column; /* Alinha preview e instrução verticalmente */
+    flex-direction: column;
     align-items: center;
-    gap: 0.9375rem; /* 15px */
-    margin-bottom: 0.625rem; /* 10px */
+    gap: 0.9375rem;
+    margin-bottom: 0.625rem;
 }
 
-/* Esconde o input de arquivo padrão do navegador */
 .input-file-hidden {
     display: none;
 }
@@ -105,11 +222,11 @@
 #preview-logo, 
 #preview-produto-add, 
 #preview-produto-edit {
-    width: 3.75rem; /* 60px */
-    height: 3.75rem; /* 60px */
+    width: 3.75rem;
+    height: 3.75rem;
     border-radius: 50%;
     object-fit: cover;
-    border: 0.125rem solid #f1f1f1; /* 2px */
+    border: 0.125rem solid #f1f1f1;
     background: #f9f9f9;
     cursor: pointer;
     transition: filter 0.3s ease;
@@ -117,9 +234,9 @@
 
 #preview-produto-add, 
 #preview-produto-edit { 
-    border-radius: 0.75rem; /* 12px */
-    width: 5rem; /* 80px */
-    height: 5rem; /* 80px */
+    border-radius: 0.75rem;
+    width: 5rem;
+    height: 5rem;
 }
 
 #preview-logo:hover, 
@@ -134,19 +251,7 @@
     font-weight: 600;
     cursor: pointer;
     text-transform: uppercase;
-    letter-spacing: 0.03125rem; /* 0.5px */
-}
-
-.dashboard-container { 
-    max-width: 75rem; 
-    margin: 2rem auto; 
-    padding: 0 1.5rem; 
-}
-
-.grid-dashboard { 
-    display: grid; 
-    grid-template-columns: repeat(auto-fit, minmax(17.5rem, 1fr)); 
-    gap: 1.5625rem; 
+    letter-spacing: 0.03125rem;
 }
 
 .card-dash {
@@ -155,7 +260,7 @@
     border-radius: 1.25rem;
     text-align: center;
     cursor: pointer;
-    border: 0.0625rem solid #f0f0f0; /* 1px */
+    border: 0.0625rem solid #f0f0f0;
     box-sizing: border-box;
     transition: all 0.2s ease;
 }
@@ -173,7 +278,7 @@
 }
 
 .card-dash h3 { 
-    margin-bottom: 0.625rem; /* 10px */
+    margin-bottom: 0.625rem;
     color: #2f3542; 
     font-weight: 600; 
 }
@@ -188,26 +293,26 @@
 .produtos-admin-list {
     display: flex;
     flex-direction: column;
-    gap: 0.75rem; /* 12px */
-    margin-bottom: 1.25rem; /* 20px */
-    max-height: 25rem; /* 400px */
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+    max-height: 25rem;
     overflow-y: auto;
 }
 
 .produto-item-admin {
     display: flex;
     align-items: center;
-    gap: 0.9375rem; /* 15px */
-    padding: 0.75rem; /* 12px */
+    gap: 0.9375rem;
+    padding: 0.75rem;
     background: #fdfdfd;
-    border: 0.09375rem solid #f1f1f1; /* 1.5px */
-    border-radius: 1rem; /* 16px */
+    border: 0.09375rem solid #f1f1f1;
+    border-radius: 1rem;
 }
 
 .img-prod-admin { 
-    width: 3.125rem; /* 50px */
-    height: 3.125rem; /* 50px */
-    border-radius: 0.625rem; /* 10px */
+    width: 3.125rem; 
+    height: 3.125rem; 
+    border-radius: 0.625rem; 
     object-fit: cover; 
 }
 
@@ -219,19 +324,19 @@
 .info-prod-admin h4 { 
     font-size: 0.9rem; 
     color: #333; 
-    margin-bottom: 0.125rem; /* 2px */
+    margin-bottom: 0.125rem; 
 }
 
 .actions-prod-admin { 
     display: flex; 
-    gap: 0.5rem; /* 8px */
+    gap: 0.5rem; 
 }
 
 .btn-action-prod {
     border: none; 
-    width: 2.1875rem; /* 35px */
-    height: 2.1875rem; /* 35px */
-    border-radius: 0.625rem; /* 10px */
+    width: 2.1875rem; 
+    height: 2.1875rem; 
+    border-radius: 0.625rem; 
     cursor: pointer; 
     transition: 0.2s; 
     display: flex; 
@@ -247,7 +352,7 @@
 
 /* --- LABELS E INPUTS (MODERNO) --- */
 .input-group { 
-    margin-bottom: 1.125rem; /* 18px */
+    margin-bottom: 1.125rem; 
     display: flex; 
     flex-direction: column; 
     align-items: flex-start; 
@@ -257,19 +362,19 @@
     font-size: 0.75rem; 
     font-weight: 600; 
     color: #888; 
-    margin-bottom: 0.375rem; /* 6px */
-    margin-left: 0.25rem; /* 4px */
+    margin-bottom: 0.375rem; 
+    margin-left: 0.25rem; 
     text-transform: uppercase; 
-    letter-spacing: 0.03125rem; /* 0.5px */
+    letter-spacing: 0.03125rem; 
 }
 
 .modal-body input, 
 .modal-body select, 
 .modal-body textarea {
     width: 100%;
-    padding: 0.75rem 1rem; /* 12px 16px */
-    border: 0.09375rem solid #f1f1f1; /* 1.5px */
-    border-radius: 0.875rem; /* 14px */
+    padding: 0.75rem 1rem;
+    border: 0.09375rem solid #f1f1f1;
+    border-radius: 0.875rem;
     background: #fdfdfd;
     font-family: inherit;
     font-size: 0.95rem;
@@ -288,17 +393,17 @@
 .input-row { 
     display: grid; 
     grid-template-columns: 1fr 1fr; 
-    gap: 0.9375rem; /* 15px */
+    gap: 0.9375rem; 
     width: 100%; 
 }
 
 .btn-salvar { 
     width: 100%; 
-    padding: 0.9375rem; /* 15px */
+    padding: 0.9375rem; 
     background: #2ed573; 
     color: white; 
     border: none; 
-    border-radius: 0.875rem; /* 14px */
+    border-radius: 0.875rem; 
     font-weight: 600; 
     cursor: pointer; 
     transition: 0.3s;
@@ -308,10 +413,10 @@
 
 /* --- ZONA DE PERIGO --- */
 .danger-zone {
-    margin-top: 1.5625rem; /* 25px */
-    padding: 0.9375rem; /* 15px */
-    border: 0.0625rem solid #ffebeb; /* 1px */
-    border-radius: 0.875rem; /* 14px */
+    margin-top: 1.5625rem; 
+    padding: 0.9375rem; 
+    border: 0.0625rem solid #ffebeb; 
+    border-radius: 0.875rem; 
     background-color: #fff9f9; 
     text-align: center;
 }
@@ -319,16 +424,16 @@
 .danger-text { 
     color: #e74c3c; 
     font-size: 0.8rem; 
-    margin-bottom: 0.75rem; /* 12px */
+    margin-bottom: 0.75rem; 
 }
 
 .btn-excluir { 
     background: #ffeded; 
     color: #e74c3c; 
-    border: 0.0625rem solid #ffcfcf; /* 1px */
+    border: 0.0625rem solid #ffcfcf; 
     width: 100%; 
-    padding: 0.625rem; /* 10px */
-    border-radius: 0.625rem; /* 10px */
+    padding: 0.625rem; 
+    border-radius: 0.625rem; 
     cursor: pointer; 
     font-weight: 600;
     transition: 0.3s;
@@ -343,18 +448,16 @@
    UPLOAD COMPACTADO DE MINIATURAS E BANNER - CONFIGURAÇÃO DA LOJA
    ========================================================================== */
 
-/* Caixa envolvente do Banner */
 .banner-preview-container {
     width: 100%;
     margin-bottom: 1rem;
 }
 
-/* Moldura Proporcional do Campo do Banner (Aspect Ratio ~3:1) */
 .wrapper-banner-input {
     position: relative;
     display: block;
     width: 100%;
-    height: 10rem; /* 160px */
+    height: 10rem; 
     border-radius: 0.75rem;
     overflow: hidden;
     cursor: pointer;
@@ -363,7 +466,6 @@
     border: 0.125rem dashed #e8e8e8;
 }
 
-/* Elemento interno que renderiza o background-image do Banner */
 .banner-preview-element {
     width: 100%;
     height: 100%;
@@ -373,7 +475,6 @@
     transition: filter 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
-/* Máscara de Hover que reveals o ícone de ação */
 .overlay-banner-input-upload {
     position: absolute;
     inset: 0;
@@ -399,16 +500,14 @@
     letter-spacing: 0.05rem;
 }
 
-/* Gatilhos de Hover */
 .wrapper-banner-input:hover .overlay-banner-input-upload {
     opacity: 1;
 }
 
 .wrapper-banner-input:hover .banner-preview-element {
-    filter: blur(0.0625rem); /* 1px */
+    filter: blur(0.0625rem);
 }
 
-/* Correções para o input color */
 .color-picker-container input[type="color"]::-webkit-color-swatch-wrapper {
     padding: 0;
 }
@@ -422,7 +521,6 @@
    ESTILOS COMPLEMENTARES - PAINEL ADMINISTRATIVO (NORDGO)
    ============================================================ */
 
-/* Cabeçalho & Botão Ver Loja */
 .btn-ver-loja-header {
     cursor: pointer;
     background-color: #f5f5f5;
@@ -445,7 +543,6 @@
     min-width: 120px;
 }
 
-/* Color Picker Customizado */
 .color-picker-container {
     display: flex;
     align-items: center;
@@ -473,14 +570,12 @@
     color: #333;
 }
 
-/* Modais e Subtítulos */
 .modal-subtitulo-frete {
     font-size: 0.9rem;
     color: #666;
     margin-bottom: 20px;
 }
 
-/* Box de Inclusão de Bairros */
 .bairro-cadastro-box {
     align-items: flex-end;
     gap: 10px;
@@ -520,7 +615,6 @@
     background: #26af5f;
 }
 
-/* Container de Rolagem dos Bairros */
 .bairros-lista-container-scroll {
     margin-top: 15px;
     max-height: 250px;
@@ -539,7 +633,6 @@
     margin: 20px 0;
 }
 
-/* Componentes de Linha de Bairro (Gerados no JS) */
 .bairro-item-lista-config {
     display: flex;
     justify-content: space-between;
@@ -583,11 +676,10 @@
     transform: scale(1.1);
 }
 
-/* Espaçamentos Finais */
 .input-group-frete-gratis input {
-    width: 8.125rem !important; /* 130px */
-    height: 2.25rem !important; /* 36px */
-    padding: 0 0.75rem !important; /* 12px */
+    width: 8.125rem !important; 
+    height: 2.25rem !important; 
+    padding: 0 0.75rem !important; 
     text-align: right;
     margin: 0 !important;
 }
@@ -614,7 +706,7 @@
    ============================================================ */
 
 .modal-content-horarios {
-    max-width: 32rem !important; /* Ajuste para caber as linhas confortavelmente */
+    max-width: 32rem !important; 
 }
 
 .select-status-master {
@@ -653,7 +745,6 @@
     box-sizing: border-box;
 }
 
-/* Linha de cada dia da semana */
 .dia-horario-row {
     display: flex;
     justify-content: space-between;
@@ -677,7 +768,7 @@
 .checkbox-dia-toggle {
     width: 18px;
     height: 18px;
-    accent-color: #ff4757; /* Força a cor da marca no checkbox */
+    accent-color: #ff4757; 
     cursor: pointer;
 }
 
@@ -689,7 +780,6 @@
     user-select: none;
 }
 
-/* Bloco dos seletores de tempo */
 .dia-times-block {
     display: flex;
     align-items: center;
@@ -728,13 +818,12 @@
    ESTILOS DO NOVO SISTEMA DE LOGÍSTICA DE ENTREGA MULTICIDADES
    ============================================================ */
 
-/* MODIFICAÇÃO: Modal com comportamento de tamanho fixado e scroll interno isolado */
 .modal-content-logistica {
     max-width: 44rem !important;
     max-height: 85vh;
     display: flex;
     flex-direction: column;
-    overflow: hidden !important; /* Trava o scroll da janela externa */
+    overflow: hidden !important; 
 }
 
 .modal-content-logistica .modal-body {
@@ -751,7 +840,6 @@
     margin-bottom: 15px;
 }
 
-/* Caixa cinza superior de cidades */
 .bloco-selecao-cidades {
     background: #f1f2f6;
     padding: 15px 15px 12px 15px;
@@ -789,7 +877,6 @@
     margin: 0 !important;
 }
 
-/* MODIFICAÇÃO: Reset cirúrgico para os checkboxes de Cidades e Bairros não herdarem o tamanho do input global do modal */
 .checkbox-cidade-item input[type="checkbox"],
 .bairro-check-block input[type="checkbox"] {
     width: 16px !important;
@@ -811,19 +898,17 @@
     cursor: pointer;
 }
 
-/* MODIFICAÇÃO: Ativado com sucesso o scroll isolado de visualização apenas para as caixas de bairros das cidades */
 .logistica-cidades-scroll {
     display: flex;
     flex-direction: column;
-    gap: 0.9375rem; /* 15px */
-    max-height: 23.75rem; /* 380px */
+    gap: 0.9375rem; 
+    max-height: 23.75rem; 
     overflow-y: auto !important;
-    padding-right: 0.5rem; /* 8px */
-    margin-top: 0.9375rem; /* 15px */
+    padding-right: 0.5rem; 
+    margin-top: 0.9375rem; 
     flex: 1;
 }
 
-/* Card Individual de cada Cidade Ativa */
 .card-logistica-cidade-painel {
     border: 1px solid #e4e7eb;
     border-radius: 8px;
@@ -853,7 +938,6 @@
     margin-right: 5px;
 }
 
-/* Configuração de Prazos (Minutos) */
 .inputs-tempo-entrega {
     display: flex;
     align-items: center;
@@ -866,7 +950,6 @@
     color: #ffa502;
 }
 
-/* Adicionada a exceção para que os inputs de tempo pequenos mantenham o seu design correto */
 .inputs-tempo-entrega input {
     width: 45px !important;
     height: 26px !important;
@@ -888,7 +971,6 @@
     color: #2f3542;
 }
 
-/* Grade de Bairros */
 .grade-bairros-logistica {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -907,16 +989,14 @@
     border: 1px solid #e4e7eb;
 }
 
-/* MODIFICAÇÃO: Alinhamento fixo, colado no canto esquerdo com gap padronizado e seguro */
 .bairro-check-block {
     display: flex;
     align-items: center;
-    gap: 8px; /* Distância uniforme e limpa entre a caixa e o início do texto */
+    gap: 8px; 
     flex: 1;
     min-width: 0;
 }
 
-/* MODIFICAÇÃO: Resolvido o sumiço dos nomes. O label ganhou flexibilidade para ocupar o espaço sem colapsar */
 .bairro-check-block label {
     font-size: 0.8rem;
     font-weight: 500;
@@ -941,7 +1021,6 @@
     flex-shrink: 0;
 }
 
-/* Adicionada a exceção para que os inputs de taxa pequenos mantenham o seu design correto */
 .bairro-taxa-block input {
     width: 60px !important;
     height: 26px !important;
@@ -972,10 +1051,10 @@
     align-items: center !important;
     justify-content: space-between;
     background: #f8f9fa;
-    padding: 0.75rem 0.9375rem; /* 12px 15px */
-    border-radius: 0.5rem; /* 8px */
-    margin-top: 0.9375rem !important; /* 15px */
-    margin-bottom: 0.9375rem !important; /* 15px */
+    padding: 0.75rem 0.9375rem; 
+    border-radius: 0.5rem; 
+    margin-top: 0.9375rem !important; 
+    margin-bottom: 0.9375rem !important; 
     width: 100%;
     box-sizing: border-box;
 }
@@ -993,21 +1072,20 @@
 }
 
 /* ============================================================
-   MÓDULO NOVO: DROPDOWN SELETOR DE CIDADES FLUTUANTE (REM)
+   MÓDULO: DROPDOWN SELETOR DE CIDADES FLUTUANTE (REM)
    ============================================================ */
 
 .dropdown-cidades-container {
     position: relative;
-    margin-bottom: 0.9375rem; /* 15px */
+    margin-bottom: 0.9375rem; 
     width: 100%;
 }
 
-/* O Botão de ativação do Menu */
 .dropdown-cidades-selecionador {
     background: #ffffff;
     padding: 0.75rem 1rem;
     border: 1px solid #ced4da;
-    border-radius: 0.5rem; /* 8px */
+    border-radius: 0.5rem; 
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -1021,14 +1099,13 @@
     border-color: #ff4757;
 }
 
-/* Texto interno que resume quais cidades estão selecionadas */
 #texto-cidades-selecionadas {
     font-size: 0.9rem;
     font-weight: 500;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    padding-right: 0.625rem; /* 10px */
+    padding-right: 0.625rem; 
 }
 
 .dropdown-cidades-selecionador i {
@@ -1037,7 +1114,6 @@
     transition: transform 0.2s ease;
 }
 
-/* A Lista Flutuante de Opções (Escondida por padrão) */
 .dropdown-cidades-lista {
     position: absolute;
     top: 100%;
@@ -1045,32 +1121,30 @@
     right: 0;
     background: #ffffff;
     border: 1px solid #e4e7eb;
-    border-radius: 0.5rem; /* 8px */
+    border-radius: 0.5rem; 
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
-    max-height: 12.5rem; /* 200px max de altura com scroll interno */
+    max-height: 12.5rem; 
     overflow-y: auto !important;
-    z-index: 1000; /* Garante que flutue por cima dos cards de bairros */
-    display: none; /* Controlado pelo JS */
-    margin-top: 0.3125rem; /* 5px */
-    padding: 0.3125rem; /* 5px */
+    z-index: 1000; 
+    display: none; 
+    margin-top: 0.3125rem; 
+    padding: 0.3125rem; 
     flex-direction: column;
-    gap: 0.25rem; /* 4px */
+    gap: 0.25rem; 
     box-sizing: border-box;
 }
 
-/* Classe injetada pelo script para exibir o menu */
 .dropdown-cidades-lista.active {
     display: flex;
 }
 
-/* Customização dos itens com checkboxes empilhados verticalmente dentro do painel */
 .dropdown-cidades-lista .checkbox-cidade-item {
     display: flex;
     align-items: center;
-    gap: 0.625rem; /* 10px */
-    padding: 0.5rem 0.75rem; /* 8px 12px */
-    border-radius: 0.375rem; /* 6px */
-    border: none !important; /* Desfaz a moldura antiga estilo pílula */
+    gap: 0.625rem; 
+    padding: 0.5rem 0.75rem; 
+    border-radius: 0.375rem; 
+    border: none !important; 
     background: transparent !important;
     width: 100%;
     box-sizing: border-box;
@@ -1092,20 +1166,15 @@
 }
 
 /* ============================================================
-   AJUSTE DE SOBREPOSIÇÃO DE MODAIS (Z-INDEX)
+   AJUSTE DE SOBREPOSIÇÃO DE INTERFACES (Z-INDEX)
    ============================================================ */
 
-/* Garante que o Modal de Pedidos (o principal) tenha uma base */
-#modal-pedidos {
-    z-index: 1000 !important;
-}
-
-/* Garante que o Modal de Cancelamento fique sempre ACIMA de qualquer outro */
+/* Garante que o Modal de Cancelamento fique sempre ACIMA do monitor fixo */
 #modal-motivo-cancelamento {
     z-index: 2000 !important;
 }
 
-/* Garante que o toast (notificação) apareça acima de todos os modais */
+/* Garante que o toast (notificação) apareça acima de tudo */
 .toast-container {
     z-index: 3000 !important;
 }
