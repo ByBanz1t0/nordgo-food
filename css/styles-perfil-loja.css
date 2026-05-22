@@ -344,6 +344,32 @@
     justify-content: center;
 }
 
+.btn-fechar-modal-perfil {
+    background: #f1f2f6;
+    border: none;
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 50%; /* Faz o elemento ser circular */
+    color: #57606f;
+    font-size: 1rem;
+    cursor: pointer;
+    
+    /* Alinhamento do ícone interno centralizado */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    
+    /* Proteção ativa para o botão nunca amassar ou virar uma elipse */
+    flex-shrink: 0; 
+    
+    transition: background 0.2s, color 0.2s;
+}
+
+.btn-fechar-modal-perfil:hover {
+    background: #ff4757;
+    color: #ffffff;
+}
+
 .btn-editar-prod { background: #eef2ff; color: #4f46e5; }
 .btn-editar-prod:hover { background: #4f46e5; color: #fff; }
 
