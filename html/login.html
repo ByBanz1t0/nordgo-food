@@ -85,7 +85,11 @@
                 <div class="login-form grid-cadastro">
                     <input type="text" id="reg-nome" class="full-width" placeholder="Nome Completo">
                     <input type="email" id="reg-email" class="full-width" placeholder="E-mail">
-                    <input type="password" id="reg-senha" class="full-width" placeholder="Senha (Mín. 8 caracteres, A-Z, 123, !@#)">
+                    
+                    <div class="input-row full-width" style="grid-template-columns: 1fr 1fr; display: grid; gap: 15px;">
+                        <input type="password" id="reg-senha" placeholder="Senha (Mín. 8 caract.)">
+                        <input type="password" id="reg-senha-confirmar" placeholder="Repita a Senha">
+                    </div>
                     
                     <input type="text" id="reg-cpf" placeholder="CPF (000.000.000-00)" maxlength="14">
                     <input type="text" id="reg-telefone" placeholder="Telefone / WhatsApp" maxlength="15">
@@ -120,7 +124,8 @@
             onAuthStateChanged,
             signOut
         } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
-        import { doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
+        // MODIFICADO: Adicionado updateDoc e arrayUnion para o mapeamento automático regional
+        import { doc, setDoc, getDoc, updateDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
 
         const sectionLogin = document.getElementById('section-login');
         const sectionCadastro = document.getElementById('section-cadastro');
@@ -133,7 +138,7 @@
             window.location.href = '../index.html';
         };
 
-        // INTERCEPTOR DE CONTAS SUSPENSAS: Monitora o estado de autenticação global nesta página
+        // INTERCEPTOR DE CONTAS SUSPENSAS
         onAuthStateChanged(auth, async (user) => {
             if (user && !cadastrandoUsuario) {
                 try {
@@ -269,33 +274,45 @@
             }
         };
 
-        // --- CADASTRO SEGURO POR FORMULÁRIO ---
+        // --- CADASTRO SEGURO POR FORMULÁRIO + MAPEAMENTO AUTOMÁTICO ---
         document.getElementById('btn-cadastrar-final').onclick = async () => {
-            const obtenerValor = (id) => {
+            const obterValor = (id) => {
                 const el = document.getElementById(id);
                 return el ? el.value.trim() : "";
             };
 
-            const nome = obtenerValor('reg-nome');
-            const email = obtenerValor('reg-email');
+            const nome = obterValor('reg-nome');
+            const email = obterValor('reg-email');
             const senha = document.getElementById('reg-senha')?.value || "";
+            const senhaConfirmar = document.getElementById('reg-senha-confirmar')?.value || "";
             const cpfCliente = obterValor('reg-cpf');
-            const telefoneCliente = obtenerValor('reg-telefone');
+            const telefoneCliente = obterValor('reg-telefone');
             const rua = obterValor('reg-rua');
             const numero = obterValor('reg-numero');
-            const bairro = obterValor('reg-bairro');
-            const cidade = obterValor('reg-cidade');
+            
+            // Tratamento rigoroso de strings para capitalização (Ex: "centro" ou "CENTRO" vira "Centro")
+            const bairroCru = obterValor('reg-bairro');
+            const bairro = bairroCru.charAt(0).toUpperCase() + bairroCru.slice(1).toLowerCase();
+            
+            const cidadeCru = obterValor('reg-cidade');
+            const cidade = cidadeCru.charAt(0).toUpperCase() + cidadeCru.slice(1).toLowerCase();
+            
             const estado = obterValor('reg-estado').toUpperCase();
             const observacao = obterValor('reg-obs') || "Sem observação";
             const cep = obterValor('reg-cep');
 
-            if(!nome || !email || !senha || !cpfCliente || !rua || !numero || !bairro || !cep) {
+            if(!nome || !email || !senha || !senhaConfirmar || !cpfCliente || !rua || !numero || !bairro || !cep || !cidade || !estado) {
                 mostrarNotificacao("Preencha todos os dados obrigatórios.", "error");
                 return;
             }
 
+            if (senha !== senhaConfirmar) {
+                mostrarNotificacao("As senhas não coincidem. Verifique.", "error");
+                return;
+            }
+
             if (!validarSenhaForte(senha)) {
-                mostrarNotificacao("Senha fraca!", "error");
+                mostrarNotificacao("Senha fraca! Use letras maiúsculas, números e caracteres especiais.", "error");
                 return;
             }
 
@@ -336,7 +353,30 @@
                     enderecoCliente: [novoEnderecoObj]
                 };
 
+                // Salva o documento do usuário
                 await setDoc(doc(db, "usuarios", userCred.user.uid), payloadFinal);
+
+                // ==========================================================================
+                // 🔥 LOGÍSTICA DE MAPEAMENTO GEOGRÁFICO AUTOMÁTICO (NORDGO MAPS)
+                // ==========================================================================
+                const idRegiaoDoc = `${cidade}-${estado}`;
+                const regiaoRef = doc(db, "regioes", idRegiaoDoc);
+                const regiaoSnap = await getDoc(regiaoRef);
+
+                if (!regiaoSnap.exists()) {
+                    // Cenário A: Cidade não cadastrada no sistema. Inicializa o array com o primeiro bairro.
+                    await setDoc(regiaoRef, {
+                        cidade: cidade,
+                        uf: estado,
+                        bairros: [bairro]
+                    });
+                } else {
+                    // Cenário B & C: Cidade já mapeada. O arrayUnion anexa o bairro se ele for inédito.
+                    await updateDoc(regiaoRef, {
+                        bairros: arrayUnion(bairro)
+                    });
+                }
+                // ==========================================================================
 
                 mostrarNotificacao("Conta criada com sucesso!");
                 setTimeout(() => window.location.href = '../index.html', 1500);
@@ -362,11 +402,10 @@
             } catch (e) { mostrarNotificacao("Erro.", "error"); }
         };
 
-        // --- LOGIN COM O GOOGLE (CORRIGIDO CONTRA CORRIDA DE REDIRECIONAMENTO) ---
+        // --- LOGIN COM O GOOGLE ---
         document.getElementById('btn-google').onclick = async () => {
             const provider = new GoogleAuthProvider();
             try {
-                // FIX CRÍTICO: Segura temporariamente o gatilho automático de redirecionamento
                 cadastrandoUsuario = true; 
 
                 const result = await signInWithPopup(auth, provider);
@@ -375,7 +414,6 @@
                 const userDoc = await getDoc(doc(db, "usuarios", user.uid));
                 
                 if (!userDoc.exists()) {
-                    // Grava os dados iniciais do cliente novo com segurança total no Firestore
                     await setDoc(doc(db, "usuarios", user.uid), {
                         nome: user.displayName || "Usuário Google",
                         email: user.email,
@@ -391,19 +429,18 @@
                     mostrarNotificacao("Esta conta Google está suspensa pelo administrador.", "error");
                     await signOut(auth);
                     localStorage.removeItem('nordgo_cep_usuario');
-                    cadastrandoUsuario = false; // Desbloqueia o monitor global
+                    cadastrandoUsuario = false; 
                     return;
                 } else {
                     mostrarNotificacao("Bem-vindo de volta!");
                 }
 
-                // Força um pequeno delay para garantir o salvamento físico do Firestore antes da troca de página
                 setTimeout(() => {
                     window.location.href = '../index.html';
                 }, 1000);
 
             } catch (e) { 
-                cadastrandoUsuario = false; // Desbloqueia o monitor em caso de fechamento do popup
+                cadastrandoUsuario = false; 
                 console.error("Erro completo no fluxo do Google Auth:", e);
                 mostrarNotificacao("Falha no login Google ou permissão negada.", "error"); 
             }
