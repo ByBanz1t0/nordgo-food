@@ -102,7 +102,7 @@
                         <select id="select-endereco-checkout" class="select-checkout"></select>
                     </div>
 
-                    <div class="endereco-entrega-resumo-box">
+                    <div class="endereco-entrega-resumo-box" id="box-bairro-resumo">
                         <i class="fa-solid fa-location-dot"></i> 
                         <span id="txt-bairro-atual">Buscando endereço...</span>
                     </div>
@@ -300,13 +300,11 @@
             else containerTroco.classList.add('hidden');
         });
 
-        // --- MODIFICADO: SISTEMA DE VALIDAÇÃO DE CUPONS REALINHADO ---
         async function validarCupom(codigo, lojaId = null, subtotalAtual = 0) {
             if (!usuarioLogado) { mostrarNotificacao("Faça login para usar cupons.", "error"); return null; }
             if (!codigo) { mostrarNotificacao("Digite o código do cupom.", "error"); return null; }
 
             try {
-                // Nota: Removido where("ativo") pois o controle agora baseia-se cronologicamente e quantitativamente
                 const q = query(collection(db, "cupons"), where("codigo", "==", codigo.toUpperCase()), limit(1));
                 const snapshot = await getDocs(q);
                 if (snapshot.empty) { mostrarNotificacao("Cupom inválido ou inexistente.", "error"); return null; }
@@ -315,7 +313,6 @@
                 const data = cupomDoc.data();
                 const agora = new Date();
 
-                // 1. Validação de Escopo Estrito
                 if (lojaId === null) {
                     if (data.escopo !== "global") { mostrarNotificacao("Este cupom pertence a uma loja específica.", "error"); return null; }
                 } else {
@@ -323,22 +320,18 @@
                     if (data.escopo === "loja" && data.lojaId !== lojaId) { mostrarNotificacao("Cupom inválido para esta loja.", "error"); return null; }
                 }
 
-                // 2. Ticket Mínimo de Compra
                 if (data.valorMinimo && subtotalAtual < data.valorMinimo) {
                     mostrarNotificacao(`Compra mínima para este cupom: R$ ${data.valorMinimo.toFixed(2)}`, "error"); return null;
                 }
 
-                // 3. Validação Antifraude: Uso Único por UID de Cliente
                 if (data.usuariosQueUsaram && data.usuariosQueUsaram.includes(usuarioLogado.uid)) { 
                     mostrarNotificacao("Você já utilizou este cupom anteriormente.", "error"); return null; 
                 }
 
-                // 4. Validação Quantitativa: Limite de Usos Globais Estourado
                 if (data.limiteUsos && data.usosAtuais >= data.limiteUsos) { 
                     mostrarNotificacao("Este cupom já esgotou.", "error"); return null; 
                 }
 
-                // 5. Validação Cronológica: Prazo de validade em Horas expirado
                 if (data.dataExpiracao) {
                     if (new Date(data.dataExpiracao) < agora) { 
                         mostrarNotificacao("Este cupom já está expirado.", "error"); return null; 
@@ -365,6 +358,7 @@
             }
         });
 
+        // Configurado como global window para responder ao clique em linha gerado dinamicamente
         window.aplicarCupomLocal = async (lojaId) => {
             const input = document.getElementById(`cupom-${lojaId}`);
             const itens = JSON.parse(localStorage.getItem('nordgo_carrinho')) || [];
@@ -385,6 +379,7 @@
             return '../assets/images/placeholder.png';
         }
 
+        // Configurado como global window para responder aos botões de incremento/decremento de quantidade
         window.alterarQtd = (id, delta) => {
             let car = JSON.parse(localStorage.getItem('nordgo_carrinho')) || [];
             const i = car.findIndex(p => p.id === id);
@@ -463,7 +458,7 @@
                 h += `</div>
                     <div class="footer-loja-carrinho">
                         <div class="cupom-loja-area">
-                            <label>${cupomLocal ? 'Cupom Aplicado ✓' : 'Cupom da Loja'}</label>
+                            <label style="color: #2f3542; font-weight:600; font-size:0.8rem;">${cupomLocal ? 'Cupom Aplicado ✓' : 'Cupom da Loja'}</label>
                             <div class="input-group">
                                 <input type="text" id="cupom-${lid}" placeholder="${cupomLocal ? cupomLocal.codigo : 'Código da loja'}" ${cupomLocal ? 'disabled' : ''}>
                                 <button class="btn-aplicar" onclick="window.aplicarCupomLocal('${lid}')" ${cupomLocal ? 'disabled' : ''}>Aplicar</button>
@@ -581,7 +576,6 @@
             try {
                 for (const lid in agrupadosPorLoja) {
                     const itensDaLoja = agrupadosPorLoja[lid];
-                    // CORRIGIDO: Fórmula matemática limpa (i.preco * i.quantidade) em substituição ao termo flutuante 'whitespace'
                     const subtotalLoja = itensDaLoja.reduce((acc, i) => acc + (i.preco * i.quantidade), 0);
                     
                     let freteLojaIndividual = 0;
@@ -597,7 +591,6 @@
                     if (cuponsLocaisAtivos[lid]) {
                         const cp = cuponsLocaisAtivos[lid];
                         descontoLojaIndividual = cp.tipo === "porcentagem" ? (subtotalLoja * cp.valor / 100) : cp.valor;
-                        // Gravação Atômica das travas: Incrementa usos gerais e anexa o UID do cliente à lista do cupom
                         await updateDoc(doc(db, "cupons", cp.id), { usosAtuais: increment(1), usuariosQueUsaram: arrayUnion(usuarioLogado.uid) });
                     }
 
@@ -609,12 +602,24 @@
 
                     const valorTotalLoja = subtotalLoja + freteLojaIndividual - descontoLojaIndividual;
 
+                    // MODIFICADO: Mapeador preventivo de IDs. Separa o ID real do Firestore do sufixo virtual de timestamp
+                    const itensMapeadosFinais = itensDaLoja.map(i => {
+                        const realProdutoId = i.id.includes('_v_') ? i.id.split('_v_')[0] : i.id;
+                        return {
+                            id: realProdutoId,         // Mantém o ID original do Firestore para relatórios e BI
+                            idVirtual: i.id,           // Preserva o ID único gerado pela janela flutuante
+                            nome: i.nome,               // Carrega a string unificada com as variações completas para a cozinha
+                            preco: i.preco,
+                            quantidade: i.quantidade
+                        };
+                    });
+
                     await addDoc(collection(db, "pedidos"), {
                         clientId: usuarioLogado.uid,
                         clientNome: nomeClienteLogado || usuarioLogado.displayName || "Cliente NordGo",
                         lojaId: lid,
                         nomeLoja: itensDaLoja[0].nomeLoja || "Loja Parceira",
-                        itens: itensDaLoja.map(i => ({ id: i.id, nome: i.nome, preco: i.preco, quantidade: i.quantidade })),
+                        itens: itensMapeadosFinais, // Injeta o array de objetos mapeado e protegido
                         subtotal: subtotalLoja,
                         frete: freteLojaIndividual,
                         desconto: descontoLojaIndividual,
@@ -628,7 +633,6 @@
                     });
                 }
 
-                // Aplica o incremento de uso atômico se o cliente usou um cupom global da plataforma
                 if (cupomAtivo) {
                     await updateDoc(doc(db, "cupons", cupomAtivo.id), { usosAtuais: increment(1), usuariosQueUsaram: arrayUnion(usuarioLogado.uid) });
                 }
