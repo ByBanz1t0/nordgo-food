@@ -1204,3 +1204,206 @@
 .toast-container {
     z-index: 3000 !important;
 }
+
+/* ============================================================
+   CONSTRUTOR DE VARIAÇÕES DE PRODUTO (NORDGO COMPLEMENTS SYSTEM)
+   ============================================================ */
+
+.flex-row-check {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 8px;
+    margin-top: 10px !important;
+    margin-bottom: 15px !important;
+}
+
+.label-checkbox-inline {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px;
+    cursor: pointer;
+    text-transform: none !important;
+    color: #2f3542 !important;
+    font-size: 0.9rem !important;
+    font-weight: 500 !important;
+    margin: 0 !important;
+}
+
+.label-checkbox-inline input[type="checkbox"] {
+    width: 17px !important;
+    height: 17px !important;
+    margin: 0 !important;
+    accent-color: #ff4757;
+    cursor: pointer;
+}
+
+/* Container do Painel Construtor */
+.container-construtor-variacoes {
+    width: 100%;
+    background: #f8f9fa;
+    border: 1px solid #ced6e0;
+    padding: 15px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    box-sizing: border-box;
+}
+
+.header-construtor-variacoes {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    border-bottom: 1px dashed #ced6e0;
+    padding-bottom: 10px;
+}
+
+.header-construtor-variacoes h4 {
+    font-size: 0.95rem;
+    color: #2f3542;
+    margin: 0;
+    font-weight: 600;
+}
+
+.header-construtor-variacoes h4 i {
+    color: #ff4757;
+    margin-right: 5px;
+}
+
+.btn-pequeno-azul {
+    background: #3498db !important;
+    padding: 6px 14px !important;
+    font-size: 0.8rem !important;
+    width: auto !important;
+    border-radius: 6px !important;
+}
+
+.wrapper-lista-grupos-flex {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+/* Card de cada Grupo Individual */
+.card-cadastro-grupo-variacao {
+    background: #ffffff;
+    border: 1px solid #e4e7eb;
+    padding: 15px;
+    border-radius: 10px;
+    position: relative;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+    box-sizing: border-box;
+    width: 100%;
+}
+
+.btn-deletar-grupo {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: none;
+    border: none;
+    color: #ff4757;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: transform 0.2s;
+    padding: 4px;
+}
+
+.btn-deletar-grupo:hover {
+    transform: scale(1.15);
+}
+
+/* Linha de configuração do Grupo */
+.align-end-row {
+    grid-template-columns: 2fr 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 15px;
+    align-items: flex-end !important;
+}
+
+.no-margin {
+    margin-bottom: 0 !important;
+}
+
+.flex-inline-row-check {
+    flex-direction: row !important;
+    gap: 6px;
+    align-items: center !important;
+    height: 38px;
+}
+
+.flex-inline-row-check input[type="checkbox"] {
+    width: 16px !important;
+    height: 16px !important;
+    margin: 0 !important;
+    accent-color: #ff4757;
+}
+
+.flex-inline-row-check label {
+    margin: 0 !important;
+    font-size: 0.8rem !important;
+    color: #2f3542 !important;
+    white-space: nowrap;
+}
+
+/* Lista interna de Opções */
+.container-subopcoes-itens {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 12px;
+    padding-left: 12px;
+    border-left: 3px solid #ff4757;
+}
+
+/* Grid de cada item (Opção) */
+.linha-subopcao-item-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr auto;
+    gap: 8px;
+    align-items: center;
+    width: 100%;
+}
+
+.linha-subopcao-item-grid input {
+    padding: 6px 10px !important;
+    font-size: 0.85rem !important;
+    height: auto !important;
+    margin: 0 !important;
+}
+
+.linha-subopcao-item-grid .subopcao-preco {
+    text-align: right;
+    font-family: monospace;
+}
+
+.btn-remover-linha-opcao {
+    background: none;
+    border: none;
+    color: #a4b0be;
+    cursor: pointer;
+    font-size: 1rem;
+    padding: 4px 6px;
+    transition: color 0.2s;
+}
+
+.btn-remover-linha-opcao:hover {
+    color: #ff4757;
+}
+
+/* Botão adicionar subopção */
+.btn-add-item-subopcao {
+    background: #2ed573;
+    color: white;
+    border: none;
+    padding: 5px 12px;
+    font-size: 0.75rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background 0.2s;
+}
+
+.btn-add-item-subopcao:hover {
+    background: #26af5f;
+}
