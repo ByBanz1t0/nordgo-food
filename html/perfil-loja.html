@@ -35,13 +35,10 @@
     </header>
 
     <main class="dashboard-container">
-        <!-- Estrutura de embrulho para dividir o dashboard e o painel de pedidos na folha de estilos -->
         <div class="dashboard-layout-wrapper">
             
-            <!-- Coluna: Ações do Dashboard -->
             <div class="grid-dashboard" id="grid-main"></div>
 
-            <!-- Coluna: Painel Fixo Vertical de Pedidos -->
             <aside class="painel-pedidos-fixo">
                 <div class="header-pedidos-fixo">
                     <h2>
@@ -197,10 +194,25 @@
                 </div>
                 <div class="input-group"><label>Nome</label><input type="text" id="add-produto-nome" required></div>
                 <div class="input-row">
-                    <div class="input-group"><label>Preço</label><input type="number" id="add-produto-preco" step="0.01" required></div>
+                    <div class="input-group"><label>Preço Base</label><input type="number" id="add-produto-preco" step="0.01" required></div>
                     <div class="input-group"><label>Categoria</label><select id="add-produto-categoria-select" required></select></div>
                 </div>
                 <div class="input-group"><label>Descrição</label><textarea id="add-produto-descricao" rows="2"></textarea></div>
+                
+                <div class="input-group flex-row-check">
+                    <label class="label-checkbox-inline">
+                        <input type="checkbox" id="add-produto-com-variacao">
+                        Este produto possui variações/complementos (Ex: tamanhos, sabores)
+                    </label>
+                </div>
+                <div id="container-add-variacoes" class="container-construtor-variacoes" style="display: none;">
+                    <div class="header-construtor-variacoes">
+                        <h4><i class="fa-solid fa-layer-group"></i> Grupos de Customização</h4>
+                        <button type="button" id="btn-add-grupo-novo" class="btn-salvar btn-pequeno-azul">+ Criar Grupo</button>
+                    </div>
+                    <div id="wrapper-add-lista-grupos" class="wrapper-lista-grupos-flex"></div>
+                </div>
+
                 <button type="submit" class="btn-salvar">Cadastrar Produto</button>
             </form>
         </div>
@@ -223,10 +235,25 @@
                 </div>
                 <div class="input-group"><label>Nome</label><input type="text" id="edit-produto-nome" required></div>
                 <div class="input-row">
-                    <div class="input-group"><label>Preço</label><input type="number" id="edit-produto-preco" step="0.01" required></div>
+                    <div class="input-group"><label>Preço Base</label><input type="number" id="edit-produto-preco" step="0.01" required></div>
                     <div class="input-group"><label>Categoria</label><select id="edit-produto-categoria-select" required></select></div>
                 </div>
                 <div class="input-group"><label>Descrição</label><textarea id="edit-produto-descricao" rows="2"></textarea></div>
+                
+                <div class="input-group flex-row-check">
+                    <label class="label-checkbox-inline">
+                        <input type="checkbox" id="edit-produto-com-variacao">
+                        Este produto possui variações/complementos (Ex: tamanhos, sabores)
+                    </label>
+                </div>
+                <div id="container-edit-variacoes" class="container-construtor-variacoes" style="display: none;">
+                    <div class="header-construtor-variacoes">
+                        <h4><i class="fa-solid fa-layer-group"></i> Grupos de Customização</h4>
+                        <button type="button" id="btn-edit-grupo-novo" class="btn-salvar btn-pequeno-azul">+ Criar Grupo</button>
+                    </div>
+                    <div id="wrapper-edit-lista-grupos" class="wrapper-lista-grupos-flex"></div>
+                </div>
+
                 <button type="submit" class="btn-salvar">Salvar Alterações</button>
             </form>
         </div>
@@ -528,7 +555,7 @@
                     freteGratisMin: parseFloat(document.getElementById('edit-frete-gratis-min').value) || 0
                 });
                 
-                mostrarNotificacao("Logística de distribuição atualizada!");
+                mostrarNotificacao("Logística de distribuição updated!");
                 window.fecharModal('modal-frete');
                 await carregarDadosLoja();
             } catch (err) { 
@@ -595,7 +622,7 @@
                     statusMaster: document.getElementById('edit-status-loja-master').value,
                     horariosSemana: novaGrade
                 });
-                mostrarNotificacao("Grade de horários updated!");
+                mostrarNotificacao("Grade de horários atualizada!");
                 window.fecharModal('modal-horarios');
                 await carregarDadosLoja();
             } catch (err) {
@@ -719,6 +746,129 @@
             document.getElementById('preview-banner').style.backgroundImage = `url('${URL.createObjectURL(blob)}')`;
         };
 
+        // ADICIONADO: Variáveis e listeners do DOM para controlar as Variações de Produto (Add e Edit)
+        const addCheckVariacao = document.getElementById('add-produto-com-variacao');
+        const addContainerVariacoes = document.getElementById('container-add-variacoes');
+        const btnAddGrupoNovo = document.getElementById('btn-add-grupo-novo');
+        const wrapperAddListaGrupos = document.getElementById('wrapper-add-lista-grupos');
+
+        const editCheckVariacao = document.getElementById('edit-produto-com-variacao');
+        const editContainerVariacoes = document.getElementById('container-edit-variacoes');
+        const btnEditGrupoNovo = document.getElementById('btn-edit-grupo-novo');
+        const wrapperEditListaGrupos = document.getElementById('wrapper-edit-lista-grupos');
+
+        // Alternadores dinâmicos de visualização dos construtores
+        addCheckVariacao.addEventListener('change', (e) => {
+            addContainerVariacoes.style.display = e.target.checked ? 'block' : 'none';
+            if (e.target.checked && wrapperAddListaGrupos.children.length === 0) {
+                criarEstruturaGrupoNoDOM(wrapperAddListaGrupos);
+            }
+        });
+
+        editCheckVariacao.addEventListener('change', (e) => {
+            editContainerVariacoes.style.display = e.target.checked ? 'block' : 'none';
+            if (e.target.checked && wrapperEditListaGrupos.children.length === 0) {
+                criarEstruturaGrupoNoDOM(wrapperEditListaGrupos);
+            }
+        });
+
+        btnAddGrupoNovo.addEventListener('click', () => criarEstruturaGrupoNoDOM(wrapperAddListaGrupos));
+        btnEditGrupoNovo.addEventListener('click', () => criarEstruturaGrupoNoDOM(wrapperEditListaGrupos));
+
+        // ADICIONADO: Gerador estrutural dinâmico de Grupos e Opções no DOM
+        function criarEstruturaGrupoNoDOM(containerAlvo, dadosGrupoExistente = null) {
+            const idGrupoUnico = dadosGrupoExistente ? dadosGrupoExistente.idGrupo : 'g_' + Date.now() + Math.random().toString(36).substr(2, 4);
+
+            const divGrupo = document.createElement('div');
+            divGrupo.className = 'card-cadastro-grupo-variacao';
+            divGrupo.dataset.id = idGrupoUnico;
+
+            const tituloVal = dadosGrupoExistente ? dadosGrupoExistente.titulo : '';
+            const maxVal = dadosGrupoExistente ? dadosGrupoExistente.maxEscolhas : 1;
+            const obrigatorioCheck = dadosGrupoExistente ? (dadosGrupoExistente.obrigatorio ? 'checked' : '') : 'checked';
+
+            divGrupo.innerHTML = `
+                <button type="button" class="btn-deletar-grupo"><i class="fa-solid fa-trash"></i></button>
+                
+                <div class="input-row align-end-row">
+                    <div class="input-group no-margin"><label>Título do Grupo</label><input type="text" placeholder="Ex: Escolha o tamanho" class="grupo-titulo-input" value="${tituloVal}" required></div>
+                    <div class="input-group no-margin"><label>Qtd Máxima</label><input type="number" value="${maxVal}" min="1" class="grupo-max-input"></div>
+                    <div class="input-group no-margin flex-inline-row-check"><input type="checkbox" ${obrigatorioCheck} class="grupo-obrigatorio-input"><label>Obrigatório</label></div>
+                </div>
+
+                <div class="container-subopcoes-itens"></div>
+
+                <button type="button" class="btn-add-item-subopcao">+ Adicionar Opção</button>
+            `;
+
+            containerAlvo.appendChild(divGrupo);
+
+            const containerSubOpcoes = divGrupo.querySelector('.container-subopcoes-itens');
+            const btnAddItemSubopcao = divGrupo.querySelector('.btn-add-item-subopcao');
+
+            divGrupo.querySelector('.btn-deletar-grupo').onclick = () => divGrupo.remove();
+
+            if (dadosGrupoExistente && dadosGrupoExistente.opcoes) {
+                dadosGrupoExistente.opcoes.forEach(opcao => criarLinhaSubOpcao(containerSubOpcoes, opcao));
+            } else {
+                criarLinhaSubOpcao(containerSubOpcoes);
+            }
+
+            btnAddItemSubopcao.onclick = () => criarLinhaSubOpcao(containerSubOpcoes);
+        }
+
+        function criarLinhaSubOpcao(container, dadosOpcaoExistente = null) {
+            const divLinha = document.createElement('div');
+            divLinha.className = 'linha-subopcao-item-grid';
+            
+            const nomeVal = dadosOpcaoExistente ? dadosOpcaoExistente.nome : '';
+            const precoVal = dadosOpcaoExistente ? dadosOpcaoExistente.precoAdicional.toFixed(2) : '0.00';
+
+            divLinha.innerHTML = `
+                <input type="text" placeholder="Nome (Ex: Pote 500ml)" class="subopcao-nome" value="${nomeVal}" required>
+                <input type="number" placeholder="Preço + (R$)" step="0.01" value="${precoVal}" class="subopcao-preco" required>
+                <button type="button" class="btn-remover-linha-opcao"><i class="fa-solid fa-xmark"></i></button>
+            `;
+
+            container.appendChild(divLinha);
+            divLinha.querySelector('.btn-remover-linha-opcao').onclick = () => divLinha.remove();
+        }
+
+        // ADICIONADO: Extrator de dados da árvore de elementos do DOM para salvar como JSON payload
+        function extrairPayloadGrupoDeOpcoes(containerWrapper) {
+            const listaGruposPayload = [];
+            const cardsGrupos = containerWrapper.querySelectorAll('.card-cadastro-grupo-variacao');
+            
+            cardsGrupos.forEach(card => {
+                const titulo = card.querySelector('.grupo-titulo-input').value.trim();
+                const maxChoices = parseInt(card.querySelector('.grupo-max-input').value) || 1;
+                const isObrigatorio = card.querySelector('.grupo-obrigatorio-input').checked;
+
+                const subOpcoes = [];
+                const linhasOpcoes = card.querySelectorAll('.container-subopcoes-itens > .linha-subopcao-item-grid');
+                
+                linhasForm: linhasOpcoes.forEach(linha => {
+                    const nomeOp = linha.querySelector('.subopcao-nome').value.trim();
+                    const precoOp = parseFloat(linha.querySelector('.subopcao-preco').value) || 0;
+                    if (nomeOp !== "") {
+                        subOpcoes.push({ nome: nomeOp, precoAdicional: precoOp });
+                    }
+                });
+
+                if (titulo !== "" && subOpcoes.length > 0) {
+                    listaGruposPayload.push({
+                        idGrupo: card.dataset.id,
+                        titulo: titulo,
+                        obrigatorio: isObrigatorio,
+                        maxEscolhas: maxChoices,
+                        minEscolhas: isObrigatorio ? 1 : 0,
+                        opcoes: subOpcoes
+                    });
+                }
+            });
+            return listaGruposPayload;
+        }
+
         window.abrirGerenciadorProdutos = async () => {
             window.abrirModal('modal-produtos');
             const lista = document.getElementById('lista-produtos-dashboard');
@@ -730,8 +880,12 @@
                 const p = docSnap.data();
                 const itemDiv = document.createElement('div');
                 itemDiv.className = "produto-item-admin";
+                
+                // MODIFICADO: Se o produto tiver variação ativa, exibe um indicativo de preço variável
+                const precoExibirTexto = p.temVariacoes ? "Preço Variável" : `R$ ${p.preco.toFixed(2)}`;
+
                 itemDiv.innerHTML = `<img src="${obterImagemProduto(p)}" class="img-prod-admin">
-                    <div class="info-prod-admin"><h4>${p.nome}</h4><p>R$ ${p.preco.toFixed(2)}</p></div>
+                    <div class="info-prod-admin"><h4>${p.nome}</h4><p>${precoExibirTexto}</p></div>
                     <div class="actions-prod-admin">
                         <button onclick="window.abrirEdicaoProduto('${docSnap.id}')"><i class="fa-solid fa-pencil"></i></button>
                         <button onclick="window.excluirProduto('${docSnap.id}')"><i class="fa-solid fa-trash"></i></button>
@@ -752,6 +906,18 @@
                     document.getElementById('edit-produto-descricao').value = p.descricao || "";
                     document.getElementById('preview-produto-edit').src = obterImagemProduto(p);
                     
+                    // MODIFICADO: Reseta e reconstrói o painel de variações se houver dados salvos no Firestore
+                    wrapperEditListaGrupos.innerHTML = "";
+                    if (p.temVariacoes) {
+                        editCheckVariacao.checked = true;
+                        editContainerVariacoes.style.display = 'block';
+                        const gruposBanco = p.grupoDeOpcoes || p.gruposDeOpcoes || [];
+                        gruposBanco.forEach(grupo => criarEstruturaGrupoNoDOM(wrapperEditListaGrupos, grupo));
+                    } else {
+                        editCheckVariacao.checked = false;
+                        editContainerVariacoes.style.display = 'none';
+                    }
+
                     blobEditProdutoCurrent = null; 
                     window.abrirModal('modal-editar-produto');
                 } else {
@@ -795,15 +961,23 @@
                     }
                 }
 
+                // MODIFICADO: Extração dos complementos para persistência de dados (Edição)
+                const isVariacaoAtiva = editCheckVariacao.checked;
+                const arrayGruposPayload = extrairPayloadGrupoDeOpcoes(wrapperEditListaGrupos);
+
                 await updateDoc(doc(db, "produtos", idProd), {
                     nome: document.getElementById('edit-produto-nome').value.trim(),
-                    preco: parseFloat(document.getElementById('edit-produto-preco').value) || 0,
+                    preco: isVariacaoAtiva ? 0 : parseFloat(document.getElementById('edit-produto-preco').value) || 0,
                     categoria: document.getElementById('edit-produto-categoria-select').value,
                     descricao: document.getElementById('edit-produto-descricao').value.trim(),
-                    imagem: imgUrl 
+                    imagem: imgUrl,
+                    
+                    // Gravação nos moldes exatos do seu Firestore (Singular)
+                    temVariacoes: isVariacaoAtiva,
+                    grupoDeOpcoes: arrayGruposPayload
                 });
 
-                mostrarNotificacao("Item updated!");
+                mostrarNotificacao("Item atualizado!");
                 window.fecharModal('modal-editar-produto');
                 window.abrirGerenciadorProdutos();
             } catch (err) {
@@ -841,21 +1015,32 @@
                     imgUrl = await realizarUploadBlob(blobAddProdutoCurrent, 'produtos', 'item');
                 }
 
+                // MODIFICADO: Extração dos complementos para persistência de dados (Novo Cadastro)
+                const isVariacaoAtiva = addCheckVariacao.checked;
+                const arrayGruposPayload = extrairPayloadGrupoDeOpcoes(wrapperAddListaGrupos);
+
                 await addDoc(collection(db, "produtos"), {
                     lojaId: idLojaGlobal,
                     nomeLoja: tituloLoja.innerText,
                     nome: document.getElementById('add-produto-nome').value.trim(),
-                    preco: parseFloat(document.getElementById('add-produto-preco').value) || 0,
+                    preco: isVariacaoAtiva ? 0 : parseFloat(document.getElementById('add-produto-preco').value) || 0,
                     categoria: document.getElementById('add-produto-categoria-select').value,
                     descricao: document.getElementById('add-produto-descricao').value.trim(),
                     imagem: imgUrl,
-                    dataCriacao: new Date().toISOString()
+                    dataCriacao: new Date().toISOString(),
+                    
+                    // Gravação nos moldes exatos do seu Firestore (Singular)
+                    temVariacoes: isVariacaoAtiva,
+                    grupoDeOpcoes: arrayGruposPayload
                 });
 
                 mostrarNotificacao("Item cadastrado no cardápio!");
                 e.target.reset();
                 document.getElementById('preview-produto-add').src = "../assets/images/placeholder.png";
                 blobAddProdutoCurrent = null;
+                wrapperAddListaGrupos.innerHTML = "";
+                addCheckVariacao.checked = false;
+                addContainerVariacoes.style.display = 'none';
                 window.fecharModal('modal-add-produto');
             } catch (err) {
                 mostrarNotificacao("Erro ao inserir produto.", "error");
