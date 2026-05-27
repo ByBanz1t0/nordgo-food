@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Meu Perfil | Nordgo Food</title>
+    <title>Meu Perfil | NordGo</title>
     <link rel="icon" type="image/png" href="../assets/images/favicon.png">
     <link rel="stylesheet" href="../css/styles.css">
     <link rel="stylesheet" href="../css/styles-perfil.css">
@@ -232,6 +232,36 @@
             e.target.value = v;
         };
 
+        // 🔥 FUNÇÃO AUXILIAR: VALIDAÇÃO MATEMÁTICA E ALGORÍTMICA DE CPF
+        const validarCPFMatematico = (cpf) => {
+            cpf = cpf.replace(/\D/g, "");
+            
+            // Elimina strings conhecidas com números repetidos
+            if (cpf.length !== 11 || /^(\d)\1{10}$/.test(cpf)) return false;
+            
+            let soma = 0;
+            let resto;
+            
+            // Validação matemática do primeiro dígito verificador
+            for (let i = 1; i <= 9; i++) {
+                soma = soma + parseInt(cpf.substring(i - 1, i)) * (11 - i);
+            }
+            resto = (soma * 10) % 11;
+            if ((resto === 10) || (resto === 11)) resto = 0;
+            if (resto !== parseInt(cpf.substring(9, 10))) return false;
+            
+            // Validação matemática do segundo dígito verificador
+            soma = 0;
+            for (let i = 1; i <= 10; i++) {
+                soma = soma + parseInt(cpf.substring(i - 1, i)) * (12 - i);
+            }
+            resto = (soma * 10) % 11;
+            if ((resto === 10) || (resto === 11)) resto = 0;
+            if (resto !== parseInt(cpf.substring(10, 11))) return false;
+            
+            return true;
+        };
+
         document.getElementById('end-cep').addEventListener('blur', async (e) => {
             const cep = e.target.value.replace(/\D/g, "");
             if (cep.length !== 8) return;
@@ -319,7 +349,45 @@
                 return;
             }
 
+            // 1. Validação Algorítmica do CPF
+            if (!validarCPFMatematico(cpfVal)) {
+                mostrarNotificacao("O CPF informado é inválido. Verifique os dígitos.", "error");
+                return;
+            }
+
+            const cpfLimpoId = cpfVal.replace(/\D/g, "");
+
             try {
+                const userRef = doc(db, "usuarios", user.uid);
+                const userSnap = await getDoc(userRef);
+                let cpfAntigo = "";
+
+                if (userSnap.exists()) {
+                    cpfAntigo = userSnap.data().cpfCliente || "";
+                }
+
+                // 2. Se o usuário NÃO tinha CPF (Logou pelo Google) e está inserindo agora
+                if (cpfAntigo.trim() === "") {
+                    mostrarNotificacao("Validando integridade do CPF...", "info");
+                    
+                    // Consulta cirúrgica por ID na trava exclusiva do banco
+                    const cpfRef = doc(db, "usuarios", `cpf_${cpfLimpoId}`);
+                    const cpfSnap = await getDoc(cpfRef);
+
+                    if (cpfSnap.exists()) {
+                        mostrarNotificacao("Este CPF já está sendo utilizado por outra conta.", "error");
+                        return;
+                    }
+
+                    // Cria o documento de trava dentro da mesma coleção /usuarios
+                    await setDoc(cpfRef, {
+                        isCpfLock: true,
+                        userId: user.uid,
+                        dataVinculo: new Date().toISOString()
+                    });
+                }
+
+                // 3. Processamento de Upload de Imagem (Mantido idêntico)
                 const arquivo = campos.fotoInput.files[0];
                 let urlFotoFinal = campos.fotoDisplay.src;
                 if (arquivo) {
@@ -329,17 +397,21 @@
                     urlFotoFinal = await getDownloadURL(storageRef);
                 }
                 
-                await updateDoc(doc(db, "usuarios", user.uid), {
+                // 4. Salva as atualizações no perfil do usuário
+                await updateDoc(userRef, {
                     nome: nomeVal,
                     cpfCliente: cpfVal,
                     telefoneCliente: telefoneVal,
                     fotoUrl: urlFotoFinal
                 });
                 
-                mostrarNotificacao("Perfil updated!");
+                mostrarNotificacao("Perfil atualizado com sucesso!");
                 fecharModal('modal-dados-basicos');
                 await atualizarSessaoPerfil(user.uid);
-            } catch (e) { mostrarNotificacao("Erro ao salvar.", "error"); }
+            } catch (e) { 
+                console.error("Erro ao salvar perfil:", e);
+                mostrarNotificacao("Erro ao salvar alterações.", "error"); 
+            }
         };
 
         document.getElementById('btn-adicionar-novo-end-modal').onclick = () => {

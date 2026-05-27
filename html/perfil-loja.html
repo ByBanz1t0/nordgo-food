@@ -156,7 +156,17 @@
                         <span id="valor-hex" class="color-picker-hex">#ff6400</span>
                     </div>
                 </div>
+                
+                <!-- Botões de Ação do Form -->
                 <button type="submit" class="btn-salvar">Salvar Alterações</button>
+                
+                <!-- Área Destrutiva de Exclusão dentro do painel de Informações -->
+                <div style="margin-top: 2rem; padding-top: 1.5rem; border-top: 1px dashed #ced6e0; text-align: center;">
+                    <p style="font-size: 0.8rem; color: #747d8c; margin-bottom: 0.75rem;"><i class="fa-solid fa-triangle-exclamation"></i> Zona de Perigo: Esta ação é irreversível.</p>
+                    <button type="button" id="btn-excluir-loja-modal" style="background: #fff5f5; color: #ff4757; border: 1px solid #ff4757; padding: 10px 15px; border-radius: 8px; font-family: 'Poppins', sans-serif; font-size: 0.85rem; font-weight: 600; cursor: pointer; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s;" onmouseover="this.style.background='#ff4757'; this.style.color='#ffffff';" onmouseout="this.style.background='#fff5f5'; this.style.color='#ff4757';">
+                        <i class="fa-solid fa-trash-can"></i> Excluir Estabelecimento Permanentemente
+                    </button>
+                </div>
             </form>
         </div>
     </div>
@@ -466,7 +476,8 @@
             { id: "dom", nome: "Domingo" }
         ];
 
-        // --- DASHBOARD ---
+        // --- DASHBOARD (Com Botão de Excluir Loja no final do Grid) ---
+        // --- DASHBOARD (Grid original limpo com 7 cards) ---
         function renderizarDashboard() {
             gridMain.innerHTML = `
                 <div class="card-dash" onclick="window.abrirModal('modal-info')"><i class="fa-solid fa-store"></i><h3>Informações</h3><p>Nome, Banner e CEP</p></div>
@@ -477,8 +488,70 @@
                 <div class="card-dash" onclick="window.abrirGerenciadorProdutos()"><i class="fa-solid fa-utensils"></i><h3>Cardápio</h3><p>Editar e excluir itens</p></div>
                 <div class="card-dash" onclick="window.abrirGerenciadorCupons()"><i class="fa-solid fa-ticket"></i><h3>Cupons</h3><p>Criar e remover cupons</p></div>
             `;
+            
+            // Vincula o gatilho ao botão que agora reside dentro do formulário de Informações
+            const gatilhoExcluirModal = document.getElementById('btn-excluir-loja-modal');
+            if (gatilhoExcluirModal) {
+                gatilhoExcluirModal.onclick = () => window.excluirLojaCompleta();
+            }
+            
             carregarCategoriasSelects();
         }
+
+        // --- LÓGICA DE EXCLUSÃO COMPLETA DA LOJA (Produtos, Cupons, Vínculo e Loja) ---
+        window.excluirLojaCompleta = async () => {
+            const user = auth.currentUser;
+            if (!user || !idLojaGlobal) return;
+
+            const confirmacao1 = confirm("Tem certeza absoluta de que deseja excluir sua loja permanentemente?\n\nEsta ação apagará todo o seu cardápio, cupons ativos e configurações logísticas!");
+            if (!confirmacao1) return;
+
+            const confirmacao2 = confirm("Aviso Final: Os dados financeiros históricos salvos continuarão auditados no banco, mas o acesso a este painel será revogado imediatamente e a loja deixará de existir para os clientes. Deseja prosseguir?");
+            if (!confirmacao2) return;
+
+            try {
+                mostrarNotificacao("Iniciando processo de exclusão...", "info");
+
+                // 1. Apagar todos os produtos vinculados à loja
+                console.log("[Exclusão] Removendo itens do cardápio...");
+                const qProdutos = query(collection(db, "produtos"), where("lojaId", "==", idLojaGlobal));
+                const snapProdutos = await getDocs(qProdutos);
+                const promisesProdutos = [];
+                snapProdutos.forEach(docSnap => {
+                    promisesProdutos.push(deleteDoc(doc(db, "produtos", docSnap.id)));
+                });
+                await Promise.all(promisesProdutos);
+
+                // 2. Apagar todos os cupons vinculados à loja
+                console.log("[Exclusão] Removendo cupons cadastrados...");
+                const qCupons = query(collection(db, "cupons"), where("lojaId", "==", idLojaGlobal));
+                const snapCupons = await getDocs(qCupons);
+                const promisesCupons = [];
+                snapCupons.forEach(docSnap => {
+                    promisesCupons.push(deleteDoc(doc(db, "cupons", docSnap.id)));
+                });
+                await Promise.all(promisesCupons);
+
+                // 3. Desvincular a loja do perfil do Usuário Proprietário (seta como null ou remove o campo)
+                console.log("[Exclusão] Atualizando credenciais do proprietário...");
+                await updateDoc(doc(db, "usuarios", user.uid), {
+                    loja: null // Libera o usuário para criar uma nova loja futuramente se necessário
+                });
+
+                // 4. Deletar o documento principal da loja
+                console.log("[Exclusão] Deletando documento do estabelecimento...");
+                await deleteDoc(doc(db, "lojas", idLojaGlobal));
+
+                mostrarNotificacao("Sua loja foi excluída com sucesso.");
+                setTimeout(() => {
+                    window.location.href = "../index.html";
+                }, 1500);
+
+            } catch (error) {
+                console.error("Erro crítico no fluxo de exclusão da loja:", error);
+                mostrarNotificacao("Falha ao excluir o estabelecimento. Contate o suporte.", "error");
+            }
+        };
 
         async function carregarRegioesDoBanco() {
             try {
@@ -538,14 +611,14 @@
             if (!container) return;
             container.innerHTML = "";
 
-            const ciudadesAtivas = Object.keys(logisticaCidadesLocal).sort();
+            const cidadesAtivas = Object.keys(logisticaCidadesLocal).sort();
 
-            if (ciudadesAtivas.length === 0) {
-                container.innerHTML = `<p class="logistica-vazia-text">Nenhuma cidade selecionada para rota de entrega.</p>`;
+            if (cidadesAtivas.length === 0) {
+                container.innerHTML = `<p class="logistica-vazia-text">Nenhuma cidade EM rota logistica.</p>`;
                 return;
             }
 
-            ciudadesAtivas.forEach(cidade => {
+            cidadesAtivas.forEach(cidade => {
                 const dadosCidade = logisticaCidadesLocal[cidade];
                 const cardCidade = document.createElement('div');
                 cardCidade.className = "card-logistica-cidade-painel";
@@ -723,7 +796,7 @@
                     statusMaster: document.getElementById('edit-status-loja-master').value,
                     horariosSemana: novaGrade
                 });
-                mostrarNotificacao("Grade de horários updated!");
+                mostrarNotificacao("Grade de horários atualizada!");
                 window.fecharModal('modal-horarios');
                 await carregarDadosLoja();
             } catch (err) {
@@ -941,7 +1014,7 @@
                 const linhasOpcoes = card.querySelectorAll('.container-subopcoes-itens > .linha-subopcao-item-grid');
                 
                 linhasOpcoes.forEach(linha => {
-                    const nomeOp = linha.querySelector('.subopcao-nome').value.trim();
+                    const nomeOp = inline.querySelector('.subopcao-nome').value.trim();
                     const precoOp = parseFloat(linha.querySelector('.subopcao-preco').value) || 0;
                     if (nomeOp !== "") {
                         subOpcoes.push({ nome: nomeOp, precoAdicional: precoOp });
@@ -1104,7 +1177,7 @@
                 });
 
                 mostrarNotificacao("Item cadastrado no cardápio!");
-                e.target.reset();
+                ui.target.reset();
                 document.getElementById('preview-produto-add').src = "../assets/images/placeholder.png";
                 blobAddProdutoCurrent = null;
                 wrapperAddListaGrupos.innerHTML = "";
@@ -1214,7 +1287,7 @@
                 });
 
                 mostrarNotificacao("Cupom próprio ativado!");
-                e.target.reset();
+                ui.target.reset();
                 window.fecharModal('modal-add-cupom');
                 window.abrirGerenciadorCupons();
             } catch (err) { mostrarNotificacao("Erro ao cadastrar cupom.", "error"); }
@@ -1225,7 +1298,6 @@
         function initializeEscutaPedidosRealtime() {
             const q = query(collection(db, "pedidos"), where("lojaId", "==", idLojaGlobal));
             
-            // Ouvinte para reprocessar dados quando o seletor de tempo do gráfico mudar
             const selectPeriodo = document.getElementById('select-periodo-grafico');
             if (selectPeriodo) {
                 selectPeriodo.onchange = () => {
@@ -1246,7 +1318,6 @@
             }, (error) => { console.error("Erro realtime listener:", error); });
         }
 
-        // Processamento analítico unificado reativo ao período selecionado
         function processarEAtualizarDadosDashboard() {
             let contagemPendentes = 0;
             let faturamentoDiaAcumulado = 0;
@@ -1259,7 +1330,6 @@
             const selectPeriodo = document.getElementById('select-periodo-grafico');
             const diasFiltro = selectPeriodo ? parseInt(selectPeriodo.value) : 7;
 
-            // Monta o mapa cronológico com base nos dias retroativos selecionados
             const mapaCronologicoPeriodo = {};
             for (let i = diasFiltro - 1; i >= 0; i--) {
                 const d = new Date();
@@ -1281,7 +1351,6 @@
                     totalPedidosConcluidosDia++;
                     const valorLiquidoPedido = parseFloat(p.total) || 0;
                     
-                    // Alimenta o gráfico apenas se o pedido estiver na janela temporal ativa
                     if (mapaCronologicoPeriodo[dataFormatada] !== undefined) {
                         mapaCronologicoPeriodo[dataFormatada] += valorLiquidoPedido;
                     }
@@ -1341,7 +1410,6 @@
             if (instanciaGraficoFaturamento) {
                 instanciaGraficoFaturamento.data.labels = labelsDias;
                 instanciaGraficoFaturamento.data.datasets[0].data = valoresFaturamento;
-                // Ajusta dinamicamente a granulação dos pontos com base no volume de dias para não poluir
                 instanciaGraficoFaturamento.data.datasets[0].pointRadius = labelsDias.length > 30 ? 1 : 4;
                 instanciaGraficoFaturamento.update();
             } else {
@@ -1376,7 +1444,7 @@
                             x: {
                                 ticks: { 
                                     font: { family: 'Poppins', size: 10 },
-                                    maxTicksLimit: 12 // Limita quantidade de rótulos visíveis simultâneos para evitar sobreposição
+                                    maxTicksLimit: 12
                                 }
                             }
                         }

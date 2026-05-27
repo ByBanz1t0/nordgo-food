@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nordgo Food | Autenticação</title>
+    <title>Autenticação | NordGo</title>
     <link rel="icon" type="image/png" href="../assets/images/favicon.png">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -245,6 +245,36 @@
             return /^(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*])(?=.{8,})/.test(senha);
         };
 
+        // 🔥 FUNÇÃO AUXILIAR: VALIDAÇÃO MATEMÁTICA E ALGORÍTMICA DE CPF
+        const validarCPFMatematico = (cpf) => {
+            cpf = cpf.replace(/\D/g, "");
+            
+            // Elimina strings com 11 caracteres contendo números idênticos conhecidos
+            if (cpf.length !== 11 || /^(\d)\1{10}$/.test(cpf)) return false;
+            
+            let soma = 0;
+            let resto;
+            
+            // Validação matemática do primeiro dígito verificador
+            for (let i = 1; i <= 9; i++) {
+                soma = soma + parseInt(cpf.substring(i - 1, i)) * (11 - i);
+            }
+            resto = (soma * 10) % 11;
+            if ((resto === 10) || (resto === 11)) resto = 0;
+            if (resto !== parseInt(cpf.substring(9, 10))) return false;
+            
+            // Validação matemática do segundo dígito verificador
+            soma = 0;
+            for (let i = 1; i <= 10; i++) {
+                soma = soma + parseInt(cpf.substring(i - 1, i)) * (12 - i);
+            }
+            resto = (soma * 10) % 11;
+            if ((resto === 10) || (resto === 11)) resto = 0;
+            if (resto !== parseInt(cpf.substring(10, 11))) return false;
+            
+            return true;
+        };
+
         document.getElementById('link-ir-cadastro').onclick = (e) => {
             e.preventDefault();
             sectionLogin.classList.add('hidden'); 
@@ -317,6 +347,12 @@
                 return;
             }
 
+            // 🔥 NOVO CHECKPOINT: VALIDAÇÃO DO ALGORITMO DO CPF ANTES DE EXECUTAR REQUISIÇÕES
+            if (!validarCPFMatematico(cpfCliente)) {
+                mostrarNotificacao("O CPF informado é inválido. Verifique os dígitos.", "error");
+                return;
+            }
+
             const btn = document.getElementById('btn-cadastrar-final');
 
             try {
@@ -330,7 +366,6 @@
                 console.log("[DEBUG] Passo 1: Consultando CPF diretamente na coleção /usuarios...");
                 const cpfLimpoId = cpfCliente.replace(/\D/g, "");
                 
-                // Criamos o ponteiro de ID único para o CPF dentro da coleção usuarios
                 const cpfRef = doc(db, "usuarios", `cpf_${cpfLimpoId}`);
                 const cpfSnap = await getDoc(cpfRef);
 
@@ -379,7 +414,6 @@
                 await setDoc(doc(db, "usuarios", userCred.user.uid), payloadFinal);
 
                 console.log("[DEBUG] Passo 4: Vinculando trava exclusiva de CPF dentro de /usuarios...");
-                // Gravamos o documento de bloqueio dentro da MESMA coleção para consultas futuras rápidas
                 await setDoc(doc(db, "usuarios", `cpf_${cpfLimpoId}`), {
                     isCpfLock: true,
                     userId: userCred.user.uid,

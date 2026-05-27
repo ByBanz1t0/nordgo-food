@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel de Gerenciamento | Nordgo Food</title>
+    <title>Painel de Gerenciamento | NordGo</title>
     <link rel="icon" type="image/png" href="../assets/images/favicon.png">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -109,18 +109,18 @@
                             <option value="porcentagem">Desconto em Porcentagem (%)</option>
                             <option value="fixo">Desconto em Valor Fixo (R$)</option>
                         </select>
-
-                        <label>Valor do Desconto</label>
-                        <input type="number" id="cupom-valor" placeholder="Ex: 10">
-
                         <div class="form-row-inputs">
                             <div class="form-group-block">
+                                <label>Valor do Desconto</label>
+                                <input type="number" id="cupom-valor" placeholder="Ex: 10">
                                 <label>Valor Mínimo Pedido (R$)</label>
                                 <input type="number" id="cupom-minimo" placeholder="Ex: 20" value="0">
                             </div>
                             <div class="form-group-block">
                                 <label>Limite Total de Usos</label>
-                                <input type="number" id="cupom-validade" placeholder="Ex: 100" value="100">
+                                <input type="number" id="cupom-validade" placeholder="Ex: 100" value="0">
+                                <label>Tempo de Duração (Horas)</label>
+                                <input type="number" id="cupom-horas" placeholder="Ex: 24" value="24">
                             </div>
                         </div>
                         
@@ -131,7 +131,7 @@
                 </div>
                 <div class="admin-card">
                     <h3><i class="fa-solid fa-circle-check"></i> Cupons Ativos</h3>
-                    <div id="lista-admin-cupons" class="admin-list-container">
+                    <div id="lista-admin-cupons" class="admin-list-container" style="display: flex; flex-direction: column; gap: 12px;">
                         <p class="txt-loading">Carregando cupons...</p>
                     </div>
                 </div>
@@ -228,7 +228,7 @@
             carregarLojas();
             carregarCupons();
             carregarLogisticaGeral();
-            carregarUsuarios(); // Inicializa a carga da nova tabela de usuários
+            carregarUsuarios();
         });
 
         /* ============================================================
@@ -322,7 +322,7 @@
         }
 
         /* ============================================================
-           3. MÓDULO: CUPONS
+           3. MÓDULO: CUPONS (Detalhamento Avançado de Ativos)
            ============================================================ */
         async function carregarCupons() {
             const container = document.getElementById('lista-admin-cupons');
@@ -334,21 +334,62 @@
                 snap.forEach(docSnap => {
                     const cupom = docSnap.data();
                     const sufixo = cupom.tipo === 'porcentagem' ? '%' : ' R$';
+                    
+                    // Extração de metadados avançados salvos no banco
+                    const usoMinimo = cupom.usoMinimo || cupom.valorMinimo || 0;
+                    const usosAtuais = cupom.usosAtuais || 0;
+                    const limiteUsos = cupom.validade || cupom.limiteUsos || "∞";
+                    const escopo = cupom.escopo || "global";
+                    const nomeLojaOrigem = cupom.nomeLoja || "";
+
+                    // Tratamento dinâmico de expiração/prazos
+                    let txtExpiracaoMeta = "Sem prazo";
+                    let isExpiradoPorTempo = false;
+                    
+                    if (cupom.dataExpiracao) {
+                        const dataExpObj = new Date(cupom.dataExpiracao);
+                        txtExpiracaoMeta = dataExpObj.toLocaleString('pt-br', { dateStyle: 'short', timeStyle: 'short' });
+                        if (dataExpObj < new Date()) {
+                            isExpiradoPorTempo = true;
+                        }
+                    }
+
                     const item = document.createElement('div');
                     item.className = 'admin-list-item';
-                    item.innerHTML = `<span><strong>${cupom.codigo}</strong> (Desconto: ${cupom.valor}${sufixo})</span><button class="btn-delete-cupom" data-id="${docSnap.id}"><i class="fa-solid fa-trash"></i></button>`;
+                    
+                    // Estilização inline sutil para envelopar os metadados em blocos estruturados
+                    item.style.cssText = "display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #f8f9fa; border: 1px solid #e4e7eb; border-radius: 8px; width: 100%;";
+                    
+                    item.innerHTML = `
+                        <div style="display: flex; flex-direction: column; gap: 4px; width: 85%;">
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <strong style="color: #ff6400; font-size: 1rem; font-family: 'Poppins', sans-serif;">${cupom.codigo}</strong>
+                                <span style="background: #e1f5fe; color: #0288d1; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase;">
+                                    ${escopo === 'global' ? 'Global App' : `Loja: ${nomeLojaOrigem}`}
+                                </span>
+                                ${isExpiradoPorTempo ? '<span style="background: #ffe0e0; color: #ff4757; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 600;">Expirado</span>' : ''}
+                            </div>
+                            <div style="font-size: 0.825rem; color: #2f3542; line-height: 1.5;">
+                                <i class="fa-solid fa-tags" style="color: #a4b0be; width: 16px;"></i> <strong>Desconto:</strong> ${cupom.valor}${sufixo} <br>
+                                <i class="fa-solid fa-basket-shopping" style="color: #a4b0be; width: 16px;"></i> <strong>Pedido Mínimo:</strong> R$ ${parseFloat(usoMinimo).toFixed(2)} <br>
+                                <i class="fa-solid fa-chart-pie" style="color: #a4b0be; width: 16px;"></i> <strong>Uso Geral:</strong> ${usosAtuais} / ${limiteUsos} utilizações <br>
+                                <i class="fa-solid fa-clock" style="color: #a4b0be; width: 16px;"></i> <strong>Prazo:</strong> ${txtExpiracaoMeta}
+                            </div>
+                        </div>
+                        <button class="btn-delete-cupom" data-id="${docSnap.id}" style="background: #ffe0e0; color: #ff4757; border: none; padding: 8px 10px; border-radius: 6px; cursor: pointer; transition: 0.2s;"><i class="fa-solid fa-trash"></i></button>
+                    `;
                     container.appendChild(item);
                 });
 
                 container.querySelectorAll('.btn-delete-cupom').forEach(btn => {
                     btn.onclick = async (e) => {
-                        if(confirm("Excluir este cupom?")) {
+                        if(confirm("Excluir este cupom permanentemente?")) {
                             await deleteDoc(doc(db, "cupons", e.currentTarget.getAttribute('data-id')));
                             mostrarNotificacao("Cupom removido!"); carregarCupons();
                         }
                     };
                 });
-            } catch (err) { container.innerHTML = "<p>Erro ao carregar cupons.</p>"; }
+            } catch (err) { console.error(err); container.innerHTML = "<p>Erro ao carregar cupons ativos.</p>"; }
         }
 
         document.getElementById('btn-salvar-cupom').onclick = async () => {
@@ -356,22 +397,35 @@
             const tipo = document.getElementById('cupom-tipo').value;
             const valor = document.getElementById('cupom-valor').value.trim();
             const usoMinimo = document.getElementById('cupom-minimo').value.trim();
-            const validade = document.getElementById('cupom-validade').value.trim();
+            const limiteUsos = document.getElementById('cupom-validade').value.trim();
+            const horas = document.getElementById('cupom-horas').value.trim();
 
             if(!codigo || !valor) { mostrarNotificacao("Preencha Código e Valor.", "error"); return; }
+
+            // Lógica: Calcula a data exata de expiração somando as horas
+            const dataCriacao = new Date();
+            const dataExpiracao = new Date(dataCriacao.getTime() + (Number(horas) * 60 * 60 * 1000));
+
             try {
                 await addDoc(collection(db, "cupons"), {
-                    ativo: true, codigo: codigo, dataCriacao: new Date(), escopo: "global", lojaId: "",
-                    tipo: tipo, usoMinimo: Number(usoMinimo || 0), usosAtuais: 0, usuariosQueUsaram: [],
-                    validade: String(validade || "100"), validadeTipo: "uses", valor: Number(valor)
+                    ativo: true, 
+                    codigo: codigo, 
+                    dataCriacao: dataCriacao.toISOString(), 
+                    dataExpiracao: dataExpiracao.toISOString(), // Salva a data limite
+                    escopo: "global", 
+                    tipo: tipo, 
+                    usoMinimo: Number(usoMinimo || 0), 
+                    usosAtuais: 0, 
+                    limiteUsos: Number(limiteUsos || 0),
+                    valor: Number(valor)
                 });
-                mostrarNotificacao("Cupom ativado!");
-                document.getElementById('cupom-codigo').value = ""; document.getElementById('cupom-valor').value = ""; carregarCupons();
-            } catch (error) { mostrarNotificacao("Erro ao salvar cupom.", "error"); }
+                mostrarNotificacao(`Cupom criado! Expira em ${horas}h.`);
+                carregarCupons();
+            } catch (error) { mostrarNotificacao("Erro ao salvar.", "error"); }
         };
 
         /* ============================================================
-           4. MÓDULO: LOGÍSTICA GEOGRÁFICA (Refatorado para Cidade-UF composto)
+           4. MÓDULO: LOGÍSTICA GEOGRÁFICA (Cidade-UF composto)
            ============================================================ */
         async function carregarLogisticaGeral() {
             const listaCidades = document.getElementById('lista-admin-cidades');
@@ -390,26 +444,26 @@
                 }
 
                 snapRegioes.forEach(docSnap => {
-                    const docIdComposto = docSnap.id; // Ex: Arapiraca-AL
+                    const docIdComposto = docSnap.id; 
                     const dadosCidade = docSnap.data();
                     
-                    const cidadeNome = dadosCidade.nome || docIdComposto.split('-')[0];
-                    const cidadeUf = dadosCidade.uf || docIdComposto.split('-')[1] || '';
+                    const cityNome = dadosCidade.nome || docIdComposto.split('-')[0];
+                    const cityUf = dadosCidade.uf || docIdComposto.split('-')[1] || '';
                     const listaDeBairrosDessaCidade = dadosCidade.bairros || [];
 
                     const itemCidade = document.createElement('div');
                     itemCidade.className = 'admin-list-item';
-                    itemCidade.innerHTML = `<span><strong>${cidadeNome} - ${cidadeUf}</strong></span><button class="btn-delete-cidade" data-id="${docIdComposto}"><i class="fa-solid fa-trash"></i></button>`;
+                    itemCidade.innerHTML = `<span><strong>${cityNome} - ${cityUf}</strong></span><button class="btn-delete-cidade" data-id="${docIdComposto}"><i class="fa-solid fa-trash"></i></button>`;
                     listaCidades.appendChild(itemCidade);
 
                     const opt = document.createElement('option');
-                    opt.value = docIdComposto; opt.textContent = `${cidadeNome} - ${cidadeUf}`;
+                    opt.value = docIdComposto; opt.textContent = `${cityNome} - ${cityUf}`;
                     selectCidades.appendChild(opt);
 
                     listaDeBairrosDessaCidade.forEach(bairroNome => {
                         const itemBairro = document.createElement('div');
                         itemBairro.className = 'admin-list-item';
-                        itemBairro.innerHTML = `<span>${bairroNome} <small class="txt-city-ref">(${cidadeNome}-${cidadeUf})</small></span><button class="btn-delete-bairro" data-cidade="${docIdComposto}" data-bairro="${bairroNome}"><i class="fa-solid fa-trash"></i></button>`;
+                        itemBairro.innerHTML = `<span>${bairroNome} <small class="txt-city-ref">(${cityNome}-${cityUf})</small></span><button class="btn-delete-bairro" data-cidade="${docIdComposto}" data-bairro="${bairroNome}"><i class="fa-solid fa-trash"></i></button>`;
                         listaBairros.appendChild(itemBairro);
                     });
                 });
@@ -476,7 +530,7 @@
         };
 
         /* ============================================================
-           5. NOVO MÓDULO: GERENCIAMENTO DE USUÁRIOS (Admin / Suspensão)
+           5. MÓDULO: GERENCIAMENTO DE USUÁRIOS
            ============================================================ */
         async function carregarUsuarios() {
             const tbody = document.getElementById('tabela-admin-usuarios');
@@ -493,20 +547,16 @@
                     const usuario = docSnap.data();
                     const tr = document.createElement('tr');
                     const uid = docSnap.id;
-
-                    // Ignora ou protege a exibição do próprio admin logado para evitar auto-suspensão acidental
+                    if (uid.startsWith('cpf_')) return;
                     const ehOProprioAdminLogado = auth.currentUser && auth.currentUser.uid === uid;
 
-                    // 1. Definição do Tipo/Cargo de Usuário
                     const classeCargo = usuario.isAdmin === true ? 'status-aprovado' : 'status-pendente';
                     const textoCargo = usuario.isAdmin === true ? 'Admin' : 'Cliente';
 
-                    // 2. Definição do Status de Acesso (Ativo ou Suspenso)
                     const statusUsuario = usuario.status || 'ativo'; 
                     let classeStatus = 'status-aprovado';
                     if (statusUsuario === 'suspenso') classeStatus = 'status-suspenso';
 
-                    // 3. Botão Dinâmico de Cargo (Admin / Revogar)
                     let btnCargoHtml = '';
                     if (usuario.isAdmin === true) {
                         btnCargoHtml = `<button class="btn-status-toggle btn-block btn-cargo-toggle" data-id="${uid}" data-admin="false" ${ehOProprioAdminLogado ? 'disabled style="opacity:0.5; cursor:not-allowed;"' : ''}><i class="fa-solid fa-user-minus"></i> Revogar Admin</button>`;
@@ -514,7 +564,6 @@
                         btnCargoHtml = `<button class="btn-status-toggle btn-allow btn-cargo-toggle" data-id="${uid}" data-admin="true"><i class="fa-solid fa-user-shield"></i> Tornar Admin</button>`;
                     }
 
-                    // 4. Botão Dinâmico de Acesso (Suspender / Reativar)
                     let btnAcessoHtml = '';
                     if (statusUsuario === 'suspenso') {
                         btnAcessoHtml = `<button class="btn-status-toggle btn-allow btn-acesso-toggle" data-id="${uid}" data-status="ativo"><i class="fa-solid fa-user-check"></i> Reativar Conta</button>`;
@@ -533,7 +582,6 @@
                     tbody.appendChild(tr);
                 });
 
-                // Ouvintes de clique: Gerenciamento de Cargo (isAdmin)
                 tbody.querySelectorAll('.btn-cargo-toggle').forEach(btn => {
                     btn.onclick = async (e) => {
                         if (e.currentTarget.hasAttribute('disabled')) return;
@@ -548,7 +596,6 @@
                     };
                 });
 
-                // Ouvintes de clique: Gerenciamento de Acesso (Status Ativo/Suspenso)
                 tbody.querySelectorAll('.btn-acesso-toggle').forEach(btn => {
                     btn.onclick = async (e) => {
                         if (e.currentTarget.hasAttribute('disabled')) return;
