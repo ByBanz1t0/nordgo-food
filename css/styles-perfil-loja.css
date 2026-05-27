@@ -2,46 +2,44 @@
    MÓDULO: DASHBOARD INTEGRADO (LAYOUT DE DUAS COLUNAS)
    ============================================================ */
 
-/* Container mestre reconfigurado para suportar o fluxo lado a lado */
 .dashboard-container { 
-    max-width: 1440px; 
+    max-width: 90rem; /* 1440px */
     margin: 2rem auto; 
     padding: 0 1.5rem; 
 }
 
-/* Envoltório do layout de duas colunas */
 .dashboard-layout-wrapper {
-    display: grid;
-    grid-template-columns: 1fr 440px; /* Divide ações do lojista (esquerda) e cozinha (direita) */
-    gap: 2rem;
-    align-items: start;
+    display: flex;
+    flex-direction: row; /* Lado a lado nativo no Desktop */
+    gap: 1.5rem;
+    width: 100%;
+    box-sizing: border-box;
+    align-items: flex-start;
 }
 
-/* Coluna da Esquerda: Ações do Dashboard */
 .grid-dashboard { 
     display: grid; 
-    grid-template-columns: repeat(auto-fit, minmax(17.5rem, 1fr)); 
+    grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr)); 
     gap: 1.5625rem; 
 }
 
-/* Coluna da Direita: Painel Fixo Vertical de Pedidos (Estilo Monitor de Cozinha) */
 .painel-pedidos-fixo {
+    width: 22.5rem !important; /* Barra lateral fixa em 360px */
+    position: sticky !important;
+    top: 5rem; 
+    min-height: calc(100vh - 8rem); 
     background: #ffffff;
-    border-radius: 1.5625rem;
-    padding: 1.875rem;
-    border: 0.0625rem solid #f0f0f0;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+    border: 0.0625rem solid #e4e7eb;
+    border-radius: 0.75rem;
+    padding: 1rem;
+    box-shadow: 0 0.625rem 1.875rem rgba(0, 0, 0, 0.04);
     display: flex;
     flex-direction: column;
-    height: calc(100vh - 140px); /* Ocupa a altura útil da tela */
-    position: sticky;
-    top: 100px; /* Trava no topo ao rolar a página */
     box-sizing: border-box;
 }
 
-/* Cabeçalho interno do monitor fixo */
 .header-pedidos-fixo {
-    border-bottom: 2px solid #f1f1f1;
+    border-bottom: 0.125rem solid #f1f1f1;
     padding-bottom: 1rem;
     margin-bottom: 1.25rem;
     flex-shrink: 0;
@@ -52,50 +50,46 @@
     color: #2f3542;
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 0.625rem;
     margin-top: 0;
     margin-bottom: 1rem;
     font-weight: 600;
 }
 
 .header-pedidos-fixo h2 i {
-    color: #ff4757;
+    color: #ff6400;
 }
 
-/* Badge numérico de controle */
 #txt-contador-pedidos-badge {
     font-size: 0.8rem;
     background: #f1f2f6;
     color: #2f3542;
-    padding: 3px 10px;
-    border-radius: 20px;
+    padding: 0.1875rem 0.625rem;
+    border-radius: 1.25rem;
     font-weight: 600;
     transition: all 0.3s ease;
 }
 
-/* Abas seletoras de visualização interna do monitor */
 .tabs-pedidos-fixo {
     display: flex;
-    gap: 10px;
+    gap: 0.625rem;
 }
 
 .tabs-pedidos-fixo button {
     flex: 1;
-    padding: 0.625rem !important;
-    font-size: 0.85rem !important;
+    padding: 0.5rem !important;
+    font-size: 0.75rem !important;
     border-radius: 0.75rem !important;
     margin: 0 !important;
 }
 
-/* Container de Rolagem Isolado dos Pedidos */
 .lista-pedidos-fixo-scroll {
     display: flex;
     flex-direction: column;
-    gap: 12px;
-    overflow-y: auto !important; /* Rolagem interna macia */
-    flex-content: start;
+    gap: 0.75rem;
+    overflow-y: auto !important; 
     flex: 1;
-    padding-right: 4px;
+    padding-right: 0.25rem;
 }
 
 .lista-pedidos-fixo-scroll p {
@@ -105,22 +99,123 @@
     font-size: 0.9rem;
 }
 
-/* Responsividade para telas menores e tablets */
-@media (max-width: 1024px) {
-    .dashboard-layout-wrapper {
-        grid-template-columns: 1fr; /* Empilha os blocos em telas compactas */
-    }
-    .painel-pedidos-fixo {
-        position: static;
-        height: 600px;
-    }
+/* ============================================================
+   GRID DE MÉTRICAS OPERACIONAIS E ESTRUTURA DO GRÁFICO
+   ============================================================ */
+
+.painel-operacional-esquerdo {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    flex: 1;
+    width: 100%;
+    min-width: 0; 
+}
+
+.grid-metricas-operacionais {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr); 
+    gap: 1rem;
+    width: 100%;
+}
+
+.card-metrica-bloco {
+    background: #ffffff;
+    border: 0.0625rem solid #e4e7eb;
+    border-radius: 0.75rem;
+    padding: 1.25rem 1rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    box-shadow: 0 0.25rem 0.375rem rgba(0, 0, 0, 0.01);
+}
+
+.metrica-icon-wrapper {
+    width: 3rem;
+    height: 3rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.35rem;
+    flex-shrink: 0;
+}
+
+.faturamento .metrica-icon-wrapper { background: #e3fafc; color: #0c8599; }
+.volumes .metrica-icon-wrapper { background: #e8f5e9; color: #2e7d32; }
+.ticket .metrica-icon-wrapper { background: #fff3e0; color: #ef6c00; }
+.cancelamentos .metrica-icon-wrapper { background: #ffebee; color: #c62828; }
+
+.metrica-dados-texto span {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #747d8c;
+    text-transform: uppercase;
+    display: block;
+}
+
+.metrica-dados-texto h2 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #2f3542;
+    margin: 0;
+    margin-top: 0.125rem;
+    white-space: nowrap;
+}
+
+.card-container-grafico {
+    background: #ffffff;
+    border: 0.0625rem solid #e4e7eb;
+    border-radius: 0.75rem;
+    padding: 1.25rem;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.header-card-grafico {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    margin-bottom: 1.25rem;
+    gap: 0.9375rem;
+}
+
+.header-card-grafico h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #2f3542;
+    margin: 0 !important;
+}
+
+.select-periodo-dash {
+    background: #ffffff;
+    border: 0.0625rem solid #ced4da;
+    border-radius: 0.5rem;
+    padding: 0.375rem 0.75rem;
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: #2f3542;
+    cursor: pointer;
+    outline: none;
+    transition: border-color 0.2s ease;
+}
+
+.select-periodo-dash:focus {
+    border-color: #ff6400;
+}
+
+.corpo-canvas-wrapper {
+    position: relative;
+    height: 14rem; 
+    width: 100%;
 }
 
 /* ============================================================
-   PAINEL DO LOJISTA (PERFIL-LOJA.HTML) - VERSÃO PADRONIZADA
+   PAINEL DO LOJISTA - FORMULÁRIOS, MODAIS E COMPONENTES BASE
    ============================================================ */
 
-/* --- MODAIS (SOBREPOSIÇÃO E CONTEÚDO) --- */
 .modal-overlay {
     position: fixed;
     top: 0;
@@ -128,8 +223,8 @@
     width: 100%;
     height: 100%;
     background: rgba(0, 0, 0, 0.45);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(0.625rem);
+    -webkit-backdrop-filter: blur(0.625rem);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -155,7 +250,7 @@
     overflow-y: auto;
     transform: scale(0.9);
     transition: all 0.3s ease;
-    box-shadow: 0 20px 50px rgba(0,0,0,0.2);
+    box-shadow: 0 1.25rem 3.125rem rgba(0,0,0,0.2);
 }
 
 .modal-overlay.active .modal-content {
@@ -168,10 +263,9 @@
     align-items: center;
     margin-bottom: 1.5rem;
     padding-bottom: 1rem;
-    border-bottom: 1px solid #f1f1f1;
+    border-bottom: 0.0625rem solid #f1f1f1;
 }
 
-/* --- FORMULÁRIOS NO MODAL --- */
 .modal-body .input-group {
     margin-bottom: 1.25rem;
 }
@@ -183,28 +277,31 @@
     color: #57606f;
 }
 
-.modal-body input:focus {
-    outline: none;
-    border-color: #27ae60;
-    background: #fff;
-}
-
-/* --- SELETOR DE COR --- */
 .color-picker-container {
     display: flex;
     align-items: center;
-    gap: 1rem;
+    gap: 0.625rem;
     background: #f9f9f9;
-    padding: 0.5rem 1rem;
-    border: 2px solid #f1f1f1;
-    border-radius: 0.75rem;
+    padding: 0.625rem;
+    border-radius: 1rem;
+    border: 0.09375rem solid #f1f1f1;
+    width: 100%;
+    box-sizing: border-box;
 }
 
-#valor-hex {
-    font-family: 'Courier New', monospace;
-    font-weight: 700;
-    font-size: 1.2rem;
-    color: #2f3542;
+.color-picker-input {
+    border-radius: 0.5rem;
+    width: 2.5rem;
+    height: 2.5rem;
+    background: none;
+    cursor: pointer;
+    border: none;
+}
+
+.color-picker-hex {
+    font-family: monospace;
+    font-weight: bold;
+    color: #333;
 }
 
 .logo-preview-container {
@@ -239,19 +336,8 @@
     height: 5rem;
 }
 
-#preview-logo:hover, 
-#preview-produto-add:hover, 
-#preview-produto-edit:hover {
+#preview-logo:hover, #preview-produto-add:hover, #preview-produto-edit:hover {
     filter: brightness(0.8);
-}
-
-.label-upload-instrucao {
-    font-size: 0.7rem;
-    color: #2ed573;
-    font-weight: 600;
-    cursor: pointer;
-    text-transform: uppercase;
-    letter-spacing: 0.03125rem;
 }
 
 .card-dash {
@@ -272,7 +358,7 @@
 
 .card-dash i { 
     font-size: 3rem; 
-    color: #ff4757; 
+    color: #ff6400; 
     margin-bottom: 1.25rem; 
     display: block; 
 }
@@ -289,7 +375,6 @@
     line-height: 1.4;
 }
 
-/* --- LISTA DE PRODUTOS (GERENCIAR ITENS) --- */
 .produtos-admin-list {
     display: flex;
     flex-direction: column;
@@ -349,34 +434,28 @@
     border: none;
     width: 2.25rem;
     height: 2.25rem;
-    border-radius: 50%; /* Faz o elemento ser circular */
+    border-radius: 50%;
     color: #57606f;
     font-size: 1rem;
     cursor: pointer;
-    
-    /* Alinhamento do ícone interno centralizado */
     display: flex;
     align-items: center;
     justify-content: center;
-    
-    /* Proteção ativa para o botão nunca amassar ou virar uma elipse */
     flex-shrink: 0; 
-    
     transition: background 0.2s, color 0.2s;
 }
 
 .btn-fechar-modal-perfil:hover {
-    background: #ff4757;
+    background: #ff6400;
     color: #ffffff;
 }
 
 .btn-editar-prod { background: #eef2ff; color: #4f46e5; }
 .btn-editar-prod:hover { background: #4f46e5; color: #fff; }
 
-.btn-excluir-prod { background: #fff5f5; color: #ff4757; }
-.btn-excluir-prod:hover { background: #ff4757; color: #fff; }
+.btn-excluir-prod { background: #fff5f5; color: #ff6400; }
+.btn-excluir-prod:hover { background: #ff6400; color: #fff; }
 
-/* --- LABELS E INPUTS (MODERNO) --- */
 .input-group { 
     margin-bottom: 1.125rem; 
     display: flex; 
@@ -408,9 +487,7 @@
     transition: all 0.3s ease;
 }
 
-.modal-body input:focus,
-.modal-body select:focus,
-.modal-body textarea:focus { 
+.modal-body input:focus, .modal-body select:focus, .modal-body textarea:focus { 
     border-color: #2ed573; 
     background: #fff; 
     outline: none; 
@@ -434,45 +511,6 @@
     cursor: pointer; 
     transition: 0.3s;
 }
-
-.btn-blue { background-color: #3498db; }
-
-/* --- ZONA DE PERIGO --- */
-.danger-zone {
-    margin-top: 1.5625rem; 
-    padding: 0.9375rem; 
-    border: 0.0625rem solid #ffebeb; 
-    border-radius: 0.875rem; 
-    background-color: #fff9f9; 
-    text-align: center;
-}
-
-.danger-text { 
-    color: #e74c3c; 
-    font-size: 0.8rem; 
-    margin-bottom: 0.75rem; 
-}
-
-.btn-excluir { 
-    background: #ffeded; 
-    color: #e74c3c; 
-    border: 0.0625rem solid #ffcfcf; 
-    width: 100%; 
-    padding: 0.625rem; 
-    border-radius: 0.625rem; 
-    cursor: pointer; 
-    font-weight: 600;
-    transition: 0.3s;
-}
-
-.btn-excluir:hover {
-    background: #e74c3c;
-    color: #fff;
-}
-
-/* ==========================================================================
-   UPLOAD COMPACTADO DE MINIATURAS E BANNER - CONFIGURAÇÃO DA LOJA
-   ========================================================================== */
 
 .banner-preview-container {
     width: 100%;
@@ -515,10 +553,7 @@
     transition: opacity 0.3s ease;
 }
 
-.overlay-banner-input-upload i {
-    font-size: 1.5rem;
-}
-
+.overlay-banner-input-upload i { font-size: 1.5rem; }
 .overlay-banner-input-upload span {
     font-size: 0.8rem;
     font-weight: 600;
@@ -526,221 +561,23 @@
     letter-spacing: 0.05rem;
 }
 
-.wrapper-banner-input:hover .overlay-banner-input-upload {
-    opacity: 1;
-}
-
-.wrapper-banner-input:hover .banner-preview-element {
-    filter: blur(0.0625rem);
-}
-
-.color-picker-container input[type="color"]::-webkit-color-swatch-wrapper {
-    padding: 0;
-}
-
-.color-picker-container input[type="color"]::-webkit-color-swatch {
-    border: none;
-    border-radius: 0.5rem;
-}
+.wrapper-banner-input:hover .overlay-banner-input-upload { opacity: 1; }
+.wrapper-banner-input:hover .banner-preview-element { filter: blur(0.0625rem); }
 
 /* ============================================================
-   ESTILOS COMPLEMENTARES - PAINEL ADMINISTRATIVO (NORDGO)
-   ============================================================ */
-
-.btn-ver-loja-header {
-    cursor: pointer;
-    background-color: #f5f5f5;
-    border-color: #e2e2e2;
-}
-
-.nome-loja-titulo-text {
-    font-weight: 600;
-    color: #333;
-}
-
-.icon-link-externo {
-    font-size: 0.7rem;
-    margin-left: 8px;
-    color: #999;
-}
-
-.user-loading-placeholder {
-    height: 3rem;
-    min-width: 120px;
-}
-
-.color-picker-container {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    background: #f9f9f9;
-    padding: 10px;
-    border-radius: 1rem;
-    border: 1.5px solid #f1f1f1;
-    width: 100%;
-    box-sizing: border-box;
-}
-
-.color-picker-input {
-    border-radius: 8px;
-    width: 40px;
-    height: 40px;
-    background: none;
-    cursor: pointer;
-    border: none;
-}
-
-.color-picker-hex {
-    font-family: monospace;
-    font-weight: bold;
-    color: #333;
-}
-
-.modal-subtitulo-frete {
-    font-size: 0.9rem;
-    color: #666;
-    margin-bottom: 20px;
-}
-
-.bairro-cadastro-box {
-    align-items: flex-end;
-    gap: 10px;
-    background: #fafafa;
-    padding: 15px;
-    border-radius: 0.75rem;
-    border: 1px dashed #ddd;
-    box-sizing: border-box;
-}
-
-.input-group-bairro-nome {
-    flex: 2;
-    margin-bottom: 0 !important;
-}
-
-.input-group-bairro-taxa {
-    flex: 1;
-    margin-bottom: 0 !important;
-}
-
-.btn-add-bairro-acao {
-    height: 45px;
-    width: 45px;
-    background: #2ed573;
-    color: white;
-    border: none;
-    border-radius: 0.5rem;
-    font-weight: 600;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: background 0.2s;
-}
-
-.btn-add-bairro-acao:hover {
-    background: #26af5f;
-}
-
-.bairros-lista-container-scroll {
-    margin-top: 15px;
-    max-height: 250px;
-    overflow-y: auto;
-    background: #f1f2f6;
-    padding: 10px;
-    border-radius: 0.75rem;
-    border: 1.5px solid #e4e7eb;
-    box-sizing: border-box;
-}
-
-.bairros-lista-vazia {
-    text-align: center;
-    color: #888;
-    font-size: 0.85rem;
-    margin: 20px 0;
-}
-
-.bairro-item-lista-config {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 12px;
-    background: white;
-    margin-bottom: 8px;
-    border-radius: 8px;
-    border: 1px solid #eee;
-    box-sizing: border-box;
-    width: 100%;
-}
-
-.bairro-item-nome {
-    font-weight: 500;
-    color: #2f3542;
-}
-
-.bairro-item-wrapper-acoes {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-}
-
-.bairro-item-taxa-valor {
-    font-weight: 600;
-    color: #ff4757;
-}
-
-.bairro-item-btn-deletar {
-    background: none;
-    border: none;
-    color: #ff4757;
-    cursor: pointer;
-    font-size: 1rem;
-    padding: 0 4px;
-    transition: transform 0.1s;
-}
-
-.bairro-item-btn-deletar:hover {
-    transform: scale(1.1);
-}
-
-.input-group-frete-gratis input {
-    width: 8.125rem !important; 
-    height: 2.25rem !important; 
-    padding: 0 0.75rem !important; 
-    text-align: right;
-    margin: 0 !important;
-}
-
-.input-group-frete-gratis label {
-    margin: 0 !important;
-    white-space: nowrap;
-    color: #2f3542;
-    font-weight: 600;
-}
-
-.btn-salvar-frete-margin {
-    margin-top: 10px;
-}
-
-.loading-produtos-text {
-    text-align: center;
-    padding: 20px;
-    color: #747d8c;
-}
-
-/* ============================================================
-   ESTILOS DO MODAL DE HORÁRIOS (NORDGO ADMIN SYSTEM)
+   ESTILOS DO MODAL DE HORÁRIOS (BLINDADO CONTRA QUEBRAS)
    ============================================================ */
 
 .modal-content-horarios {
-    max-width: 32rem !important; 
+    max-width: 34rem !important; 
 }
 
 .select-status-master {
-    width: 100%;
-    height: 45px;
+    width: 100% !important;
+    height: 2.8125rem; /* 45px */
     border-radius: 0.75rem;
-    border: 1.5px solid #e4e7eb;
-    padding: 0 12px;
+    border: 0.09375rem solid #e4e7eb;
+    padding: 0 0.75rem;
     font-family: inherit;
     font-size: 0.95rem;
     color: #2f3542;
@@ -749,67 +586,78 @@
 }
 
 .divisor-sessao-horarios {
-    margin-top: 25px;
-    margin-bottom: 15px;
+    margin-top: 1.5625rem;
+    margin-bottom: 0.9375rem;
     font-weight: 600;
     color: #2f3542;
-    border-bottom: 2px solid #f1f1f1;
-    padding-bottom: 8px;
+    border-bottom: 0.125rem solid #f1f1f1;
+    padding-bottom: 0.5rem;
     font-size: 1rem;
 }
 
-.divisor-sessao-horarios i {
-    color: #ff4757;
-    margin-right: 5px;
-}
+.divisor-sessao-horarios i { color: #ff6400; margin-right: 0.3125rem; }
 
 .grade-semanal-container {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 0.75rem;
     width: 100%;
     box-sizing: border-box;
 }
 
 .dia-horario-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 12px 16px;
+    display: flex !important;
+    flex-direction: row !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    padding: 0.75rem 1rem;
     background: #f8f9fa;
     border-radius: 0.75rem;
-    border: 1px solid #e4e7eb;
-    gap: 15px;
+    border: 0.0625rem solid #e4e7eb;
+    gap: 0.625rem;
     box-sizing: border-box;
-    width: 100%;
+    width: 100% !important;
 }
 
 .dia-checkbox-block {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    flex: 1;
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 0.625rem;
+    flex: 0 0 9.375rem !important; /* Fixa o bloco em 150px */
+    width: 9.375rem !important;
+    min-width: 9.375rem !important;
 }
 
+/* Fix do Checkbox gigante das laterais */
 .checkbox-dia-toggle {
-    width: 18px;
-    height: 18px;
-    accent-color: #ff4757; 
+    width: 20px !important;
+    height: 20px !important;
+    min-width: 20px !important;
+    max-width: 20px !important;
+    accent-color: #ff6400; 
     cursor: pointer;
+    flex-shrink: 0 !important;
+    margin: 0 !important;
 }
 
 .label-dia-nome {
     font-weight: 600;
     color: #2f3542;
-    font-size: 0.95rem;
+    font-size: 0.9rem;
     cursor: pointer;
     user-select: none;
+    white-space: nowrap !important;
+    margin: 0 !important;
 }
 
 .dia-times-block {
-    display: flex;
-    align-items: center;
-    gap: 10px;
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    gap: 0.5rem;
+    flex: 1 !important;
     transition: opacity 0.2s ease;
 }
 
@@ -817,36 +665,39 @@
     font-size: 0.85rem;
     color: #747d8c;
     font-weight: 500;
+    flex-shrink: 0 !important;
+    white-space: nowrap;
 }
 
+/* Fix das dimensões do time-picker */
 .input-time-picker {
-    height: 38px;
-    padding: 0 8px;
+    height: 2.375rem !important; /* 38px */
+    width: 5.625rem !important; /* 90px */
+    min-width: 5.625rem !important;
+    max-width: 5.625rem !important;
+    padding: 0 0.375rem !important;
     border-radius: 0.5rem;
-    border: 1.5px solid #ced4da;
+    border: 0.09375rem solid #ced4da;
     font-family: monospace;
     font-size: 0.95rem;
     color: #2f3542;
     background: white;
     outline: none;
     cursor: pointer;
+    box-sizing: border-box !important;
+    text-align: center;
 }
 
-.input-time-picker:focus {
-    border-color: #ff4757;
-}
-
-.btn-salvar-horarios-margin {
-    margin-top: 15px;
-}
+.input-time-picker:focus { border-color: #ff6400; }
+.btn-salvar-horarios-margin { margin-top: 0.9375rem; }
 
 /* ============================================================
-   ESTILOS DO NOVO SISTEMA DE LOGÍSTICA DE ENTREGA MULTICIDADES
+   SISTEMA DE LOGÍSTICA DE ENTREGA MULTICIDADES
    ============================================================ */
 
 .modal-content-logistica {
-    max-width: 44rem !important;
-    max-height: 85vh;
+    max-width: 58rem !important; 
+    max-height: 92vh !important; 
     display: flex;
     flex-direction: column;
     overflow: hidden !important; 
@@ -855,48 +706,45 @@
 .modal-content-logistica .modal-body {
     display: flex;
     flex-direction: column;
-    overflow: hidden;
+    overflow-y: auto !important; 
     flex: 1;
-    padding-right: 10px;
+    padding-right: 0.625rem;
 }
 
-.modal-subtitulo-frete {
-    font-size: 0.85rem;
-    color: #747d8c;
-    margin-bottom: 15px;
+.logistica-config-topo {
+    display: grid;
+    grid-template-columns: 1.5fr 1fr 1fr; 
+    gap: 0.9375rem;
+    align-items: end; 
+    width: 100%;
+    margin-bottom: 0.9375rem;
 }
 
-.bloco-selecao-cidades {
-    background: #f1f2f6;
-    padding: 15px 15px 12px 15px;
-    border-radius: 8px;
-    border: 1px solid #e4e7eb;
-    margin-bottom: 5px;
-    flex-shrink: 0;
+.logistica-config-topo .dropdown-cidades-container,
+.logistica-config-topo .input-group {
+    margin-bottom: 0 !important;
+    width: 100%;
 }
 
+.logistica-config-topo label { margin-bottom: 0.5rem !important; }
 .label-secao-interna {
     font-weight: 600;
     color: #2f3542;
     display: block;
-    margin-bottom: 10px;
-    font-size: 0.9rem;
-}
-
-.cidades-checkbox-grid {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 12px;
+    margin-bottom: 0.625rem;
+    font-size: 0.85rem !important;
+    text-transform: uppercase;
+    letter-spacing: 0.03125rem;
 }
 
 .checkbox-cidade-item {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 0.375rem;
     background: #ffffff;
-    padding: 5px 14px;
-    border-radius: 30px;
-    border: 1.5px solid #ced4da;
+    padding: 0.3125rem 0.875rem;
+    border-radius: 1.875rem;
+    border: 0.09375rem solid #ced4da;
     cursor: pointer;
     user-select: none;
     transition: all 0.2s;
@@ -905,39 +753,28 @@
 
 .checkbox-cidade-item input[type="checkbox"],
 .bairro-check-block input[type="checkbox"] {
-    width: 16px !important;
-    height: 16px !important;
-    padding: 0 !important;
-    margin: 0 !important;
-    background: transparent !important;
-    border: none !important;
-    border-radius: 4px !important;
-    accent-color: #ff4757;
+    width: 1rem !important;
+    height: 1rem !important;
+    accent-color: #ff6400;
     cursor: pointer;
     flex-shrink: 0;
 }
 
-.checkbox-cidade-item label {
-    font-size: 0.85rem;
-    font-weight: 500;
-    color: #2f3542;
-    cursor: pointer;
-}
+.checkbox-cidade-item label { font-size: 0.85rem; font-weight: 500; color: #2f3542; cursor: pointer; }
 
 .logistica-cidades-scroll {
     display: flex;
     flex-direction: column;
     gap: 0.9375rem; 
-    max-height: 23.75rem; 
-    overflow-y: auto !important;
-    padding-right: 0.5rem; 
+    max-height: none !important; 
+    overflow: visible !important; 
     margin-top: 0.9375rem; 
     flex: 1;
 }
 
 .card-logistica-cidade-painel {
-    border: 1px solid #e4e7eb;
-    border-radius: 8px;
+    border: 0.0625rem solid #e4e7eb;
+    border-radius: 0.5rem;
     background: #ffffff;
     overflow: hidden;
     flex-shrink: 0;
@@ -948,60 +785,29 @@
     justify-content: space-between;
     align-items: center;
     background: #f8f9fa;
-    padding: 10px 15px;
-    border-bottom: 1px solid #e4e7eb;
+    padding: 0.625rem 0.9375rem;
+    border-bottom: 0.0625rem solid #e4e7eb;
 }
 
-.header-cidade-painel h4 {
-    margin: 0;
-    color: #2f3542;
-    font-weight: 600;
-    font-size: 0.9rem;
-}
+.header-cidade-painel h4 { margin: 0; color: #2f3542; font-weight: 600; font-size: 0.9rem; }
+.header-cidade-painel h4 i { color: #ff6400; margin-right: 0.3125rem; }
 
-.header-cidade-painel h4 i {
-    color: #ff4757;
-    margin-right: 5px;
-}
-
-.inputs-tempo-entrega {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    font-size: 0.8rem;
-    color: #57606f;
-}
-
-.inputs-tempo-entrega i {
-    color: #ffa502;
-}
-
+.inputs-tempo-entrega { display: flex; align-items: center; gap: 0.3125rem; font-size: 0.8rem; color: #57606f; }
+.inputs-tempo-entrega i { color: #ffa502; }
 .inputs-tempo-entrega input {
-    width: 45px !important;
-    height: 26px !important;
-    padding: 0 !important;
+    width: 2.8125rem !important;
+    height: 1.625rem !important;
     text-align: center;
-    border-radius: 4px;
-    border: 1px solid #ced4da;
-    outline: none;
-    font-family: inherit;
+    border-radius: 0.25rem;
+    border: 0.0625rem solid #ced4da;
     font-size: 0.8rem;
-}
-
-.inputs-tempo-entrega input:focus {
-    border-color: #ff4757;
-}
-
-.unidade-tempo {
-    font-weight: 600;
-    color: #2f3542;
 }
 
 .grade-bairros-logistica {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 8px;
-    padding: 12px;
+    grid-template-columns: repeat(auto-fill, minmax(17.5rem, 1fr));
+    gap: 0.5rem;
+    padding: 0.75rem;
     background: #fafafa;
 }
 
@@ -1010,19 +816,12 @@
     justify-content: space-between;
     align-items: center;
     background: #ffffff;
-    padding: 8px 12px;
-    border-radius: 6px;
-    border: 1px solid #e4e7eb;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.375rem;
+    border: 0.0625rem solid #e4e7eb;
 }
 
-.bairro-check-block {
-    display: flex;
-    align-items: center;
-    gap: 8px; 
-    flex: 1;
-    min-width: 0;
-}
-
+.bairro-check-block { display: flex; align-items: center; gap: 0.5rem; flex: 1; min-width: 0; }
 .bairro-check-block label {
     font-size: 0.8rem;
     font-weight: 500;
@@ -1032,113 +831,42 @@
     overflow: hidden;
     text-overflow: ellipsis;
     display: block;
-    text-align: left !important;
     margin: 0 !important;
     flex: 1;
-    min-width: 0;
 }
 
-.bairro-taxa-block {
-    display: flex;
-    align-items: center;
-    gap: 3px;
-    font-size: 0.8rem;
-    color: #747d8c;
-    flex-shrink: 0;
-}
-
+.bairro-taxa-block { display: flex; align-items: center; gap: 0.1875rem; font-size: 0.8rem; color: #747d8c; flex-shrink: 0; }
 .bairro-taxa-block input {
-    width: 60px !important;
-    height: 26px !important;
-    padding: 0 4px !important;
-    border-radius: 4px;
-    border: 1px solid #ced4da;
-    outline: none;
+    width: 3.75rem !important;
+    height: 1.625rem !important;
+    padding: 0 0.25rem !important;
+    border-radius: 0.25rem;
+    border: 0.0625rem solid #ced4da;
     text-align: right;
     font-family: monospace;
 }
+.bairro-taxa-block input:disabled { background: #f1f2f6; color: #a4b0be; cursor: not-allowed; }
 
-.bairro-taxa-block input:disabled {
-    background: #f1f2f6;
-    color: #a4b0be;
-    cursor: not-allowed;
-}
+.divisor-modal-frete { margin: 0.625rem 0; border: 0; border-top: 0.0625rem dashed #ced4da; flex-shrink: 0; }
+.btn-salvar-frete-margin { margin-top: 0.9375rem !important; flex-shrink: 0; }
+.logistica-vazia-text { text-align: center; color: #a4b0be; padding: 0.9375rem; font-size: 0.85rem; }
 
-.divisor-modal-frete {
-    margin: 10px 0;
-    border: 0;
-    border-top: 1px dashed #ced4da;
-    flex-shrink: 0;
-}
-
-.input-group-frete-gratis {
-    display: flex !important;
-    flex-direction: row !important;
-    align-items: center !important;
-    justify-content: space-between;
-    background: #f8f9fa;
-    padding: 0.75rem 0.9375rem; 
-    border-radius: 0.5rem; 
-    margin-top: 0.9375rem !important; 
-    margin-bottom: 0.9375rem !important; 
-    width: 100%;
-    box-sizing: border-box;
-}
-
-.btn-salvar-frete-margin {
-    margin-top: 0 !important;
-    flex-shrink: 0;
-}
-
-.logistica-vazia-text {
-    text-align: center;
-    color: #a4b0be;
-    padding: 15px;
-    font-size: 0.85rem;
-}
-
-/* ============================================================
-   MÓDULO: DROPDOWN SELETOR DE CIDADES FLUTUANTE (REM)
-   ============================================================ */
-
-.dropdown-cidades-container {
-    position: relative;
-    margin-bottom: 0.9375rem; 
-    width: 100%;
-}
-
+/* --- DROPDOWN FLUTUANTE DE CIDADES --- */
+.dropdown-cidades-container { position: relative; margin-bottom: 0.9375rem; width: 100%; }
 .dropdown-cidades-selecionador {
     background: #ffffff;
     padding: 0.75rem 1rem;
-    border: 1px solid #ced4da;
+    border: 0.0625rem solid #ced4da;
     border-radius: 0.5rem; 
     display: flex;
     justify-content: space-between;
     align-items: center;
     cursor: pointer;
-    user-select: none;
-    transition: all 0.2s ease;
     box-sizing: border-box;
 }
-
-.dropdown-cidades-selecionador:hover {
-    border-color: #ff4757;
-}
-
-#texto-cidades-selecionadas {
-    font-size: 0.9rem;
-    font-weight: 500;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    padding-right: 0.625rem; 
-}
-
-.dropdown-cidades-selecionador i {
-    color: #747d8c;
-    font-size: 0.85rem;
-    transition: transform 0.2s ease;
-}
+.dropdown-cidades-selecionador:hover { border-color: #ff6400; }
+#texto-cidades-selecionadas { font-size: 0.9rem; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding-right: 0.625rem; }
+.dropdown-cidades-selecionador i { color: #747d8c; font-size: 0.85rem; }
 
 .dropdown-cidades-lista {
     position: absolute;
@@ -1146,9 +874,9 @@
     left: 0;
     right: 0;
     background: #ffffff;
-    border: 1px solid #e4e7eb;
+    border: 0.0625rem solid #e4e7eb;
     border-radius: 0.5rem; 
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
+    box-shadow: 0 0.625rem 1.5625rem rgba(0, 0, 0, 0.12);
     max-height: 12.5rem; 
     overflow-y: auto !important;
     z-index: 1000; 
@@ -1159,11 +887,7 @@
     gap: 0.25rem; 
     box-sizing: border-box;
 }
-
-.dropdown-cidades-lista.active {
-    display: flex;
-}
-
+.dropdown-cidades-lista.active { display: flex; }
 .dropdown-cidades-lista .checkbox-cidade-item {
     display: flex;
     align-items: center;
@@ -1174,236 +898,139 @@
     background: transparent !important;
     width: 100%;
     box-sizing: border-box;
-    transition: background 0.2s ease;
     justify-content: flex-start;
 }
+.dropdown-cidades-lista .checkbox-cidade-item:hover { background: #f8f9fa !important; }
+.dropdown-cidades-lista .checkbox-cidade-item label { font-size: 0.9rem; font-weight: 500; color: #2f3542; cursor: pointer; flex: 1; text-align: left; }
 
-.dropdown-cidades-lista .checkbox-cidade-item:hover {
-    background: #f8f9fa !important;
-}
-
-.dropdown-cidades-lista .checkbox-cidade-item label {
-    font-size: 0.9rem;
-    font-weight: 500;
-    color: #2f3542;
-    cursor: pointer;
-    flex: 1;
-    text-align: left;
-}
+/* --- INTERFACES Z-INDEXES --- */
+#modal-motivo-cancelamento { z-index: 2000 !important; }
+.toast-container { z-index: 3000 !important; }
 
 /* ============================================================
-   AJUSTE DE SOBREPOSIÇÃO DE INTERFACES (Z-INDEX)
+   CONSTRUTOR DE VARIAÇÕES DE PRODUTO
    ============================================================ */
+.flex-row-check { display: flex !important; flex-direction: row !important; align-items: center !important; gap: 0.5rem; margin-top: 0.625rem !important; margin-bottom: 0.9375rem !important; }
+.label-checkbox-inline { display: flex !important; align-items: center !important; gap: 0.5rem; cursor: pointer; text-transform: none !important; color: #2f3542 !important; font-size: 0.9rem !important; font-weight: 500 !important; margin: 0 !important; }
+.label-checkbox-inline input[type="checkbox"] { width: 1.0625rem !important; height: 1.0625rem !important; accent-color: #ff6400; }
 
-/* Garante que o Modal de Cancelamento fique sempre ACIMA do monitor fixo */
-#modal-motivo-cancelamento {
-    z-index: 2000 !important;
-}
+.container-construtor-variacoes { width: 100%; background: #f8f9fa; border: 0.0625rem solid #ced6e0; padding: 0.9375rem; border-radius: 0.75rem; margin-bottom: 1.25rem; box-sizing: border-box; }
+.header-construtor-variacoes { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.9375rem; border-bottom: 0.0625rem dashed #ced6e0; padding-bottom: 0.625rem; }
+.header-construtor-variacoes h4 { font-size: 0.95rem; color: #2f3542; margin: 0; font-weight: 600; }
+.header-construtor-variacoes h4 i { color: #ff6400; margin-right: 0.3125rem; }
+.btn-pequeno-azul { background: #3498db !important; padding: 0.375rem 0.875rem !important; font-size: 0.8rem !important; width: auto !important; border-radius: 0.375rem !important; }
 
-/* Garante que o toast (notificação) apareça acima de tudo */
-.toast-container {
-    z-index: 3000 !important;
-}
+.wrapper-lista-grupos-flex { display: flex; flex-direction: column; gap: 0.9375rem; }
+.card-cadastro-grupo-variacao { background: #ffffff; border: 0.0625rem solid #e4e7eb; padding: 0.9375rem; border-radius: 0.625rem; position: relative; box-shadow: 0 0.125rem 0.5rem rgba(0,0,0,0.02); box-sizing: border-box; width: 100%; }
+.btn-deletar-grupo { position: absolute; top: 0.75rem; right: 0.75rem; background: none; border: none; color: #ff6400; cursor: pointer; font-size: 1rem; padding: 0.25rem; }
+
+.align-end-row { grid-template-columns: 2fr 1fr 1fr; gap: 0.625rem; margin-bottom: 0.9375rem; align-items: flex-end !important; }
+.no-margin { margin-bottom: 0 !important; }
+.flex-inline-row-check { flex-direction: row !important; gap: 0.375rem; align-items: center !important; height: 2.375rem; }
+.flex-inline-row-check input[type="checkbox"] { width: 1rem !important; height: 1rem !important; accent-color: #ff6400; }
+.flex-inline-row-check label { margin: 0 !important; font-size: 0.8rem !important; color: #2f3542 !important; white-space: nowrap; }
+
+.container-subopcoes-itens { display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 0.75rem; padding-left: 0.75rem; border-left: 0.1875rem solid #ff6400; }
+.linha-subopcao-item-grid { display: grid; grid-template-columns: 2fr 1fr auto; gap: 0.5rem; align-items: center; width: 100%; }
+.linha-subopcao-item-grid input { padding: 0.375rem 0.625rem !important; font-size: 0.85rem !important; height: auto !important; margin: 0 !important; }
+.linha-subopcao-item-grid .subopcao-preco { text-align: right; font-family: monospace; }
+.btn-remover-linha-opcao { background: none; border: none; color: #a4b0be; cursor: pointer; font-size: 1rem; padding: 0.25rem 0.375rem; }
+.btn-add-item-subopcao { background: #2ed573; color: white; border: none; padding: 0.3125rem 0.75rem; font-size: 0.75rem; border-radius: 0.375rem; cursor: pointer; font-weight: 600; }
 
 /* ============================================================
-   CONSTRUTOR DE VARIAÇÕES DE PRODUTO (NORDGO COMPLEMENTS SYSTEM)
+   REGRAS DE RESPONSIVIDADE OPERACIONAL (MEDIA QUERIES)
    ============================================================ */
 
-.flex-row-check {
-    display: flex !important;
-    flex-direction: row !important;
-    align-items: center !important;
-    gap: 8px;
-    margin-top: 10px !important;
-    margin-bottom: 15px !important;
+@media (max-width: 64rem) { /* Tablets e Ecrãs de até 1024px */
+    .dashboard-layout-wrapper {
+        flex-direction: column; /* Joga os pedidos para baixo */
+        padding: 0 0.5rem;
+    }
+
+    .painel-pedidos-fixo {
+        width: 100% !important;
+        position: static !important; 
+        max-height: 40rem;
+    }
+
+    .grid-metricas-operacionais {
+        grid-template-columns: repeat(2, 1fr); /* Transforma o grid em 2x2 */
+    }
+
+    .bloco-acoes-exportacao {
+        flex-direction: column;
+        align-items: stretch !important;
+    }
+
+    #btn-exportar-csv {
+        width: 100%;
+        max-width: 100% !important;
+    }
+
+    .tabela-repasses-scroll-wrapper table {
+        min-width: 37.5rem; /* Força scroll horizontal na tabela mobile */
+    }
 }
 
-.label-checkbox-inline {
-    display: flex !important;
-    align-items: center !important;
-    gap: 8px;
-    cursor: pointer;
-    text-transform: none !important;
-    color: #2f3542 !important;
-    font-size: 0.9rem !important;
-    font-weight: 500 !important;
-    margin: 0 !important;
+@media (max-width: 48rem) { /* Até 768px */
+    .logistica-config-topo {
+        grid-template-columns: 1fr; 
+        gap: 0.75rem;
+        align-items: stretch;
+    }
+
+    .modal-content-logistica {
+        width: 100%;
+        height: 100%;
+        max-height: 100vh !important;
+        border-radius: 0;
+        padding: 0.9375rem;
+    }
+
+    .grade-bairros-logistica {
+        grid-template-columns: 1fr !important;
+        padding: 0.5rem;
+    }
 }
 
-.label-checkbox-inline input[type="checkbox"] {
-    width: 17px !important;
-    height: 17px !important;
-    margin: 0 !important;
-    accent-color: #ff4757;
-    cursor: pointer;
-}
+@media (max-width: 30rem) { /* Até 480px (Smartphones pequenos) */
+    .grid-metricas-operacionais {
+        grid-template-columns: 1fr; /* 1 card de métrica por linha */
+    }
+    
+    .header-card-grafico {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
 
-/* Container do Painel Construtor */
-.container-construtor-variacoes {
-    width: 100%;
-    background: #f8f9fa;
-    border: 1px solid #ced6e0;
-    padding: 15px;
-    border-radius: 12px;
-    margin-bottom: 20px;
-    box-sizing: border-box;
-}
+    .select-periodo-dash {
+        width: 100%; 
+    }
 
-.header-construtor-variacoes {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 15px;
-    border-bottom: 1px dashed #ced6e0;
-    padding-bottom: 10px;
-}
+    .corpo-canvas-wrapper {
+        height: 11.25rem; /* Poupa espaço vertical do gráfico */
+    }
 
-.header-construtor-variacoes h4 {
-    font-size: 0.95rem;
-    color: #2f3542;
-    margin: 0;
-    font-weight: 600;
-}
-
-.header-construtor-variacoes h4 i {
-    color: #ff4757;
-    margin-right: 5px;
-}
-
-.btn-pequeno-azul {
-    background: #3498db !important;
-    padding: 6px 14px !important;
-    font-size: 0.8rem !important;
-    width: auto !important;
-    border-radius: 6px !important;
-}
-
-.wrapper-lista-grupos-flex {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-}
-
-/* Card de cada Grupo Individual */
-.card-cadastro-grupo-variacao {
-    background: #ffffff;
-    border: 1px solid #e4e7eb;
-    padding: 15px;
-    border-radius: 10px;
-    position: relative;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.02);
-    box-sizing: border-box;
-    width: 100%;
-}
-
-.btn-deletar-grupo {
-    position: absolute;
-    top: 12px;
-    right: 12px;
-    background: none;
-    border: none;
-    color: #ff4757;
-    cursor: pointer;
-    font-size: 1rem;
-    transition: transform 0.2s;
-    padding: 4px;
-}
-
-.btn-deletar-grupo:hover {
-    transform: scale(1.15);
-}
-
-/* Linha de configuração do Grupo */
-.align-end-row {
-    grid-template-columns: 2fr 1fr 1fr;
-    gap: 10px;
-    margin-bottom: 15px;
-    align-items: flex-end !important;
-}
-
-.no-margin {
-    margin-bottom: 0 !important;
-}
-
-.flex-inline-row-check {
-    flex-direction: row !important;
-    gap: 6px;
-    align-items: center !important;
-    height: 38px;
-}
-
-.flex-inline-row-check input[type="checkbox"] {
-    width: 16px !important;
-    height: 16px !important;
-    margin: 0 !important;
-    accent-color: #ff4757;
-}
-
-.flex-inline-row-check label {
-    margin: 0 !important;
-    font-size: 0.8rem !important;
-    color: #2f3542 !important;
-    white-space: nowrap;
-}
-
-/* Lista interna de Opções */
-.container-subopcoes-itens {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    margin-bottom: 12px;
-    padding-left: 12px;
-    border-left: 3px solid #ff4757;
-}
-
-/* Grid de cada item (Opção) */
-.linha-subopcao-item-grid {
-    display: grid;
-    grid-template-columns: 2fr 1fr auto;
-    gap: 8px;
-    align-items: center;
-    width: 100%;
-}
-
-.linha-subopcao-item-grid input {
-    padding: 6px 10px !important;
-    font-size: 0.85rem !important;
-    height: auto !important;
-    margin: 0 !important;
-}
-
-.linha-subopcao-item-grid .subopcao-preco {
-    text-align: right;
-    font-family: monospace;
-}
-
-.btn-remover-linha-opcao {
-    background: none;
-    border: none;
-    color: #a4b0be;
-    cursor: pointer;
-    font-size: 1rem;
-    padding: 4px 6px;
-    transition: color 0.2s;
-}
-
-.btn-remover-linha-opcao:hover {
-    color: #ff4757;
-}
-
-/* Botão adicionar subopção */
-.btn-add-item-subopcao {
-    background: #2ed573;
-    color: white;
-    border: none;
-    padding: 5px 12px;
-    font-size: 0.75rem;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: 600;
-    transition: background 0.2s;
-}
-
-.btn-add-item-subopcao:hover {
-    background: #26af5f;
+    .dia-horario-row {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 0.75rem;
+        padding: 0.75rem;
+    }
+    
+    .dia-checkbox-block {
+        width: 100% !important;
+        flex: 1 !important;
+    }
+    
+    .dia-times-block {
+        width: 100% !important;
+        justify-content: flex-start !important;
+    }
+    
+    .input-time-picker {
+        width: 6.25rem !important; /* 100px */
+        max-width: 6.25rem !important;
+    }
 }

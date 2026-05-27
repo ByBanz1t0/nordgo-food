@@ -43,7 +43,7 @@
 .card-resumo-perfil:hover {
     transform: translateY(-0.125rem);
     box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.08);
-    border-color: #ff4757;
+    border-color: #ff6400;
 }
 
 .card-resumo-icon {
@@ -181,7 +181,7 @@
 }
 
 .btn-fechar-modal-perfil:hover {
-    background: #ff4757;
+    background: #ff6400;
     color: #ffffff;
 }
 
@@ -196,8 +196,8 @@
 .btn-adicionar-modal-item {
     width: 100%;
     background: #fff0f1;
-    color: #ff4757;
-    border: 0.0625rem dashed #ff4757;
+    color: #ff6400;
+    border: 0.0625rem dashed #ff6400;
     padding: 1rem;
     border-radius: 0.75rem;
     font-size: 0.95rem;
@@ -208,7 +208,7 @@
 }
 
 .btn-adicionar-modal-item:hover {
-    background: #ff4757;
+    background: #ff6400;
     color: #ffffff;
 }
 
@@ -286,7 +286,7 @@
 }
 
 .login-form input:focus, .inline-form-box input:focus {
-    border-color: #ff4757;
+    border-color: #ff6400;
 }
 
 .form-row {
@@ -328,7 +328,7 @@
 }
 
 .item-padrao-ativo {
-    border-color: #ff4757;
+    border-color: #ff6400;
     background-color: #fff0f1;
 }
 
@@ -359,11 +359,11 @@
 }
 
 .item-lista-actions button:hover {
-    color: #ff4757;
+    color: #ff6400;
 }
 
 .badge-padrao {
-    background-color: #ff4757;
+    background-color: #ff6400;
     color: #ffffff;
     font-size: 0.6rem;
     padding: 0.1rem 0.3rem;
@@ -391,7 +391,7 @@
     box-sizing: border-box;
 }
 
-.btn-principal { background-color: #ff4757; color: #fff; }
+.btn-principal { background-color: #ff6400; color: #fff; }
 .btn-secundario { background-color: #6c757d; color: #fff; }
 .btn-perigo { background-color: #fff0f1; color: #e63946; }
 .divider-perfil { margin: 1rem 0; border-bottom: 0.0625rem solid #f1f1f1; }

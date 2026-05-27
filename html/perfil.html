@@ -91,20 +91,20 @@
                     <p class="instrucao-upload">Clique para alterar foto</p>
                 </div>
                 
-                <label for="perfil-nome">Nome Completo</label>
-                <input type="text" id="perfil-nome" placeholder="Seu nome">
+                <label for="perfil-nome">Nome Completo *</label>
+                <input type="text" id="perfil-nome" placeholder="Seu nome" required>
 
                 <label for="perfil-email">E-mail</label>
                 <input type="email" id="perfil-email" readonly class="input-bloqueado">
 
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="perfil-cpf">CPF</label>
+                        <label for="perfil-cpf">CPF (Bloqueado para alteração)</label>
                         <input type="text" id="perfil-cpf" placeholder="000.000.000-00" maxlength="14">
                     </div>
                     <div class="form-group">
-                        <label for="perfil-telefone">Telefone</label>
-                        <input type="text" id="perfil-telefone" placeholder="(00) 00000-0000" maxlength="15">
+                        <label for="perfil-telefone">Telefone *</label>
+                        <input type="text" id="perfil-telefone" placeholder="(00) 00000-0000" maxlength="15" required>
                     </div>
                 </div>
                 
@@ -139,7 +139,7 @@
                     <input type="text" id="end-rua" placeholder="Rua / Avenida">
                     <div class="form-row">
                         <input type="text" id="end-numero" placeholder="Número">
-                        <input type="text" id="end-obs" placeholder="Complemento / Observation">
+                        <input type="text" id="end-obs" placeholder="Complemento / Obs">
                     </div>
                     <label class="label-checkbox"><input type="checkbox" id="end-padrao"> Definir como padrão</label>
                     <div class="form-actions-inline">
@@ -187,7 +187,6 @@
     <script type="module">
         import { auth, db, storage, mostrarNotificacao } from '../js/firebase-config.js';
         import { ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-storage.js";
-        // MODIFICADO: Injetado o setDoc e arrayUnion nas dependências do módulo do Firestore
         import { doc, getDoc, updateDoc, deleteDoc, setDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
         import { onAuthStateChanged, signOut, deleteUser } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
 
@@ -272,9 +271,22 @@
                     
                     campos.nome.value = d.nome || "";
                     campos.email.value = d.email || "";
-                    campos.cpf.value = aplicarMascaraCPF(d.cpfCliente || "");
                     campos.telefone.value = aplicarMascaraTelefone(d.telefoneCliente || "");
                     if (d.fotoUrl) campos.fotoDisplay.src = d.fotoUrl;
+
+                    // ==========================================================================
+                    // 🔥 TRAVA DE CPF: Bloqueia a edição caso o CPF já exista na base de dados
+                    // ==========================================================================
+                    if (d.cpfCliente && d.cpfCliente.trim() !== "") {
+                        campos.cpf.value = aplicarMascaraCPF(d.cpfCliente);
+                        campos.cpf.readOnly = true;
+                        campos.cpf.classList.add('input-bloqueado');
+                    } else {
+                        campos.cpf.value = "";
+                        campos.cpf.readOnly = false;
+                        campos.cpf.classList.remove('input-bloqueado');
+                    }
+                    // ==========================================================================
 
                     listaEnderecosLocal = d.enderecoCliente || [];
                     listaCartoesLocal = d.cartoesCliente || [];
@@ -301,6 +313,17 @@
         document.getElementById('btn-salvar-perfil').onclick = async () => {
             const user = auth.currentUser;
             if (!user) return;
+
+            const nomeVal = campos.nome.value.trim();
+            const cpfVal = campos.cpf.value.trim();
+            const telefoneVal = campos.telefone.value.trim();
+
+            // Validação de obrigatoriedade por script
+            if (!nomeVal || !cpfVal || !telefoneVal) {
+                mostrarNotificacao("Os campos de Nome, CPF e Telefone são obrigatórios.", "error");
+                return;
+            }
+
             try {
                 const arquivo = campos.fotoInput.files[0];
                 let urlFotoFinal = campos.fotoDisplay.src;
@@ -310,13 +333,15 @@
                     await uploadBytes(storageRef, arquivo);
                     urlFotoFinal = await getDownloadURL(storageRef);
                 }
+                
                 await updateDoc(doc(db, "usuarios", user.uid), {
-                    nome: campos.nome.value.trim(),
-                    cpfCliente: campos.cpf.value.trim(),
-                    telefoneCliente: campos.telefone.value.trim(),
+                    nome: nomeVal,
+                    cpfCliente: cpfVal,
+                    telefoneCliente: telefoneVal,
                     fotoUrl: urlFotoFinal
                 });
-                mostrarNotificacao("Perfil updated!");
+                
+                mostrarNotificacao("Perfil atualizado!");
                 fecharModal('modal-dados-basicos');
                 await atualizarSessaoPerfil(user.uid);
             } catch (e) { mostrarNotificacao("Erro ao salvar.", "error"); }
@@ -344,12 +369,10 @@
                 mostrarNotificacao("Campos obrigatórios vazios.", "error"); return;
             }
 
-            // MODIFICADO: Split inteligente para capturar cidade e estado dinamicamente do campo do ViaCEP
             const partesRegiao = cidadeUfFull.split(" - ");
             const cidadeCru = partesRegiao[0] || "";
             const estado = (partesRegiao[1] || "").toUpperCase();
 
-            // Padronização rigorosa (Ex: "arapiraca" -> "Arapiraca")
             const cidade = cidadeCru.charAt(0).toUpperCase() + cidadeCru.slice(1).toLowerCase();
             const bairro = bairroCru.charAt(0).toUpperCase() + bairroCru.slice(1).toLowerCase();
 
@@ -380,12 +403,8 @@
                 listaEnderecosLocal.push(novoEnderecoObj);
             }
 
-            // Atualiza os dados físicos do nó do cliente no Firestore
             await updateDoc(doc(db, "usuarios", auth.currentUser.uid), { enderecoCliente: listaEnderecosLocal });
 
-            // ==========================================================================
-            // 🔥 ADICIONADO: LOGÍSTICA DE MAPEAMENTO GEOGRÁFICO AUTOMÁTICO (NORDGO MAPS)
-            // ==========================================================================
             if (cidade && estado && bairro) {
                 try {
                     const idRegiaoDoc = `${cidade}-${estado}`;
@@ -407,10 +426,9 @@
                     console.warn("[NordGo Maps - Aviso de Permissão no Perfil]:", geoError.message);
                 }
             }
-            // ==========================================================================
 
             formEndInline.classList.add('hidden');
-            mostrarNotificacao("Endereço salvo!");
+            mostrarNotificacao("Endereço saved!");
             await atualizarSessaoPerfil(auth.currentUser.uid);
         };
 

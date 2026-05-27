@@ -100,7 +100,7 @@
 }
 
 .btn-fechar-modal-public:hover {
-    background: #ff4757;
+    background: #ff6400;
     color: #ffffff;
 }
 
@@ -156,7 +156,7 @@
     letter-spacing: 0.02rem;
 }
 
-.badge-obrigatorio-tag { background: #fff2f2; color: #ff4757; }
+.badge-obrigatorio-tag { background: #fff2f2; color: #ff6400; }
 .badge-opcional-tag { background: #f1f2f6; color: #747d8c; }
 
 .lista-opcoes-grupo-inputs {
@@ -198,7 +198,7 @@
 .esquerda-label-bloco input[type="checkbox"] {
     width: 18px;
     height: 18px;
-    accent-color: #ff4757; /* Cores da NordGo nos seletores */
+    accent-color: #ff6400; /* Cores da NordGo nos seletores */
     cursor: pointer;
     margin: 0;
 }
@@ -251,7 +251,7 @@
 
 .btn-adicionar-customizado {
     flex: 1;
-    background: #ff4757;
+    background: #ff6400;
     color: white;
     border: none;
     padding: 14px 20px;
@@ -274,4 +274,102 @@
 .card-produto-quadrado .btn-add-carrinho i.fa-sliders,
 .card-produto-horizontal .btn-add-carrinho i.fa-sliders {
     font-size: 0.9rem;
+}
+
+/* ============================================================
+   SISTEMA DE CUPONS DINÂMICOS DA LOJA (NORDGO CUPOONS)
+   ============================================================ */
+
+/* Container mestre da seção de cupons */
+.secao-cupons-container {
+    margin-top: 1.5rem; 
+    padding: 0 1rem;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* Título da seção de cupons */
+.titulo-cupons-loja {
+    font-size: 1.1rem; 
+    color: #2f3542; 
+    font-weight: 600; 
+    margin-bottom: 0.75rem; 
+    display: flex; 
+    align-items: center; 
+    gap: 0.5rem;
+}
+
+.titulo-cupons-loja i {
+    color: #ff6400;
+}
+
+/* Esteira/Carrossel de rolagem horizontal */
+.lista-cupons-carrossel {
+    display: flex; 
+    gap: 0.75rem; 
+    overflow-x: auto; 
+    padding-bottom: 0.625rem; 
+    scrollbar-width: thin;
+}
+
+/* Card individual do cupom */
+.card-cupom-individual {
+    background: #fff5f5;
+    border: 0.09375rem dashed #ff6400; /* Equivalente a 1.5px */
+    border-radius: 0.625rem; /* Equivalente a 10px */
+    padding: 0.625rem 0.875rem; /* Equivalente a 10px 14px */
+    min-width: 10.625rem; /* Equivalente a 170px */
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+    box-shadow: 0 0.25rem 0.625rem rgba(255, 71, 87, 0.05);
+    flex-shrink: 0;
+    user-select: all;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card-cupom-individual:hover {
+    transform: translateY(-0.125rem);
+    box-shadow: 0 0.375rem 0.875rem rgba(255, 71, 87, 0.08);
+}
+
+/* Elemento identificador superior do card */
+.card-cupom-individual span:first-of-type {
+    font-size: 0.75rem; 
+    font-weight: 600; 
+    color: #747d8c; 
+    text-transform: uppercase; 
+    letter-spacing: 0.03125rem;
+}
+
+/* Código de resgate proeminente */
+.card-cupom-individual h4 {
+    font-size: 1.1rem; 
+    font-weight: 700; 
+    color: #ff6400; 
+    margin: 0; 
+    text-transform: uppercase;
+}
+
+/* Container de rodapé interno do card */
+.card-cupom-individual div {
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    margin-top: 0.25rem; 
+    font-size: 0.8rem; 
+    font-weight: 600; 
+    color: #2f3542;
+}
+
+/* Tag informativa de pedido mínimo */
+.card-cupom-individual div span:last-of-type {
+    font-size: 0.7rem; 
+    color: #747d8c; 
+    background: #e4e7eb; 
+    padding: 0.0625rem 0.375rem; /* Equivalente a 1px 6px */
+    border-radius: 0.25rem;
+    text-transform: none;
+    letter-spacing: normal;
 }

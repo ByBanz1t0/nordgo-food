@@ -57,6 +57,14 @@
                 </div>
             </section>
 
+            <!-- SEÇÃO DE CUPONS DA LOJA (Carrossel Horizontal limpo) -->
+            <section id="section-cupons-loja" class="hidden secao-cupons-container">
+                <h3 class="titulo-cupons-loja">
+                    <i class="fa-solid fa-ticket"></i> Cupons Disponíveis nesta Loja
+                </h3>
+                <div id="lista-cupons-loja" class="horizontal-scroll-container lista-cupons-carrossel"></div>
+            </section>
+
             <section class="cardapio-section">
                 <div id="container-mais-pedidos" class="hidden">
                     <h2 class="titulo-sessao">Mais Pedidos</h2>
@@ -103,7 +111,6 @@
         let nomeLojaGlobal = ""; 
         let fotosCategorias = {}; 
         
-        // ADICIONADO: Caches locais para gerenciar o produto ativo na customização
         let produtosCarregadosLocais = [];
         let produtoSelecionadoAtual = null;
 
@@ -124,6 +131,7 @@
                 });
 
                 await carregarDadosLoja();
+                await carregarCuponsLoja();
                 atualizarCarrinhoFlutuante();
             } catch (error) {
                 console.error("Erro na inicialização:", error);
@@ -147,7 +155,7 @@
                 
                 document.getElementById('loja-content').innerHTML = `
                     <div class="loja-indisponivel-container" style="text-align: center; padding: 5rem 1rem; font-family: 'Poppins', sans-serif;">
-                        <i class="fa-solid fa-store-slash" style="font-size: 4rem; color: #ff4757; margin-bottom: 1.5rem;"></i>
+                        <i class="fa-solid fa-store-slash" style="font-size: 4rem; color: #ff6400; margin-bottom: 1.5rem;"></i>
                         <h2 style="color: #2f3542; font-size: 1.5rem; margin-bottom: 0.5rem; font-weight: 600;">Estabelecimento Indisponível</h2>
                         <p style="color: #747d8c; margin-bottom: 2rem; font-size: 0.95rem;">Desculpe, este estabelecimento está temporariamente fechado ou foi desativado pela plataforma.</p>
                         <button onclick="window.location.href='../index.html'" class="btn-principal" style="max-width: 200px; margin: 0 auto; display: block;">Voltar para o Início</button>
@@ -165,12 +173,13 @@
             const produtos = [];
             querySnapshot.forEach(doc => produtos.push({ id: doc.id, ...doc.data() }));
             
-            // MODIFICADO: Guarda a lista na memória global para consulta instantânea sem re-ler o banco
             produtosCarregadosLocais = produtos;
             renderizarCardapio(produtos);
         }
 
         function renderizarDadosLoja(loja) {
+            document.title = `${loja.nome} | Nordgo Food`;
+
             document.getElementById('header-nome-loja').innerText = loja.nome;
             document.getElementById('detalhe-nome-loja').innerText = loja.nome; 
             document.getElementById('detalhe-categoria-loja').innerText = loja.categoria;
@@ -184,13 +193,73 @@
             if (loja.bannerLoja) { 
                 banner.style.backgroundImage = `url('${loja.bannerLoja}')`; 
             } else { 
-                banner.style.backgroundColor = loja.temaLoja || '#ff4757'; 
+                banner.style.backgroundColor = loja.temaLoja || '#ff6400'; 
             }
             
             const freteElem = document.getElementById('detalhe-frete');
             freteElem.innerText = (!loja.frete || loja.frete == 0) 
                 ? "Frete Grátis" 
                 : parseFloat(loja.frete).toLocaleString('pt-br', { style: 'currency', currency: 'BRL' });
+        }
+
+        // BUSCA E RENDERIZAÇÃO DE CUPONS ATIVOS COM A NOVA CLASSE CSS
+        async function carregarCuponsLoja() {
+            const sectionCupons = document.getElementById('section-cupons-loja');
+            const listaCupons = document.getElementById('lista-cupons-loja');
+            if (!listaCupons) return;
+
+            try {
+                const q = query(collection(db, "cupons"), where("lojaId", "==", lojaId));
+                const snap = await getDocs(q);
+                
+                listaCupons.innerHTML = "";
+                let possuiCupomValido = false;
+                const agora = new Date();
+
+                snap.forEach(docSnap => {
+                    const c = docSnap.data();
+                    const expirado = c.dataExpiracao ? new Date(c.dataExpiracao) < agora : false;
+                    const esgotado = c.limiteUsos && (c.usosAtuais >= c.limiteUsos);
+
+                    if (!expirado && !esgotado) {
+                        possuiCupomValido = true;
+                        
+                        const descontoTexto = c.tipo === 'porcentagem' ? `${c.valor}% OFF` : `R$ ${c.valor.toFixed(2)} OFF`;
+                        const minimoTexto = c.valorMinimo > 0 ? `Min: R$ ${c.valorMinimo.toFixed(2)}` : 'Sem mínimo';
+
+                        const cardCupom = document.createElement('div');
+                        // MODIFICADO: Passou a carregar os estilos de classe mapeados do CSS regional
+                        cardCupom.className = "card-cupom-individual";
+                        cardCupom.title = "Clique para copiar o código";
+                        
+                        cardCupom.onclick = () => {
+                            navigator.clipboard.writeText(c.codigo);
+                            if (typeof mostrarNotificacao === "function") {
+                                mostrarNotificacao(`Código ${c.codigo} copiado!`);
+                            } else {
+                                alert(`Código ${c.codigo} copiado para a área de transferência!`);
+                            }
+                        };
+
+                        cardCupom.innerHTML = `
+                            <span>Cupom Próprio</span>
+                            <h4>${c.codigo}</h4>
+                            <div>
+                                <span>${descontoTexto}</span>
+                                <span>${minimoTexto}</span>
+                            </div>
+                        `;
+                        listaCupons.appendChild(cardCupom);
+                    }
+                });
+
+                if (possuiCupomValido) {
+                    sectionCupons.classList.remove('hidden');
+                }
+
+            } catch (err) {
+                console.error("Erro ao processar cupons da loja:", err);
+            }
         }
 
         function obterImagemProduto(p) {
@@ -202,12 +271,10 @@
             return '../assets/images/placeholder.png';
         }
 
-        // MODIFICADO: O clique agora verifica dinamicamente se o item abre customização ou vai direto
         function criarCardQuadradoHTML(p, customClass = "") {
             const indisponivel = p.disponibilidade === false;
             const imgUrl = obterImagemProduto(p);
             
-            // Redirecionamento condicional inteligente
             const cliqueAcao = p.temVariacoes 
                 ? `window.abrirModalCustomizacao('${p.id}')`
                 : `adicionarAoCarrinho('${p.id}', '${p.nome}', ${p.preco}, '${imgUrl}', '${lojaId}', '${nomeLojaGlobal}')`;
@@ -230,7 +297,6 @@
             `;
         }
 
-        // MODIFICADO: O clique agora verifica dinamicamente se o item abre customização ou vai direto (Horizontal)
         function criarCardHorizontalHTML(p) {
             const indisponivel = p.disponibilidade === false;
             const imgUrl = obterImagemProduto(p);
@@ -286,15 +352,15 @@
                 maisPedidos.forEach(p => { listaMaisPedidos.innerHTML += criarCardQuadradoHTML(p, "scroll-item"); });
             }
 
-            const categoriasEncontradas = {};
+            const categoriesEncontradas = {};
             produtos.forEach(p => {
                 const cat = p.categoria || "Outros";
-                if (!categoriasEncontradas[cat]) categoriasEncontradas[cat] = [];
-                categoriasEncontradas[cat].push(p);
+                if (!categoriesEncontradas[cat]) categoriesEncontradas[cat] = [];
+                categoriesEncontradas[cat].push(p);
             });
 
-            Object.keys(categoriasEncontradas).sort().forEach(catNome => {
-                const produtosDaCat = categoriasEncontradas[catNome].sort((a, b) => a.nome.localeCompare(b.nome));
+            Object.keys(categoriesEncontradas).sort().forEach(catNome => {
+                const produtosDaCat = categoriesEncontradas[catNome].sort((a, b) => a.nome.localeCompare(b.nome));
                 let htmlCategoria = `
                     <div class="categoria-bloco">
                         <h2 class="titulo-categoria">${catNome}</h2>
@@ -307,9 +373,6 @@
             });
         }
 
-        // ============================================================
-        // ADICIONADO: Motores de Renderização e Lógica da Janela de Escolha
-        // ============================================================
         const overlayCust = document.getElementById('modal-customizar-produto');
         const containerGrupos = document.getElementById('container-grupos-customizacao');
         const txtPrecoModal = document.getElementById('txt-preco-dinamico-modal');
@@ -324,14 +387,12 @@
             
             containerGrupos.innerHTML = "";
 
-            // Lendo exatamente do seu campo estruturado no Firestore (Singular)
             const grupos = prod.grupoDeOpcoes || [];
 
             grupos.forEach((grupo, idxGrupo) => {
                 const divGrupo = document.createElement('div');
                 divGrupo.className = "bloco-grupo-escolha";
                 
-                // Monta as tags de obrigatoriedade
                 const textoObrigatorio = grupo.obrigatorio 
                     ? `<span class="badge-obrigatorio-tag">Obrigatório</span>` 
                     : `<span class="badge-opcional-tag">Opcional</span>`;
@@ -357,7 +418,6 @@
                     const divOpcao = document.createElement('div');
                     divOpcao.className = "linha-opcao-item-custom";
 
-                    // Define se o input é tipo rádio (uma única escolha) ou checkbox (múltiplas)
                     const inputType = grupo.maxEscolhas === 1 ? 'radio' : 'checkbox';
                     const inputName = `grupo_${grupo.idGrupo || idxGrupo}`;
                     const inputId = `input_${inputName}_${idxOpcao}`;
@@ -384,13 +444,12 @@
                         </label>
                     `;
 
-                    // Monitora o estouro do limite máximo em grupos do tipo checkbox
                     if (inputType === 'checkbox') {
                         const inputCheckbox = divOpcao.querySelector('input');
                         inputCheckbox.addEventListener('change', (e) => {
                             const marcados = containerInputs.querySelectorAll('input:checked');
                             if (marcados.length > grupo.maxEscolhas) {
-                                e.target.checked = false; // Barra a seleção extra
+                                e.target.checked = false; 
                                 alert(`Você pode escolher no máximo ${grupo.maxEscolhas} opções para o grupo: ${grupo.titulo}`);
                             }
                             atualizarPrecoDinamicoModal();
@@ -422,7 +481,6 @@
             txtPrecoModal.innerText = precoAcumulado.toLocaleString('pt-br', { style: 'currency', currency: 'BRL' });
         }
 
-        // Coleta as marcações, valida regras e injeta no carrinho global
         document.getElementById('btn-confirmar-customizacao').onclick = () => {
             if (!produtoSelecionadoAtual) return;
 
@@ -431,7 +489,6 @@
             let nomesOpcoesEscolhidas = [];
             let precoTotalItem = parseFloat(produtoSelecionadoAtual.preco) || 0;
 
-            // Loop para validar se todos os grupos obrigatórios possuem escolhas
             for (let i = 0; i < gruposConfig.length; i++) {
                 const grupo = gruposConfig[i];
                 const inputName = `grupo_${grupo.idGrupo || i}`;
@@ -446,25 +503,20 @@
 
             if (!validacaoSucesso) return;
 
-            // Extrai as strings das opções para compor o nome final
             const marcadosFinais = containerGrupos.querySelectorAll('input:checked');
             marcadosFinais.forEach(input => {
                 nomesOpcoesEscolhidas.push(input.dataset.nome);
                 precoTotalItem += parseFloat(input.dataset.preco) || 0;
             });
 
-            // Constrói o nome descritivo combinado unificado
             let nomeProdutoCustomizado = produtoSelecionadoAtual.nome;
             if (nomesOpcoesEscolhidas.length > 0) {
                 nomeProdutoCustomizado += ` (${nomesOpcoesEscolhidas.join(', ')})`;
             }
 
             const imgUrl = obterImagemProduto(produtoSelecionadoAtual);
-            
-            // Cria um ID virtual baseado no tempo para que o mesmo produto com adicionais diferentes não se atropele no carrinho
             const idVirtualUnico = `${produtoSelecionadoAtual.id}_v_${Date.now()}`;
 
-            // Aciona o seu script nativo de carrinho injetando o payload final montado
             if (typeof window.adicionarAoCarrinho === "function") {
                 window.adicionarAoCarrinho(
                     idVirtualUnico, 
@@ -475,7 +527,6 @@
                     nomeLojaGlobal
                 );
             } else {
-                // Fallback caso sua função esteja escopada direto no módulo
                 adicionarAoCarrinho(
                     idVirtualUnico, 
                     nomeProdutoCustomizado, 
@@ -490,7 +541,6 @@
             produtoSelecionadoAtual = null;
         };
 
-        // Eventos para fechar a janela flutuante
         document.getElementById('btn-fechar-cust').onclick = () => {
             overlayCust.classList.remove('active');
             produtoSelecionadoAtual = null;

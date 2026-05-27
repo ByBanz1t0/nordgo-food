@@ -45,7 +45,7 @@ body {
     padding: 0.625rem 1.5625rem; /* 10px 25px */
     text-decoration: none;
     border-radius: 0.5rem;        /* 8px */
-    background-color: #ff4757;
+    background-color: #ff6400;
     color: #ffffff;
     font-weight: 600;
     transition: opacity 0.2s ease;
@@ -125,7 +125,7 @@ body {
 
 .pedido-item-qtd {
     font-weight: 600;
-    color: #ff4757;
+    color: #ff6400;
 }
 
 /* --- MOTIVO DE CANCELAMENTO --- */
@@ -134,7 +134,7 @@ body {
     border: 0.0625rem solid #ffcccb;
     border-radius: 0.5rem;          /* 8px */
     padding: 0.75rem;               /* 12px */
-    color: #ff4757;
+    color: #ff6400;
     font-size: 0.85rem;
     display: flex;
     gap: 0.5rem;                    /* 8px */

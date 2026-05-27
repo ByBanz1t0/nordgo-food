@@ -124,8 +124,11 @@
             onAuthStateChanged,
             signOut
         } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
-        // MODIFICADO: Adicionado updateDoc e arrayUnion para o mapeamento automático regional
-        import { doc, setDoc, getDoc, updateDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
+        
+        // MODIFICADO: Adicionado query, where, collection e getDocs para permitir a busca por campos específicos
+        import { 
+            doc, setDoc, getDoc, updateDoc, arrayUnion, query, where, collection, getDocs 
+        } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
 
         const sectionLogin = document.getElementById('section-login');
         const sectionCadastro = document.getElementById('section-cadastro');
@@ -274,7 +277,7 @@
             }
         };
 
-        // --- CADASTRO SEGURO POR FORMULÁRIO + MAPEAMENTO AUTOMÁTICO ---
+        // --- CADASTRO SEGURO POR FORMULÁRIO + TRAVA DE CPF ---
         document.getElementById('btn-cadastrar-final').onclick = async () => {
             const obterValor = (id) => {
                 const el = document.getElementById(id);
@@ -290,7 +293,7 @@
             const rua = obterValor('reg-rua');
             const numero = obterValor('reg-numero');
             
-            // Tratamento rigoroso de strings para capitalização (Ex: "centro" ou "CENTRO" vira "Centro")
+            // Tratamento rigoroso de strings para capitalização
             const bairroCru = obterValor('reg-bairro');
             const bairro = bairroCru.charAt(0).toUpperCase() + bairroCru.slice(1).toLowerCase();
             
@@ -316,12 +319,29 @@
                 return;
             }
 
+            const btn = document.getElementById('btn-cadastrar-final');
+
             try {
                 cadastrandoUsuario = true;
-                const btn = document.getElementById('btn-cadastrar-final');
                 btn.disabled = true;
-                btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Criando conta...';
+                btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Verificando dados...';
                 
+                // ==========================================================================
+                // 🔥 TRAVA ANTI-FRAUDE: BUSCA POR CPF EXISTENTE NO FIRESTORE
+                // ==========================================================================
+                const consultaCpfQuery = query(collection(db, "usuarios"), where("cpfCliente", "==", cpfCliente));
+                const consultaCpfSnap = await getDocs(consultaCpfQuery);
+
+                if (!consultaCpfSnap.empty) {
+                    mostrarNotificacao("O CPF informado já foi utilizado em outra conta.", "error");
+                    btn.disabled = false;
+                    btn.innerText = 'Finalizar Cadastro';
+                    cadastrandoUsuario = false;
+                    return;
+                }
+                // ==========================================================================
+
+                btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Criando conta...';
                 const userCred = await createUserWithEmailAndPassword(auth, email, senha);
                 
                 if (!userCred || !userCred.user || !userCred.user.uid) {
@@ -356,38 +376,39 @@
                 // Salva o documento do usuário
                 await setDoc(doc(db, "usuarios", userCred.user.uid), payloadFinal);
 
-                // ==========================================================================
-                // 🔥 LOGÍSTICA DE MAPEAMENTO GEOGRÁFICO AUTOMÁTICO (NORDGO MAPS)
-                // ==========================================================================
+                // Mapeamento automático geográfico (Nordgo Maps)
                 const idRegiaoDoc = `${cidade}-${estado}`;
                 const regiaoRef = doc(db, "regioes", idRegiaoDoc);
                 const regiaoSnap = await getDoc(regiaoRef);
 
                 if (!regiaoSnap.exists()) {
-                    // Cenário A: Cidade não cadastrada no sistema. Inicializa o array com o primeiro bairro.
                     await setDoc(regiaoRef, {
-                        cidade: cidade,
+                        cidade: city,
                         uf: estado,
                         bairros: [bairro]
                     });
                 } else {
-                    // Cenário B & C: Cidade já mapeada. O arrayUnion anexa o bairro se ele for inédito.
                     await updateDoc(regiaoRef, {
                         bairros: arrayUnion(bairro)
                     });
                 }
-                // ==========================================================================
 
                 mostrarNotificacao("Conta criada com sucesso!");
                 setTimeout(() => window.location.href = '../index.html', 1500);
 
             } catch (error) { 
                 cadastrandoUsuario = false; 
-                document.getElementById('btn-cadastrar-final').disabled = false;
-                document.getElementById('btn-cadastrar-final').innerText = 'Finalizar Cadastro';
+                btn.disabled = false;
+                btn.innerText = 'Finalizar Cadastro';
                 
-                console.error("Erro completo do Firestore:", error);
-                alert(`Erro 400 Detectado: ${error.message}`);
+                console.error("Erro completo do fluxo de cadastro:", error);
+                
+                // Trata erros comuns do Firebase Auth para exibir de forma elegante via Toast
+                if (error.code === 'auth/email-already-in-use') {
+                    mostrarNotificacao("Este e-mail já está em uso por outro usuário.", "error");
+                } else {
+                    mostrarNotificacao("Falha ao criar conta. Tente novamente.", "error");
+                }
             }
         };
 

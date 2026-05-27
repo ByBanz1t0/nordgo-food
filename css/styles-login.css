@@ -59,7 +59,7 @@
 }
 
 .login-form input:focus {
-    border-color: #ff4757;
+    border-color: #ff6400;
 }
 
 .grid-cadastro {
@@ -75,7 +75,7 @@
 /* Estilo para o link de "Esqueci minha senha" */
 #btn-esqueci-senha {
     font-size: 0.8rem;
-    color: #ff4757;
+    color: #ff6400;
     text-decoration: none;
     font-weight: 600;
 }
@@ -122,7 +122,7 @@ input.input-error {
     font-size: 0.95rem;
     font-weight: 500;
     font-family: 'Poppins', sans-serif;
-    border: 1px solid #ff4757; /* Mantém a borda vermelha ativa como no print */
+    border: 1px solid #ff6400; /* Mantém a borda vermelha ativa como no print */
     border-radius: 0.5rem;
     outline: none;
     cursor: pointer;
@@ -158,9 +158,9 @@ input.input-error {
 #loja-categoria option:focus,
 #loja-categoria option:active,
 #loja-categoria option:checked {
-    background: #ff4757 linear-gradient(0deg, #ff4757 0%, #ff4757 100%) !important;
+    background: #ff6400 linear-gradient(0deg, #ff6400 0%, #ff6400 100%) !important;
     color: #ffffff !important;
-    background-color: #ff4757 !important;
+    background-color: #ff6400 !important;
 }
 
 .custom-select-wrapper {
@@ -176,7 +176,7 @@ input.input-error {
     height: 3.2rem;
     padding: 0 1.2rem;
     background: #ffffff;
-    border: 1px solid #ff4757;
+    border: 1px solid #ff6400;
     border-radius: 0.5rem;
     cursor: pointer;
     font-weight: 500;
@@ -186,7 +186,7 @@ input.input-error {
 }
 
 .custom-select-trigger i {
-    color: #ff4757;
+    color: #ff6400;
     font-size: 0.85rem;
     transition: transform 0.2s;
 }
@@ -212,7 +212,7 @@ input.input-error {
     /* --- Estilização da Barra de Rolagem --- */
     /* 1. Define a largura da barra */
     scrollbar-width: thin; /* Para Firefox: torna a barra mais fina */
-    scrollbar-color: #ff4757 #f0f0f0; /* Para Firefox: cor do thumb e da track */
+    scrollbar-color: #ff6400 #f0f0f0; /* Para Firefox: cor do thumb e da track */
 }
 
 /* Estilização para Navegadores Webkit (Chrome, Edge, Safari) */
@@ -230,7 +230,7 @@ input.input-error {
 
 /* 4. O "Thumb" (a parte que você arrasta) */
 .custom-options-box::-webkit-scrollbar-thumb {
-    background-color: #ff4757; /* Cor da barra de arrastar (vermelho NordGo) */
+    background-color: #ff6400; /* Cor da barra de arrastar (vermelho NordGo) */
     border-radius: 10px; /* ARREDONDA A BORDA DO THUMB */
     border: 2px solid #f0f0f0; /* Adiciona uma borda para criar um espaçamento e destacar o arredondamento */
 }
@@ -261,12 +261,12 @@ input.input-error {
 }
 
 .custom-option:hover {
-    background-color: #ff4757;
+    background-color: #ff6400;
     color: #ffffff;
 }
 
 .custom-option.selected {
     background-color: #fffafb;
-    color: #ff4757;
+    color: #ff6400;
     font-weight: 600;
 }

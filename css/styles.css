@@ -58,7 +58,7 @@ body {
     gap: 12px;
     min-width: 280px;
     max-width: 400px;
-    border-left: 5px solid #ff4757; /* Padrão de erro / geral (Vermelho) */
+    border-left: 5px solid #ff6400; /* Padrão de erro / geral (Vermelho) */
     
     /* Animação de entrada lateral (reutilizando o que você já tem no projeto) */
     animation: slideInRight 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
@@ -79,7 +79,7 @@ body {
 
 /* Variação para Notificação de Erro / Alerta (Borda Vermelha e Ícone Vermelho) */
 .toast.error i {
-    color: #ff4757;
+    color: #ff6400;
 }
 
 /* Animação de saída exigida pelo seu JavaScript */
@@ -180,7 +180,7 @@ body {
 }
 
 .pill-page-title span {
-    margin: 0 !important; /* Sem margem de compensação aqui */
+    margin: 0.25rem !important;
     white-space: nowrap;
 }
 
@@ -341,7 +341,7 @@ body {
     display: flex !important;
     width: 3.4rem;
     height: 2.4rem;
-    background-color: #ff4757;
+    background-color: #ff6400;
     color: white;
     border: none;
     border-radius: 0.7rem;
@@ -468,7 +468,7 @@ body {
 }
 
 .header-loja-carrinho i {
-    color: #ff4757; /* Destaque para o ícone da loja */
+    color: #ff6400; /* Destaque para o ícone da loja */
 }
 
 /* Estilização dos Itens (Simples) dentro da Loja */
@@ -528,7 +528,7 @@ body {
 }
 
 .controles-qtd-carrinho button:hover {
-    color: #ff4757;
+    color: #ff6400;
 }
 
 .controles-qtd-carrinho span {
@@ -628,7 +628,7 @@ body {
 
 .btn-finalizar-checkout {
     width: 100%;
-    background: #ff4757;
+    background: #ff6400;
     color: white;
     border: none;
     padding: 1rem;
@@ -808,7 +808,7 @@ body {
 }
 
 .form-footer a {
-    color: #ff4757;
+    color: #ff6400;
     font-weight: 600;
     text-decoration: none;
 }
@@ -860,7 +860,7 @@ body {
 
 .dropdown-content a:hover, .dropdown-content button:hover {
     background-color: #f8f9fa;
-    color: #ff4757;
+    color: #ff6400;
 }
 
 /* Mostrar ao passar o mouse */
@@ -871,7 +871,7 @@ body {
 /* Estilo do botão de Sair (Logout) */
 .btn-logout-menu {
     border-top: 1px solid #eee !important;
-    color: #ff4757 !important;
+    color: #ff6400 !important;
 }
 
 /* Container do Perfil */
@@ -976,7 +976,7 @@ body {
 
 /* Botão Entrar (E-mail/Senha) */
 .btn-entrar {
-    background-color: #ff4757; /* Vermelho NordGo */
+    background-color: #ff6400; /* Vermelho NordGo */
     color: white;
     border: none;
     width: 100%;
@@ -1101,9 +1101,9 @@ body {
 }
 
 .cat-item:hover {
-    background: #ff4757;
+    background: #ff6400;
     color: white;
-    border-color: #ff4757;
+    border-color: #ff6400;
     transform: translateY(-0.125rem); /* -2px */
 }
 
@@ -1209,7 +1209,7 @@ body {
 }
 
 .modal-content::-webkit-scrollbar-thumb:hover {
-    background: #ff4757; /* Ganha a cor do seu tema ao passar o mouse */
+    background: #ff6400; /* Ganha a cor do seu tema ao passar o mouse */
 }
 
 /* Suporte para Firefox */
@@ -1319,7 +1319,7 @@ body {
 .btn-add-carrinho {
     display: flex;
     width: 3.4rem; height: 2.4rem;
-    background-color: #ff4757; color: white;
+    background-color: #ff6400; color: white;
     border: none; border-radius: 0.7rem;
     cursor: pointer; align-items: center; justify-content: center;
     gap: 3px; z-index: 5;
@@ -1399,7 +1399,7 @@ body {
 
 .status-badge { font-size: 0.75rem; font-weight: 600; display: flex; align-items: center; gap: 4px; }
 .status-disponivel { color: #2ed573; }
-.status-indisponivel { color: #ff4757; }
+.status-indisponivel { color: #ff6400; }
 
 .prod-desc-completa { 
     font-size: 0.85rem; color: #777; line-height: 1.4; 
