@@ -125,9 +125,8 @@
             signOut
         } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
         
-        // MODIFICADO: Importado o operador 'limit' para compatibilidade com as regras estritas
         import { 
-            doc, setDoc, getDoc, updateDoc, arrayUnion, query, where, collection, getDocs, limit 
+            doc, setDoc, getDoc, updateDoc, arrayUnion, query, where, collection, getDocs 
         } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
 
         const sectionLogin = document.getElementById('section-login');
@@ -326,19 +325,16 @@
                 btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Verificando dados...';
                 
                 // ==========================================================================
-                // 🔥 TRAVA ANTI-FRAUDE DIRETAMENTE NA COLEÇÃO /USUARIOS
+                // 🔥 TRAVA ANTI-FRAUDE OTIMIZADA DENTRO DE /USUARIOS (USANDO DOCUMENTO GET)
                 // ==========================================================================
                 console.log("[DEBUG] Passo 1: Consultando CPF diretamente na coleção /usuarios...");
+                const cpfLimpoId = cpfCliente.replace(/\D/g, "");
                 
-                // MODIFICADO: Aponta de volta para 'usuarios' com o filtro de igualdade e limit(1) sintonizado com as regras
-                const consultaCpfQuery = query(
-                    collection(db, "usuarios"), 
-                    where("cpfCliente", "==", cpfCliente),
-                    limit(1)
-                );
-                const consultaCpfSnap = await getDocs(consultaCpfQuery);
+                // Criamos o ponteiro de ID único para o CPF dentro da coleção usuarios
+                const cpfRef = doc(db, "usuarios", `cpf_${cpfLimpoId}`);
+                const cpfSnap = await getDoc(cpfRef);
 
-                if (!consultaCpfSnap.empty) {
+                if (cpfSnap.exists()) {
                     mostrarNotificacao("O CPF informado já foi utilizado em outra conta.", "error");
                     btn.disabled = false;
                     btn.innerText = 'Finalizar Cadastro';
@@ -382,7 +378,15 @@
                 console.log("[DEBUG] Passo 3: Gravando payload do novo cliente na coleção /usuarios...");
                 await setDoc(doc(db, "usuarios", userCred.user.uid), payloadFinal);
 
-                console.log("[DEBUG] Passo 4: Analisando mapeamento geográfico na coleção /regioes...");
+                console.log("[DEBUG] Passo 4: Vinculando trava exclusiva de CPF dentro de /usuarios...");
+                // Gravamos o documento de bloqueio dentro da MESMA coleção para consultas futuras rápidas
+                await setDoc(doc(db, "usuarios", `cpf_${cpfLimpoId}`), {
+                    isCpfLock: true,
+                    userId: userCred.user.uid,
+                    dataVinculo: new Date().toISOString()
+                });
+
+                console.log("[DEBUG] Passo 5: Analisando mapeamento geográfico na coleção /regioes...");
                 const idRegiaoDoc = `${cidade}-${estado}`;
                 const regiaoRef = doc(db, "regioes", idRegiaoDoc);
                 const regiaoSnap = await getDoc(regiaoRef);
