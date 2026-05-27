@@ -125,9 +125,9 @@
             signOut
         } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
         
-        // MODIFICADO: Adicionado query, where, collection e getDocs para permitir a busca por campos específicos
+        // MODIFICADO: Importado o operador 'limit' para compatibilidade com as regras estritas
         import { 
-            doc, setDoc, getDoc, updateDoc, arrayUnion, query, where, collection, getDocs 
+            doc, setDoc, getDoc, updateDoc, arrayUnion, query, where, collection, getDocs, limit 
         } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
 
         const sectionLogin = document.getElementById('section-login');
@@ -293,7 +293,6 @@
             const rua = obterValor('reg-rua');
             const numero = obterValor('reg-numero');
             
-            // Tratamento rigoroso de strings para capitalização
             const bairroCru = obterValor('reg-bairro');
             const bairro = bairroCru.charAt(0).toUpperCase() + bairroCru.slice(1).toLowerCase();
             
@@ -327,9 +326,16 @@
                 btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Verificando dados...';
                 
                 // ==========================================================================
-                // 🔥 TRAVA ANTI-FRAUDE: BUSCA POR CPF EXISTENTE NO FIRESTORE
+                // 🔥 TRAVA ANTI-FRAUDE DIRETAMENTE NA COLEÇÃO /USUARIOS
                 // ==========================================================================
-                const consultaCpfQuery = query(collection(db, "usuarios"), where("cpfCliente", "==", cpfCliente));
+                console.log("[DEBUG] Passo 1: Consultando CPF diretamente na coleção /usuarios...");
+                
+                // MODIFICADO: Aponta de volta para 'usuarios' com o filtro de igualdade e limit(1) sintonizado com as regras
+                const consultaCpfQuery = query(
+                    collection(db, "usuarios"), 
+                    where("cpfCliente", "==", cpfCliente),
+                    limit(1)
+                );
                 const consultaCpfSnap = await getDocs(consultaCpfQuery);
 
                 if (!consultaCpfSnap.empty) {
@@ -339,8 +345,8 @@
                     cadastrandoUsuario = false;
                     return;
                 }
-                // ==========================================================================
 
+                console.log("[DEBUG] Passo 2: CPF livre! Criando credenciais no Firebase Auth...");
                 btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Criando conta...';
                 const userCred = await createUserWithEmailAndPassword(auth, email, senha);
                 
@@ -373,10 +379,10 @@
                     enderecoCliente: [novoEnderecoObj]
                 };
 
-                // Salva o documento do usuário
+                console.log("[DEBUG] Passo 3: Gravando payload do novo cliente na coleção /usuarios...");
                 await setDoc(doc(db, "usuarios", userCred.user.uid), payloadFinal);
 
-                // Mapeamento automático geográfico (Nordgo Maps)
+                console.log("[DEBUG] Passo 4: Analisando mapeamento geográfico na coleção /regioes...");
                 const idRegiaoDoc = `${cidade}-${estado}`;
                 const regiaoRef = doc(db, "regioes", idRegiaoDoc);
                 const regiaoSnap = await getDoc(regiaoRef);
@@ -393,6 +399,7 @@
                     });
                 }
 
+                console.log("[DEBUG] Cadastro concluído com sucesso total!");
                 mostrarNotificacao("Conta criada com sucesso!");
                 setTimeout(() => window.location.href = '../index.html', 1500);
 
@@ -401,9 +408,8 @@
                 btn.disabled = false;
                 btn.innerText = 'Finalizar Cadastro';
                 
-                console.error("Erro completo do fluxo de cadastro:", error);
+                console.error("Erro capturado no fluxo de cadastro:", error);
                 
-                // Trata erros comuns do Firebase Auth para exibir de forma elegante via Toast
                 if (error.code === 'auth/email-already-in-use') {
                     mostrarNotificacao("Este e-mail já está em uso por outro usuário.", "error");
                 } else {
