@@ -625,24 +625,49 @@
         document.getElementById('btn-logout').onclick = () => signOut(auth).then(() => window.location.href = "../index.html");
         
         // ==========================================================================
-        // 🔥 LOGICA DE EXCLUSÃO DE CONTA REVISADA: DELETA A TRAVA DE CPF E O PERFIL
+        // 🔥 LOGICA DE EXCLUSÃO DE CONTA REVISADA: DELETA A LOJA, TRAVA DE CPF E O PERFIL
         // ==========================================================================
         document.getElementById('btn-deletar-conta').onclick = async () => {
             const user = auth.currentUser;
             if (!user) return;
 
-            if (confirm("Tem certeza que deseja excluir permanentemente sua conta? Esta ação não pode ser desfeita e liberará o seu CPF.")) {
+            if (confirm("Tem certeza que deseja excluir permanentemente sua conta? Esta ação não pode ser desfeita, liberará o seu CPF e excluirá sua loja vinculada (se houver).")) {
                 try {
-                    mostrarNotificacao("Processando exclusão...", "info");
+                    mostrarNotificacao("Verificando segurança da sessão...", "info");
                     
-                    // 1. Busca os dados do perfil uma última vez para extrair o CPF salvo
+                    // 🚀 SOLUÇÃO DO PROBLEMA DA PÍLULA: Valida a idade do token antes de apagar o banco
+                    const tokenResult = await user.getIdTokenResult();
+                    const authTime = new Date(tokenResult.authTime).getTime();
+                    const currentTime = new Date().getTime();
+                    const diffMinutes = (currentTime - authTime) / 1000 / 60;
+
+                    // Se o login foi feito há mais de 5 minutos, o Auth vai rejeitar.
+                    // Barramos aqui para não deixar o usuário "órfão" sem dados no banco.
+                    if (diffMinutes > 5) {
+                        mostrarNotificacao("Por segurança, faça login novamente antes de excluir sua conta.", "error");
+                        setTimeout(async () => {
+                            await signOut(auth);
+                            window.location.href = "login.html";
+                        }, 2500);
+                        return;
+                    }
+
+                    mostrarNotificacao("Processando exclusão dos dados...", "info");
+                    
+                    // 1. Busca os dados do perfil uma última vez para extrair o CPF e Loja salvos
                     const userRef = doc(db, "usuarios", user.uid);
                     const userSnap = await getDoc(userRef);
 
                     if (userSnap.exists()) {
                         const userData = userSnap.data();
                         
-                        // 2. Se houver um CPF, monta o ID com o prefixo correto e deleta a trava
+                        // Se o usuário possuir uma loja atrelada, deleta o documento dela também
+                        if (userData.loja) {
+                            console.log("[Exclusão] Removendo estabelecimento vinculado...");
+                            await deleteDoc(doc(db, "lojas", userData.loja));
+                        }
+
+                        // Se houver um CPF, monta o ID com o prefixo correto e deleta a trava
                         if (userData.cpfCliente) {
                             const cpfLimpo = userData.cpfCliente.replace(/\D/g, "");
                             const lockRef = doc(db, "usuarios", `cpf_${cpfLimpo}`);
@@ -652,28 +677,20 @@
                         }
                     }
 
-                    // 3. Remove o documento de perfil principal do usuário
+                    // 2. Remove o documento de perfil principal do usuário no Firestore
                     console.log("[Exclusão] Removendo documento de usuário...");
                     await deleteDoc(userRef);
 
-                    // 4. Remove a credencial de autenticação do Firebase Auth
+                    // 3. Agora sim, remove com segurança a credencial do Firebase Auth
                     console.log("[Exclusão] Removendo credenciais do Firebase Auth...");
                     await deleteUser(user);
 
-                    mostrarNotificacao("Sua conta foi completamente excluída.");
+                    mostrarNotificacao("Sua conta e loja foram completamente excluídas.");
                     setTimeout(() => window.location.href = "../index.html", 1500);
 
                 } catch (error) {
                     console.error("Erro completo no fluxo de exclusão de conta:", error);
-                    
-                    // Tratamento para sessões antigas (o Firebase Auth exige login recente para deletar conta)
-                    if (error.code === "auth/requires-recent-login") {
-                        mostrarNotificacao("Por segurança, faça login novamente antes de excluir sua conta.", "error");
-                        await signOut(auth);
-                        setTimeout(() => window.location.href = "login.html", 2000);
-                    } else {
-                        mostrarNotificacao("Falha ao excluir conta. Tente novamente.", "error");
-                    }
+                    mostrarNotificacao("Falha ao excluir conta. Tente novamente.", "error");
                 }
             }
         };

@@ -795,7 +795,7 @@
 .inputs-tempo-entrega { display: flex; align-items: center; gap: 0.3125rem; font-size: 0.8rem; color: #57606f; }
 .inputs-tempo-entrega i { color: #ffa502; }
 .inputs-tempo-entrega input {
-    width: 2.8125rem !important;
+    width: 6rem !important;
     height: 1.625rem !important;
     text-align: center;
     border-radius: 0.25rem;

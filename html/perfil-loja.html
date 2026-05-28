@@ -157,10 +157,8 @@
                     </div>
                 </div>
                 
-                <!-- Botões de Ação do Form -->
                 <button type="submit" class="btn-salvar">Salvar Alterações</button>
                 
-                <!-- Área Destrutiva de Exclusão dentro do painel de Informações -->
                 <div style="margin-top: 2rem; padding-top: 1.5rem; border-top: 1px dashed #ced6e0; text-align: center;">
                     <p style="font-size: 0.8rem; color: #747d8c; margin-bottom: 0.75rem;"><i class="fa-solid fa-triangle-exclamation"></i> Zona de Perigo: Esta ação é irreversível.</p>
                     <button type="button" id="btn-excluir-loja-modal" style="background: #fff5f5; color: #ff4757; border: 1px solid #ff4757; padding: 10px 15px; border-radius: 8px; font-family: 'Poppins', sans-serif; font-size: 0.85rem; font-weight: 600; cursor: pointer; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s;" onmouseover="this.style.background='#ff4757'; this.style.color='#ffffff';" onmouseout="this.style.background='#fff5f5'; this.style.color='#ff4757';">
@@ -476,8 +474,6 @@
             { id: "dom", nome: "Domingo" }
         ];
 
-        // --- DASHBOARD (Com Botão de Excluir Loja no final do Grid) ---
-        // --- DASHBOARD (Grid original limpo com 7 cards) ---
         function renderizarDashboard() {
             gridMain.innerHTML = `
                 <div class="card-dash" onclick="window.abrirModal('modal-info')"><i class="fa-solid fa-store"></i><h3>Informações</h3><p>Nome, Banner e CEP</p></div>
@@ -489,7 +485,6 @@
                 <div class="card-dash" onclick="window.abrirGerenciadorCupons()"><i class="fa-solid fa-ticket"></i><h3>Cupons</h3><p>Criar e remover cupons</p></div>
             `;
             
-            // Vincula o gatilho ao botão que agora reside dentro do formulário de Informações
             const gatilhoExcluirModal = document.getElementById('btn-excluir-loja-modal');
             if (gatilhoExcluirModal) {
                 gatilhoExcluirModal.onclick = () => window.excluirLojaCompleta();
@@ -498,7 +493,6 @@
             carregarCategoriasSelects();
         }
 
-        // --- LÓGICA DE EXCLUSÃO COMPLETA DA LOJA (Produtos, Cupons, Vínculo e Loja) ---
         window.excluirLojaCompleta = async () => {
             const user = auth.currentUser;
             if (!user || !idLojaGlobal) return;
@@ -512,8 +506,6 @@
             try {
                 mostrarNotificacao("Iniciando processo de exclusão...", "info");
 
-                // 1. Apagar todos os produtos vinculados à loja
-                console.log("[Exclusão] Removendo itens do cardápio...");
                 const qProdutos = query(collection(db, "produtos"), where("lojaId", "==", idLojaGlobal));
                 const snapProdutos = await getDocs(qProdutos);
                 const promisesProdutos = [];
@@ -522,8 +514,6 @@
                 });
                 await Promise.all(promisesProdutos);
 
-                // 2. Apagar todos os cupons vinculados à loja
-                console.log("[Exclusão] Removendo cupons cadastrados...");
                 const qCupons = query(collection(db, "cupons"), where("lojaId", "==", idLojaGlobal));
                 const snapCupons = await getDocs(qCupons);
                 const promisesCupons = [];
@@ -532,14 +522,10 @@
                 });
                 await Promise.all(promisesCupons);
 
-                // 3. Desvincular a loja do perfil do Usuário Proprietário (seta como null ou remove o campo)
-                console.log("[Exclusão] Atualizando credenciais do proprietário...");
                 await updateDoc(doc(db, "usuarios", user.uid), {
-                    loja: null // Libera o usuário para criar uma nova loja futuramente se necessário
+                    loja: null
                 });
 
-                // 4. Deletar o documento principal da loja
-                console.log("[Exclusão] Deletando documento do estabelecimento...");
                 await deleteDoc(doc(db, "lojas", idLojaGlobal));
 
                 mostrarNotificacao("Sua loja foi excluída com sucesso.");
@@ -577,7 +563,6 @@
             }
         }
 
-        // --- GESTÃO LOGÍSTICA ---
         function inicializerCheckboxesCidades() {
             const wrapper = document.getElementById('wrapper-checkboxes-cidades');
             if (!wrapper) return;
@@ -741,7 +726,6 @@
             }
         };
 
-        // --- GESTÃO DE HORÁRIOS ---
         function gerarInputsGradeSemanal() {
             const wrapper = document.getElementById('wrapper-dias-semana-inputs');
             wrapper.innerHTML = "";
@@ -808,7 +792,6 @@
             }
         };
 
-        // --- INFO BÁSICA ---
         document.getElementById('form-editar-loja').onsubmit = async (e) => {
             e.preventDefault();
             const btn = e.target.querySelector('button');
@@ -830,7 +813,7 @@
                     logoUrl: urlLogo,
                     bannerLoja: urlBanner
                 });
-                mostrarNotificacao("Dados básicos atualizados!");
+                mostrarNotificacao("Dados básicos updated!");
                 window.fecharModal('modal-info');
                 carregarDadosLoja();
             } catch (err) { mostrarNotificacao("Erro ao salvar.", "error"); }
@@ -873,7 +856,6 @@
             }
         }
 
-        // --- SISTEMA DE PRODUTOS ---
         function obterImagemProduto(p) {
             if (p.imagem && p.imagem.trim() !== "" && !p.imagem.includes("placeholder.png")) return p.imagem;
             const arquivoCat = fotosCategorias[p.categoria];
@@ -1014,7 +996,8 @@
                 const linhasOpcoes = card.querySelectorAll('.container-subopcoes-itens > .linha-subopcao-item-grid');
                 
                 linhasOpcoes.forEach(linha => {
-                    const nomeOp = inline.querySelector('.subopcao-nome').value.trim();
+                    // 🔥 CORREÇÃO 3: Alterado de inline para linha para evitar travamento nas variações
+                    const nomeOp = linha.querySelector('.subopcao-nome').value.trim();
                     const precoOp = parseFloat(linha.querySelector('.subopcao-preco').value) || 0;
                     if (nomeOp !== "") {
                         subOpcoes.push({ nome: nomeOp, precoAdicional: precoOp });
@@ -1177,15 +1160,18 @@
                 });
 
                 mostrarNotificacao("Item cadastrado no cardápio!");
-                ui.target.reset();
+                // 🔥 CORREÇÃO 1: Mapeado de ui para e para evitar estouro de erro fatal
+                e.target.reset();
                 document.getElementById('preview-produto-add').src = "../assets/images/placeholder.png";
                 blobAddProdutoCurrent = null;
                 wrapperAddListaGrupos.innerHTML = "";
                 addCheckVariacao.checked = false;
                 addContainerVariacoes.style.display = 'none';
                 window.fecharModal('modal-add-produto');
-            } catch (err) { mostrarNotificacao("Erro ao inserir produto.", "error"); }
-            finally { btn.disabled = false; btn.innerText = "Cadastrar Produto"; }
+            } catch (err) { 
+                console.error(err);
+                mostrarNotificacao("Erro ao inserir produto.", "error"); 
+            } finally { btn.disabled = false; btn.innerText = "Cadastrar Produto"; }
         };
 
         async function carregarCategoriasSelects() {
@@ -1199,7 +1185,6 @@
             });
         }
 
-        // --- GESTÃO DE CUPONS PRÓPRIOS ---
         window.abrirGerenciadorCupons = async () => {
             window.abrirModal('modal-cupons');
             const lista = document.getElementById('lista-cupons-dashboard');
@@ -1217,18 +1202,26 @@
 
                 snap.forEach(docSnap => {
                     const c = docSnap.data();
-                    const expirado = new Date(c.dataExpiracao) < new Date();
-                    const esgotado = c.limiteUsos && (c.usosAtuais >= c.limiteUsos);
+                    
+                    // 🔥 PROTEÇÃO: Garante valores numéricos e aceita o mapeamento antigo/novo
+                    const valorCupom = Number(c.valor || 0);
+                    const minPedido = Number(c.valorMinimo || c.usoMinimo || 0);
+                    const usos = c.usosAtuais || 0;
+                    const limite = c.limiteUsos || "∞";
+
+                    const expirado = c.dataExpiracao ? new Date(c.dataExpiracao) < new Date() : false;
+                    const esgotado = c.limiteUsos && (usos >= c.limiteUsos);
+                    
                     const itemDiv = document.createElement('div');
                     itemDiv.className = "produto-item-admin";
                     
                     itemDiv.innerHTML = `
                         <div class="info-prod-admin" style="padding-left: 0.5rem;">
-                            <h4 style="color:#ff6400; font-weight:600;">${c.codigo}</h4>
-                            <p>${c.tipo === 'porcentagem' ? `${c.valor}% OFF` : `R$ ${c.valor.toFixed(2)} de desconto`}</p>
-                            <p style="font-size:0.8rem; color:#747d8c; margin: 2px 0;">Min. Pedido: R$ ${c.valorMinimo.toFixed(2)} | Usos: ${c.usosAtuais || 0}/${c.limiteUsos}</p>
+                            <h4 style="color:#ff6400; font-weight:600;">${c.codigo || 'SEM CÓDIGO'}</h4>
+                            <p>${c.tipo === 'porcentagem' ? `${valorCupom}% OFF` : `R$ ${valorCupom.toFixed(2)} de desconto`}</p>
+                            <p style="font-size:0.8rem; color:#747d8c; margin: 2px 0;">Min. Pedido: R$ ${minPedido.toFixed(2)} | Usos: ${usos}/${limite}</p>
                             <small style="color:${expirado || esgotado ? '#ff6400' : '#2ed573'}; font-size:0.75rem; font-weight:600;">
-                                ${expirado ? 'Expirado' : esgotado ? 'Esgotado' : `Válido até: ${new Date(c.dataExpiracao).toLocaleString('pt-br')}`}
+                                ${expirado ? 'Expirado' : esgotado ? 'Esgotado' : `Válido até: ${c.dataExpiracao ? new Date(c.dataExpiracao).toLocaleString('pt-br') : 'Sem prazo'}`}
                             </small>
                         </div>
                         <div class="actions-prod-admin">
@@ -1237,7 +1230,10 @@
                     `;
                     lista.appendChild(itemDiv);
                 });
-            } catch (err) { lista.innerHTML = "<p class='loading-produtos-text'>Erro ao carregar cupons.</p>"; }
+            } catch (err) { 
+                console.error("Erro detalhado ao carregar cupons:", err);
+                lista.innerHTML = "<p class='loading-produtos-text'>Erro ao carregar cupons.</p>"; 
+            }
         };
 
         window.excluirCupom = async (idCupom) => {
@@ -1287,14 +1283,14 @@
                 });
 
                 mostrarNotificacao("Cupom próprio ativado!");
-                ui.target.reset();
+                // 🔥 CORREÇÃO 2: Ajustado de ui para e para evitar travamento em cascata nos cupons
+                e.target.reset();
                 window.fecharModal('modal-add-cupom');
                 window.abrirGerenciadorCupons();
             } catch (err) { mostrarNotificacao("Erro ao cadastrar cupom.", "error"); }
             finally { btn.disabled = false; btn.innerText = "Cadastrar Cupom"; }
         };
 
-        // --- MONITOR DE PEDIDOS EM TEMPO REAL + MÉTRICAS + REPASSES + GRAFICOS ---
         function initializeEscutaPedidosRealtime() {
             const q = query(collection(db, "pedidos"), where("lojaId", "==", idLojaGlobal));
             
@@ -1453,10 +1449,9 @@
             }
         }
 
-        // --- EXPORTAÇÃO CSV ---
         document.getElementById('btn-exportar-csv').onclick = () => {
-            const linhasTabela = document.querySelectorAll('#lista-linhas-repasses-financeiros tr');
-            if (linhasTabela.length === 0 || linhasTabela[0].innerText.includes("Nenhum repasse")) {
+            const linesTabela = document.querySelectorAll('#lista-linhas-repasses-financeiros tr');
+            if (linesTabela.length === 0 || linesTabela[0].innerText.includes("Nenhum repasse")) {
                 mostrarNotificacao("Não há dados consolidados para exportar.", "error");
                 return;
             }
@@ -1464,7 +1459,7 @@
             let csvConteudo = "\uFEFF"; 
             csvConteudo += "Data Lancamento;ID Pedido;Meio Pagamento;Valor Bruto (R$);Taxa Plataforma (R$);Valor Liquido (R$)\n";
 
-            linhasTabela.forEach(tr => {
+            linesTabela.forEach(tr => {
                 const colunas = tr.querySelectorAll('td');
                 if (colunas.length === 6) {
                     const data = colunas[0].innerText.trim();
@@ -1614,7 +1609,6 @@
             finally { btnSubmit.disabled = false; btnSubmit.innerText = "Confirmar Recusa"; }
         };
 
-        // --- MONITOR DE PERMISSÃO E AUTH ---
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 const snap = await getDoc(doc(db, "usuarios", user.uid));
