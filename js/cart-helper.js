@@ -42,7 +42,7 @@ window.adicionarAoCarrinho = function(id, nome, preco, imagem, lojaId, nomeLoja)
     
     mostrarNotificacao(`${nome} adicionado ao carrinho!`, 'success');
     
-    // Atualiza o widget flutuante na tela do cliente
+    // Updates the widget flutuante na tela do cliente
     atualizarCarrinhoFlutuante();
 };
 
@@ -88,6 +88,31 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     atualizarCarrinhoFlutuante();
 });
+
+// ==========================================================================
+// 🔥 AUTOMATIZAÇÃO GLOBAL DE SINCRONIZAÇÃO E CURA DE SESSÕES CONGELADAS (Bfcache)
+// ==========================================================================
+
+// A. Resolve o bug do botão "Voltar" do navegador desatualizado
+window.addEventListener('pageshow', (event) => {
+    const veioDoHistorico = event.persisted || 
+        (performance.getEntriesByType("navigation")[0]?.type === "back_forward");
+    
+    if (veioDoHistorico) {
+        console.log("[NordGo Cart] Página reexibida via histórico. Sincronizando pílula...");
+        atualizarCarrinhoFlutuante();
+    }
+});
+
+// B. Resolve o bug de sincronização cruzada de abas/telas em tempo real
+window.addEventListener('storage', (event) => {
+    if (event.key === 'nordgo_carrinho') {
+        console.log("[NordGo Cart] Mudança detectada no LocalStorage. Sincronizando pílula...");
+        atualizarCarrinhoFlutuante();
+    }
+});
+
+// ==========================================================================
 
 // 4. Função auxiliar de navegação (Resolve rotas de forma dinâmica da Home e Subpastas)
 window.redirecionarParaCarrinho = function() {
