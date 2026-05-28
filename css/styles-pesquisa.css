@@ -1,0 +1,270 @@
+/* ============================================================
+   MODAL DE SELEÇÃO DE OPÇÕES E COMPLEMENTOS (NORDGO FOOD)
+   ============================================================ */
+
+.modal-overlay-public {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    display: flex;
+    justify-content: center;
+    align-items: flex-end; /* Abre de baixo para cima no mobile style app */
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    z-index: 9999;
+}
+
+.modal-overlay-public.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.modal-content-public {
+    background: #ffffff;
+    width: 100%;
+    max-width: 550px;
+    border-radius: 24px 24px 0 0; /* Bordas arredondadas superiores tipo iFood */
+    max-height: 85vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.15);
+    transform: translateY(100%);
+    transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.modal-overlay-public.active .modal-content-public {
+    transform: translateY(0);
+}
+
+/* Telas maiores ganham aspecto centralizado tradicional */
+@media (min-width: 600px) {
+    .modal-overlay-public {
+        align-items: center;
+    }
+    .modal-content-public {
+        border-radius: 20px;
+        max-height: 90vh;
+    }
+}
+
+.modal-public-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    border-bottom: 1px solid #f1f2f6;
+    flex-shrink: 0;
+}
+
+.header-info-prod-modal h2 {
+    font-size: 1.25rem;
+    color: #2f3542;
+    font-weight: 600;
+    margin: 0 0 4px 0;
+}
+
+.header-info-prod-modal p {
+    font-size: 0.85rem;
+    color: #747d8c;
+    margin: 0;
+    line-height: 1.4;
+}
+
+.btn-fechar-modal-public {
+    background: #f1f2f6;
+    border: none;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    font-size: 1.4rem;
+    color: #57606f;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.btn-fechar-modal-public:hover {
+    background: #ff6400;
+    color: #ffffff;
+}
+
+/* Área de Rolagem Interna das Customizações */
+.modal-public-body {
+    padding: 20px;
+    overflow-y: auto;
+    flex: 1;
+    background: #f8f9fa;
+}
+
+/* Bloco de cada grupo */
+.bloco-grupo-escolha {
+    background: #ffffff;
+    border: 1px solid #e4e7eb;
+    border-radius: 14px;
+    margin-bottom: 15px;
+    overflow: hidden;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.01);
+}
+
+.header-grupo-escolha-meta {
+    background: #fcfcfc;
+    padding: 14px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #f1f2f6;
+}
+
+.header-grupo-escolha-meta h4 {
+    font-size: 0.95rem;
+    color: #2f3542;
+    margin: 0;
+    font-weight: 600;
+}
+
+.txt-limite-escolhas {
+    display: block;
+    font-size: 0.75rem;
+    color: #ffa502;
+    font-weight: 500;
+    margin-top: 2px;
+}
+
+/* Badges de Obrigatório / Opcional */
+.badge-obrigatorio-tag, .badge-opcional-tag {
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 6px;
+    letter-spacing: 0.02rem;
+}
+
+.badge-obrigatorio-tag { background: #fff2f2; color: #ff6400; }
+.badge-opcional-tag { background: #f1f2f6; color: #747d8c; }
+
+.lista-opcoes-grupo-inputs {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Linha de Opção */
+.linha-opcao-item-custom {
+    border-bottom: 1px solid #f8f9fa;
+}
+
+.linha-opcao-item-custom:last-child {
+    border-bottom: none;
+}
+
+.label-wrapper-opcao-public {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 16px;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.15s ease;
+}
+
+.label-wrapper-opcao-public:hover {
+    background: #fafafa;
+}
+
+.esquerda-label-bloco {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+}
+
+.esquerda-label-bloco input[type="radio"],
+.esquerda-label-bloco input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: #ff6400; /* Cores da NordGo nos seletores */
+    cursor: pointer;
+    margin: 0;
+}
+
+.nome-opcao-texto-span {
+    font-size: 0.9rem;
+    color: #57606f;
+    font-weight: 400;
+}
+
+.preco-adicional-tag-item {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #2ed573;
+    font-family: monospace;
+}
+
+.preco-adicional-tag-item.gratis {
+    color: #a4b0be;
+    font-weight: 400;
+    font-family: inherit;
+}
+
+/* Rodapé do Modal */
+.modal-public-footer {
+    padding: 15px 20px;
+    border-top: 1px solid #f1f2f6;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    flex-shrink: 0;
+    background: #ffffff;
+}
+
+.footer-preco-total-bloco span {
+    font-size: 0.75rem;
+    color: #747d8c;
+    text-transform: uppercase;
+    display: block;
+    font-weight: 500;
+}
+
+.footer-preco-total-bloco h3 {
+    font-size: 1.35rem;
+    color: #2f3542;
+    margin: 0;
+    font-weight: 600;
+}
+
+.btn-adicionar-customizado {
+    flex: 1;
+    background: #ff6400;
+    color: white;
+    border: none;
+    padding: 14px 20px;
+    border-radius: 12px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: background 0.2s;
+}
+
+.btn-adicionar-customizado:hover {
+    background: #e03d4b;
+}
+
+/* Ícone de Sliders indicando customização nos cards */
+.card-produto-quadrado .btn-add-carrinho i.fa-sliders,
+.card-produto-horizontal .btn-add-carrinho i.fa-sliders {
+    font-size: 0.9rem;
+}
