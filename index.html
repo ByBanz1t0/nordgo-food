@@ -100,10 +100,35 @@
             }
         });
 
-        // Inicialização de interface
+        // ==========================================================================
+        // 🔥 --- SINCRONIZAÇÃO EM TEMPO REAL DO CARRINHO FLUTUANTE ---
+        // ==========================================================================
+        
+        // 1. Inicialização padrão ao carregar a página do zero
         atualizarCarrinhoFlutuante();
         renderizarCategorias();
         renderizarLojas();
+
+        // 2. Cura o efeito "Voltar" do navegador (Restauração do cache Bfcache)
+        window.addEventListener('pageshow', (event) => {
+            const veioDoHistorico = event.persisted || 
+                (performance.getEntriesByType("navigation")[0]?.type === "back_forward");
+
+            if (veioDoHistorico) {
+                console.log("[NordGo] Histórico detectado: Sincronizando pílula do carrinho...");
+                atualizarCarrinhoFlutuante();
+            }
+        });
+
+        // 3. Sincronização Cruzada de Páginas/Abas (Caso use LocalStorage no carrinho)
+        window.addEventListener('storage', (event) => {
+            if (event.key && (event.key.includes('carrinho') || event.key.includes('cart'))) {
+                console.log("[NordGo] Mudança detectada em outra aba: Sincronizando carrinho...");
+                atualizarCarrinhoFlutuante();
+            }
+        });
+
+        // ==========================================================================
 
         // AUTOMAÇÃO GEOGRÁFICA SILENCIOSA
         onAuthStateChanged(auth, async (user) => {
