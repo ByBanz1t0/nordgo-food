@@ -8,6 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="../css/styles-loja.css">
 </head>
 <body>
     <div id="toast-container" class="toast-container"></div>
@@ -45,13 +46,39 @@
         <div id="lista-resultados"></div>
     </main>
 
+    <div id="modal-customizar-produto" class="modal-overlay-public">
+        <div class="modal-content-public animate-pop">
+            <div class="modal-public-header">
+                <div class="header-info-prod-modal">
+                    <h2 id="modal-cust-titulo-produto">Customizar Item</h2>
+                    <p id="modal-cust-desc-produto">Detalhes do item selecionado.</p>
+                </div>
+                <button class="btn-fechar-modal-public" id="btn-fechar-cust">&times;</button>
+            </div>
+            
+            <div class="modal-public-body">
+                <div id="container-grupos-customizacao"></div>
+            </div>
+
+            <div class="modal-public-footer">
+                <div class="footer-preco-total-bloco">
+                    <span>Total do item</span>
+                    <h3 id="txt-preco-dinamico-modal">R$ 0,00</h3>
+                </div>
+                <button id="btn-confirmar-customizacao" class="btn-adicionar-customizado">
+                    <i class="fa-solid fa-cart-plus"></i> Adicionar ao Carrinho
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script type="module" src="../js/firebase-config.js"></script>
     <script type="module" src="../js/cart-helper.js"></script>
 
     <script type="module">
         import { auth, db, mostrarNotificacao } from '../js/firebase-config.js';
-        // MODIFICADO: Adicionado 'query' e 'where' para realizar os filtros de segurança
-        import { collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
+        import { collection, getDocs, query, where, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
+        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
         import { atualizarCarrinhoFlutuante } from '../js/cart-helper.js';
 
         const params = new URLSearchParams(window.location.search);
@@ -69,10 +96,13 @@
             }
         });
 
+        let listaLojasGlobal = [];
+        let produtosCarregadosLocais = []; // Cache igual ao do loja.html
+        let produtoSelecionadoAtual = null;
+
         async function executarBusca() {
             atualizarCarrinhoFlutuante();
             try {
-                // CORREÇÃO: Filtra as lojas direto no banco para trazer apenas as aprovadas
                 const qLojasAtivas = query(collection(db, "lojas"), where("status", "==", "aprovado"));
 
                 const [snapshotLojas, snapshotProdutos] = await Promise.all([
@@ -83,19 +113,24 @@
                 let lojas = [];
                 let produtos = [];
 
-                // Alimenta o array de lojas ativas
                 snapshotLojas.forEach(doc => lojas.push({ id: doc.id, ...doc.data(), tipo: 'loja' }));
-
-                // O PULO DO GATO: Cria um Set com os IDs das lojas que estão ativas/aprovadas
                 const lojasAprovadasIds = new Set(lojas.map(l => l.id));
 
-                // Varre os produtos e barra aqueles cujas lojas estão suspensas ou pendentes
                 snapshotProdutos.forEach(doc => {
                     const dadosProduto = doc.data();
                     if (lojasAprovadasIds.has(dadosProduto.lojaId)) {
-                        produtos.push({ id: doc.id, ...dadosProduto, tipo: 'produto' });
+                        const lojaDono = lojas.find(l => l.id === dadosProduto.lojaId);
+                        produtos.push({ 
+                            id: doc.id, 
+                            ...dadosProduto, 
+                            nomeLoja: lojaDono ? lojaDono.nome : 'Estabelecimento',
+                            tipo: 'produto' 
+                        });
                     }
                 });
+
+                // Salva no cache local para o modal conseguir ler instantaneamente
+                produtosCarregadosLocais = produtos;
 
                 const catUrl = categoriaFiltro ? categoriaFiltro.toLowerCase() : null;
                 const buscaUrl = termoBusca ? termoBusca.toLowerCase() : null;
@@ -125,6 +160,7 @@
 
         function renderizarResultados(resultados) {
             listaResultados.innerHTML = "";
+
             if (resultados.length === 0) {
                 listaResultados.innerHTML = "<p class='placeholder-text'>Nenhum resultado encontrado.</p>";
                 subtitulo.innerText = "Tente outros termos.";
@@ -170,7 +206,6 @@
                 
                 produtosOrdenadas.forEach(item => {
                     let imagemUrl = (item.imagem && item.imagem.trim() !== "") ? item.imagem : null;
-                    
                     if (!imagemUrl) {
                         if (item.categoria === "Doces & Bolos" || item.slugCategoria === "doces") {
                             imagemUrl = '../assets/images/default-doces.png'; 
@@ -178,6 +213,11 @@
                             imagemUrl = '../assets/images/placeholder.png';
                         }
                     }
+
+                    // AÇÃO DINÂMICA COMPATÍVEL COM O SEU SISTEMA DE CLIQUE DO LOJA.HTML
+                    const cliqueAcao = item.temVariacoes 
+                        ? `window.abrirModalCustomizacao('${item.id}')`
+                        : `adicionarAoCarrinho('${item.id}', '${item.nome}', ${item.preco}, '${imagemUrl}', '${item.lojaId}', '${item.nomeLoja}')`;
 
                     const card = document.createElement('div');
                     card.className = 'card-loja produto-encontrado';
@@ -188,8 +228,8 @@
                         <div class="info-loja">
                             <h3 onclick="window.location.href='loja.html?loja=${item.lojaId}'">${item.nome} <span class="badge-tipo prod">Produto</span></h3>
                             <p>${item.categoria} • <span class="preco-busca">R$ ${item.preco.toLocaleString('pt-br', {minimumFractionDigits: 2})}</span></p>
-                            <button class="btn-add-carrinho" onclick="adicionarAoCarrinho('${item.id}', '${item.nome}', ${item.preco}, '${imagemUrl}', '${item.lojaId}')">
-                                <i class="fa-solid fa-plus"></i><i class="fa-solid fa-cart-shopping"></i>
+                            <button class="btn-add-carrinho" onclick="${cliqueAcao}">
+                                <i class="fa-solid ${item.temVariacoes ? 'fa-sliders' : 'fa-plus'}"></i><i class="fa-solid fa-cart-shopping"></i>
                             </button>
                         </div>`;
                     gridProdutos.appendChild(card);
@@ -199,6 +239,206 @@
             }
             subtitulo.innerText = `Encontramos ${lojasOrdenadas.length} lojas e ${produtosOrdenadas.length} produtos.`;
         }
+
+        // ==========================================================================
+        // 🔥 LÓGICA E MOTOR DE VALIDAÇÃO DO MODAL EXATAMENTE IGUAL AO LOJA.HTML
+        // ==========================================================================
+        const overlayCust = document.getElementById('modal-customizar-produto');
+        const containerGrupos = document.getElementById('container-grupos-customizacao');
+        const txtPrecoModal = document.getElementById('txt-preco-dinamico-modal');
+
+        window.abrirModalCustomizacao = (idProduto) => {
+            const prod = produtosCarregadosLocais.find(item => item.id === idProduto);
+            if (!prod) return;
+
+            produtoSelecionadoAtual = prod;
+            document.getElementById('modal-cust-titulo-produto').innerText = prod.nome;
+            document.getElementById('modal-cust-desc-produto').innerText = prod.descricao || 'Selecione as opções desejadas abaixo.';
+            
+            containerGrupos.innerHTML = "";
+            const grupos = prod.grupoDeOpcoes || [];
+
+            grupos.forEach((grupo, idxGrupo) => {
+                const divGrupo = document.createElement('div');
+                divGrupo.className = "bloco-grupo-escolha";
+                
+                const textoObrigatorio = grupo.obrigatorio 
+                    ? `<span class="badge-obrigatorio-tag">Obrigatório</span>` 
+                    : `<span class="badge-opcional-tag">Opcional</span>`;
+
+                const subtextoLimite = grupo.maxEscolhas > 1 
+                    ? `<small class="txt-limite-escolhas">Escolha até ${grupo.maxEscolhas} opções</small>`
+                    : '';
+
+                divGrupo.innerHTML = `
+                    <div class="header-grupo-escolha-meta">
+                        <div>
+                            <h4>${grupo.titulo}</h4>
+                            ${subtextoLimite}
+                        </div>
+                        ${textoObrigatorio}
+                    </div>
+                    <div class="lista-opcoes-grupo-inputs"></div>
+                `;
+
+                const containerInputs = divGrupo.querySelector('.lista-opcoes-grupo-inputs');
+
+                grupo.opcoes.forEach((opcao, idxOpcao) => {
+                    const divOpcao = document.createElement('div');
+                    divOpcao.className = "linha-opcao-item-custom";
+
+                    const inputType = grupo.maxEscolhas === 1 ? 'radio' : 'checkbox';
+                    const inputName = `grupo_${grupo.idGrupo || idxGrupo}`;
+                    const inputId = `input_${inputName}_${idxOpcao}`;
+
+                    const txtPrecoAdicional = opcao.precoAdicional > 0 
+                        ? `<span class="preco-adicional-tag-item">+ R$ ${opcao.precoAdicional.toFixed(2)}</span>`
+                        : `<span class="preco-adicional-tag-item gratis">Grátis</span>`;
+
+                    divOpcao.innerHTML = `
+                        <label for="${inputId}" class="label-wrapper-opcao-public">
+                            <div class="esquerda-label-bloco">
+                                <input type="${inputType}" 
+                                       id="${inputId}" 
+                                       name="${inputName}" 
+                                       value="${idxOpcao}" 
+                                       data-preco="${opcao.precoAdicional}"
+                                       data-nome="${opcao.nome}"
+                                       data-grupo="${grupo.titulo}"
+                                       data-idgrupo="${grupo.idGrupo || idxGrupo}"
+                                       data-max="${grupo.maxEscolhas}">
+                                <span class="nome-opcao-texto-span">${opcao.nome}</span>
+                            </div>
+                            ${txtPrecoAdicional}
+                        </label>
+                    `;
+
+                    if (inputType === 'checkbox') {
+                        const inputCheckbox = divOpcao.querySelector('input');
+                        inputCheckbox.addEventListener('change', (e) => {
+                            const marcados = containerInputs.querySelectorAll('input:checked');
+                            if (marcados.length > grupo.maxEscolhas) {
+                                e.target.checked = false; 
+                                alert(`Você pode escolher no máximo ${grupo.maxEscolhas} opções para o grupo: ${grupo.titulo}`);
+                            }
+                            atualizarPrecoDinamicoModal();
+                        });
+                    } else {
+                        divOpcao.querySelector('input').addEventListener('change', atualizarPrecoDinamicoModal);
+                    }
+
+                    containerInputs.appendChild(divOpcao);
+                });
+
+                containerGrupos.appendChild(divGrupo);
+            });
+
+            atualizarPrecoDinamicoModal();
+            overlayCust.classList.add('active');
+        };
+
+        function atualizarPrecoDinamicoModal() {
+            if (!produtoSelecionadoAtual) return;
+
+            let precoAcumulado = parseFloat(produtoSelecionadoAtual.preco) || 0;
+            const inputsMarcados = containerGrupos.querySelectorAll('input:checked');
+
+            inputsMarcados.forEach(input => {
+                precoAcumulado += parseFloat(input.dataset.preco) || 0;
+            });
+
+            txtPrecoModal.innerText = precoAcumulado.toLocaleString('pt-br', { style: 'currency', currency: 'BRL' });
+        }
+
+        document.getElementById('btn-confirmar-customizacao').onclick = () => {
+            if (!produtoSelecionadoAtual) return;
+
+            const gruposConfig = produtoSelecionadoAtual.grupoDeOpcoes || [];
+            let validacaoSucesso = true;
+            let nomesOpcoesEscolhidas = [];
+            let precoTotalItem = parseFloat(produtoSelecionadoAtual.preco) || 0;
+
+            for (let i = 0; i < gruposConfig.length; i++) {
+                const grupo = gruposConfig[i];
+                const inputName = `grupo_${grupo.idGrupo || i}`;
+                const marcados = containerGrupos.querySelectorAll(`input[name="${inputName}"]:checked`);
+
+                if (grupo.obrigatorio && marcados.length === 0) {
+                    alert(`Por favor, faça uma escolha obrigatória no grupo: ${grupo.titulo}`);
+                    validacaoSucesso = false;
+                    break;
+                }
+            }
+
+            if (!validacaoSucesso) return;
+
+            const marcadosFinais = containerGrupos.querySelectorAll('input:checked');
+            marcadosFinais.forEach(input => {
+                nomesOpcoesEscolhidas.push(input.dataset.nome);
+                precoTotalItem += parseFloat(input.dataset.preco) || 0;
+            });
+
+            let nomeProdutoCustomizado = produtoSelecionadoAtual.nome;
+            if (nomesOpcoesEscolhidas.length > 0) {
+                nomeProdutoCustomizado += ` (${nomesOpcoesEscolhidas.join(', ')})`;
+            }
+
+            // Fallback dinâmico para pegar imagem e dados da loja pai do item mapeado
+            const imgUrl = produtoSelecionadoAtual.imagem || '../assets/images/placeholder.png';
+            const idVirtualUnico = `${produtoSelecionadoAtual.id}_v_${Date.now()}`;
+
+            if (typeof window.adicionarAoCarrinho === "function") {
+                window.adicionarAoCarrinho(
+                    idVirtualUnico, 
+                    nomeProdutoCustomizado, 
+                    precoTotalItem, 
+                    imgUrl, 
+                    produtoSelecionadoAtual.lojaId, 
+                    produtoSelecionadoAtual.nomeLoja
+                );
+            }
+
+            overlayCust.classList.remove('active');
+            produtoSelecionadoAtual = null;
+        };
+
+        document.getElementById('btn-fechar-cust').onclick = () => {
+            overlayCust.classList.remove('active');
+            produtoSelecionadoAtual = null;
+        };
+
+        overlayCust.addEventListener('click', (e) => {
+            if (e.target === overlayCust) {
+                overlayCust.classList.remove('active');
+                produtoSelecionadoAtual = null;
+            }
+        });
+
+        // AUTOMAÇÃO GEOGRÁFICA SILENCIOSA
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                try {
+                    const userDoc = await getDoc(doc(db, "usuarios", user.uid));
+                    if (userDoc.exists()) {
+                        const userData = userDoc.data();
+                        let cepPerfil = null;
+                        
+                        if (userData.enderecoCliente && Array.isArray(userData.enderecoCliente)) {
+                            const enderecoPadrao = userData.enderecoCliente.find(end => end.padrao === true) || userData.enderecoCliente[0];
+                            if (enderecoPadrao && enderecoPadrao.cep) {
+                                cepPerfil = enderecoPadrao.cep;
+                            }
+                        }
+                        
+                        if (cepPerfil) {
+                            localStorage.setItem('nordgo_cep_usuario', cepPerfil);
+                        }
+                    }
+                } catch (err) {
+                    console.error("Erro ao sincronizar localização do perfil:", err);
+                }
+            }
+        });
 
         executarBusca();
     </script>
