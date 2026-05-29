@@ -908,6 +908,52 @@
 .toast-container { z-index: 3000 !important; }
 
 /* ============================================================
+   AJUSTE DE ALTURA FIXA E ROLAGEM DO PAINEL DE PEDIDOS
+   ============================================================ */
+
+/* 1. O painel lateral (aside) agora fica travado no tamanho da tela */
+.painel-pedidos-fixo {
+    height: calc(100vh - 5.5rem); /* Limita o painel ao tamanho da tela tirando o cabeçalho */
+    position: sticky;
+    top: 4.5rem; /* Mantém ele fixo no topo se o resto da página rolar */
+    display: flex;
+    flex-direction: column; /* Organiza o cabeçalho de pedidos em cima e a lista embaixo */
+    overflow: hidden; /* Impede o painel inteiro de vazar */
+}
+
+/* 2. O cabeçalho dos pedidos e abas continuam fixos no topo do painel */
+.header-pedidos-fixo {
+    flex-shrink: 0; /* Impede o cabeçalho de amassar ou sumir */
+}
+
+/* 3. A área interna de listagem de pedidos ganha a barra de rolagem isolada */
+.lista-pedidos-fixo-scroll {
+    flex: 1; /* Força a lista a ocupar todo o espaço restante do painel */
+    overflow-y: auto; /* Ativa o scroll vertical inteligente apenas aqui dentro */
+    padding-right: 6px; /* Pequeno espaçamento para os cards não colarem no scrollbar */
+    scrollbar-width: thin; /* Deixa o scroll fino em navegadores Firefox */
+}
+
+/* 4. Customização estética para o scrollbar ficar fino e no padrão da NordGo (Webkit) */
+.lista-pedidos-fixo-scroll::-webkit-scrollbar {
+    width: 6px;
+}
+
+.lista-pedidos-fixo-scroll::-webkit-scrollbar-track {
+    background: #f1f2f6;
+    border-radius: 10px;
+}
+
+.lista-pedidos-fixo-scroll::-webkit-scrollbar-thumb {
+    background: #ff6400; /* Laranja da NordGo */
+    border-radius: 10px;
+}
+
+.lista-pedidos-fixo-scroll::-webkit-scrollbar-thumb:hover {
+    background: #e03d4b;
+}
+
+/* ============================================================
    CONSTRUTOR DE VARIAÇÕES DE PRODUTO
    ============================================================ */
 .flex-row-check { display: flex !important; flex-direction: row !important; align-items: center !important; gap: 0.5rem; margin-top: 0.625rem !important; margin-bottom: 0.9375rem !important; }
