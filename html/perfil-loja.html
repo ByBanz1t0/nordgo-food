@@ -1102,7 +1102,7 @@
 
                 await updateDoc(doc(db, "produtos", idProd), {
                     nome: document.getElementById('edit-produto-nome').value.trim(),
-                    preco: isVariacaoAtiva ? 0 : parseFloat(document.getElementById('edit-produto-preco').value) || 0,
+                    preco: parseFloat(document.getElementById('edit-produto-preco').value) || 0,
                     categoria: document.getElementById('edit-produto-categoria-select').value,
                     descricao: document.getElementById('edit-produto-descricao').value.trim(),
                     imagem: imgUrl,
@@ -1150,7 +1150,7 @@
                     lojaId: idLojaGlobal,
                     nomeLoja: tituloLoja.innerText,
                     nome: document.getElementById('add-produto-nome').value.trim(),
-                    preco: isVariacaoAtiva ? 0 : parseFloat(document.getElementById('add-produto-preco').value) || 0,
+                    preco: parseFloat(document.getElementById('add-produto-preco').value) || 0,
                     categoria: document.getElementById('add-produto-categoria-select').value,
                     descricao: document.getElementById('add-produto-descricao').value.trim(),
                     imagem: imgUrl,
