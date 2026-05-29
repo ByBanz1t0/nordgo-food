@@ -848,7 +848,7 @@
 
                 horariosFuncionamentoLocal = d.horariosSemana || {};
                 document.getElementById('edit-status-loja-master').value = d.statusMaster || "automatico";
-                gererInputsGradeSemanal();
+                gerarInputsGradeSemanal();
 
                 document.getElementById('btn-ver-loja').onclick = () => {
                     window.location.href = `../html/loja.html?id=${idLojaGlobal}`;
