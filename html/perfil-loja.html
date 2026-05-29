@@ -714,7 +714,7 @@
                     tempoEntrega: tempoEntregaSincronizado
                 });
                 
-                mostrarNotificacao("Configurações de frete e prazos atualizadas!");
+                mostrarNotificacao("Configurações de frete e prazos updated!");
                 window.fecharModal('modal-frete');
                 await carregarDadosLoja();
             } catch (err) { 
@@ -848,7 +848,7 @@
 
                 horariosFuncionamentoLocal = d.horariosSemana || {};
                 document.getElementById('edit-status-loja-master').value = d.statusMaster || "automatico";
-                gerarInputsGradeSemanal();
+                gererInputsGradeSemanal();
 
                 document.getElementById('btn-ver-loja').onclick = () => {
                     window.location.href = `../html/loja.html?id=${idLojaGlobal}`;
@@ -856,7 +856,7 @@
             }
         }
 
-        function obterImagemProduto(p) {
+        function obtenerImagemProduto(p) {
             if (p.imagem && p.imagem.trim() !== "" && !p.imagem.includes("placeholder.png")) return p.imagem;
             const arquivoCat = fotosCategorias[p.categoria];
             return arquivoCat ? `../assets/images/${arquivoCat}` : '../assets/images/placeholder.png';
@@ -993,10 +993,9 @@
                 const isObrigatorio = card.querySelector('.grupo-obrigatorio-input').checked;
 
                 const subOpcoes = [];
-                const linhasOpcoes = card.querySelectorAll('.container-subopcoes-itens > .linha-subopcao-item-grid');
+                const linesOpcoes = card.querySelectorAll('.container-subopcoes-itens > .linha-subopcao-item-grid');
                 
-                linhasOpcoes.forEach(linha => {
-                    // 🔥 CORREÇÃO 3: Alterado de inline para linha para evitar travamento nas variações
+                linesOpcoes.forEach(linha => {
                     const nomeOp = linha.querySelector('.subopcao-nome').value.trim();
                     const precoOp = parseFloat(linha.querySelector('.subopcao-preco').value) || 0;
                     if (nomeOp !== "") {
@@ -1029,7 +1028,9 @@
                 const p = docSnap.data();
                 const itemDiv = document.createElement('div');
                 itemDiv.className = "produto-item-admin";
-                const precoExibirTexto = p.temVariacoes ? "Preço Variável" : `R$ ${p.preco.toFixed(2)}`;
+                
+                // MANTÉM EXIBIÇÃO AMIGÁVEL NO PAINEL, MAS SEM DEIXAR O VALOR VIRAR 0 NO FIREBASE
+                const precoExibirTexto = p.temVariacoes ? `A partir de R$ ${p.preco.toFixed(2)}` : `R$ ${p.preco.toFixed(2)}`;
 
                 itemDiv.innerHTML = `<img src="${obterImagemProduto(p)}" class="img-prod-admin">
                     <div class="info-prod-admin"><h4>${p.nome}</h4><p>${precoExibirTexto}</p></div>
@@ -1100,9 +1101,10 @@
                 const isVariacaoAtiva = editCheckVariacao.checked;
                 const arrayGruposPayload = extrairPayloadGrupoDeOpcoes(wrapperEditListaGrupos);
 
+                // 🔥 CORREÇÃO DA EDIÇÃO: preco agora mantém o valor digitado mesmo se possuir variação
                 await updateDoc(doc(db, "produtos", idProd), {
                     nome: document.getElementById('edit-produto-nome').value.trim(),
-                    preco: isVariacaoAtiva ? 0 : parseFloat(document.getElementById('edit-produto-preco').value) || 0,
+                    preco: parseFloat(document.getElementById('edit-produto-preco').value) || 0,
                     categoria: document.getElementById('edit-produto-categoria-select').value,
                     descricao: document.getElementById('edit-produto-descricao').value.trim(),
                     imagem: imgUrl,
@@ -1116,7 +1118,7 @@
             } catch (err) {
                 console.error(err);
                 mostrarNotificacao("Erro ao atualizar o item.", "error");
-            } finally { btn.disabled = false; btn.innerText = "Salvar Alterações"; }
+            } finaly { btn.disabled = false; btn.innerText = "Salvar Alterações"; }
         };
 
         document.getElementById('edit-produto-file').onchange = async (e) => {
@@ -1146,11 +1148,12 @@
                 const isVariacaoAtiva = addCheckVariacao.checked;
                 const arrayGruposPayload = extrairPayloadGrupoDeOpcoes(wrapperAddListaGrupos);
 
+                // 🔥 CORREÇÃO DA CRIAÇÃO: preco agora armazena o preço base correto inserido no input
                 await addDoc(collection(db, "produtos"), {
                     lojaId: idLojaGlobal,
                     nomeLoja: tituloLoja.innerText,
                     nome: document.getElementById('add-produto-nome').value.trim(),
-                    preco: isVariacaoAtiva ? 0 : parseFloat(document.getElementById('add-produto-preco').value) || 0,
+                    preco: parseFloat(document.getElementById('add-produto-preco').value) || 0,
                     categoria: document.getElementById('add-produto-categoria-select').value,
                     descricao: document.getElementById('add-produto-descricao').value.trim(),
                     imagem: imgUrl,
@@ -1160,7 +1163,6 @@
                 });
 
                 mostrarNotificacao("Item cadastrado no cardápio!");
-                // 🔥 CORREÇÃO 1: Mapeado de ui para e para evitar estouro de erro fatal
                 e.target.reset();
                 document.getElementById('preview-produto-add').src = "../assets/images/placeholder.png";
                 blobAddProdutoCurrent = null;
@@ -1203,7 +1205,6 @@
                 snap.forEach(docSnap => {
                     const c = docSnap.data();
                     
-                    // 🔥 PROTEÇÃO: Garante valores numéricos e aceita o mapeamento antigo/novo
                     const valorCupom = Number(c.valor || 0);
                     const minPedido = Number(c.valorMinimo || c.usoMinimo || 0);
                     const usos = c.usosAtuais || 0;
@@ -1283,7 +1284,6 @@
                 });
 
                 mostrarNotificacao("Cupom próprio ativado!");
-                // 🔥 CORREÇÃO 2: Ajustado de ui para e para evitar travamento em cascata nos cupons
                 e.target.reset();
                 window.fecharModal('modal-add-cupom');
                 window.abrirGerenciadorCupons();
