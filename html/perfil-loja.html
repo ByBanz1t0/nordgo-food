@@ -383,7 +383,7 @@
         </div>
     </div>
 
-    <div id="modal-repasses-financeiros" class="modal-overlay">
+    <div id="modal-s-financeiros" class="modal-overlay">
         <div class="modal-content modal-content-large" style="max-width: 850px;">
             <div class="modal-header">
                 <h2><i class="fa-solid fa-file-invoice-dollar"></i> Histórico de Repasses e Fechamento</h2>
@@ -1356,7 +1356,7 @@
                     }
 
                     if (tabelaRepassesCorpo) {
-                        const taxaRetidaApp = valorLiquidoPedido * 0.10; 
+                        const taxaRetidaApp = valorLiquidoPedido * 0.01; 
                         const liquidoFinalRepasseLoja = valorLiquidoPedido - taxaRetidaApp;
                         
                         const tr = document.createElement('tr');
