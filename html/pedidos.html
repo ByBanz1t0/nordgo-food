@@ -55,6 +55,15 @@
         const containerLista = document.getElementById('lista-pedidos-usuario');
         const containerVazio = document.getElementById('pedidos-vazio');
 
+        // 🔥 FUNÇÃO AUXILIAR: Converte Timestamps do Firebase com segurança para datas nativas
+        const converterTimestamp = (campo) => {
+            if (!campo) return new Date(0);
+            if (typeof campo.toDate === 'function') return campo.toDate();
+            if (campo.seconds) return new Date(campo.seconds * 1000);
+            const d = new Date(campo);
+            return isNaN(d.getTime()) ? new Date(0) : d;
+        };
+
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 inicializarEscutaPedidos(user.uid);
@@ -82,10 +91,9 @@
                     dadosPedidos.push(p);
                 });
 
+                // 🔥 CORREÇÃO: Ordenação segura lendo dataCriacao e convertendo o Timestamp (Mais novo no topo)
                 dadosPedidos.sort((a, b) => {
-                    const dataA = a.dataPedido || a.dataCriacao?.toDate?.()?.toISOString() || "";
-                    const dataB = b.dataPedido || b.dataCriacao?.toDate?.()?.toISOString() || "";
-                    return new Date(dataB) - new Date(dataA);
+                    return converterTimestamp(b.dataCriacao || b.dataPedido).getTime() - converterTimestamp(a.dataCriacao || a.dataPedido).getTime();
                 });
 
                 renderizarPedidos(dadosPedidos);
@@ -110,7 +118,11 @@
                 if (p.status === "concluido") { corStatus = "#2ed573"; textoStatus = "Entregue / Concluído"; }
                 if (p.status === "cancelado") { corStatus = "#ff6400"; textoStatus = "Pedido Recusado"; }
 
-                let dataExibicao = p.dataPedido ? new Date(p.dataPedido).toLocaleString('pt-br', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : "Há pouco";
+                // 🔥 CORREÇÃO: Formatação robusta de Data e Hora (DD/MM/AAAA HH:MM)
+                const dataObjeto = converterTimestamp(p.dataCriacao || p.dataPedido);
+                let dataExibicao = dataObjeto.getTime() !== 0 
+                    ? dataObjeto.toLocaleString('pt-br', { dateStyle: 'short', timeStyle: 'short' }) 
+                    : "--/-- --:--";
 
                 let htmlItens = p.itens.map(i => `
                     <div class="pedido-item-linha">
@@ -147,7 +159,7 @@
                     <div class="pedido-header">
                         <div>
                             <h3 class="pedido-loja-titulo"><i class="fa-solid fa-store pedido-loja-icon"></i> ${p.nomeLoja}</h3>
-                            <div class="pedido-meta">${dataExibicao} • ID: ...${p.id.slice(-6).toUpperCase()}</div>
+                            <div class="pedido-meta"><i class="fa-regular fa-clock"></i> ${dataExibicao} • ID: ...${p.id.slice(-6).toUpperCase()}</div>
                         </div>
                         <span class="badge-status" style="background: ${corStatus}">${textoStatus}</span>
                     </div>
