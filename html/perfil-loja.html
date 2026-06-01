@@ -489,8 +489,6 @@
             if (gatilhoExcluirModal) {
                 gatilhoExcluirModal.onclick = () => window.excluirLojaCompleta();
             }
-            
-            carregarCategoriasSelects();
         }
 
         window.excluirLojaCompleta = async () => {
@@ -1642,6 +1640,7 @@
                 if (snap.exists() && snap.data().loja) { 
                     idLojaGlobal = snap.data().loja; 
                     await carregarRegioesDoBanco(); 
+                    await carregarCategoriasSelects();
                     await carregarDadosLoja(); 
                     renderizarDashboard(); 
                     initializeEscutaPedidosRealtime(); 
