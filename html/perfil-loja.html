@@ -1336,8 +1336,19 @@
             const tabelaRepassesCorpo = document.getElementById('lista-linhas-repasses-financeiros');
             if (tabelaRepassesCorpo) tabelaRepassesCorpo.innerHTML = "";
 
+            // Conversor seguro de Timestamp do Firebase
+            const converterTimestamp = (campo) => {
+                if (!campo) return new Date();
+                if (typeof campo.toDate === 'function') return campo.toDate();
+                if (campo.seconds) return new Date(campo.seconds * 1000);
+                const d = new Date(campo);
+                return isNaN(d.getTime()) ? new Date() : d;
+            };
+
             listaPedidosLocal.forEach(p => {
-                const dataFormatada = p.dataPedido ? new Date(p.dataPedido).toLocaleDateString('pt-br') : new Date().toLocaleDateString('pt-br');
+                // 🔥 ALINHADO: Lê 'dataCriacao' e trata o Timestamp do Firebase com segurança
+                const objetoData = converterTimestamp(p.dataCriacao || p.dataPedido);
+                const dataFormatada = objetoData.toLocaleDateString('pt-br');
 
                 if (p.status === "pendente" || p.status === "preparo" || p.status === "entrega") {
                     contagemPendentes++;
@@ -1362,7 +1373,7 @@
                         const tr = document.createElement('tr');
                         tr.style.borderBottom = "1px solid #e4e7eb";
                         tr.innerHTML = `
-                            <td style="padding:10px 12px; color:#57606f;">${p.dataPedido ? new Date(p.dataPedido).toLocaleString('pt-br', {dateStyle:'short', timeStyle:'short'}) : '--'}</td>
+                            <td style="padding:10px 12px; color:#57606f;">${objetoData.toLocaleString('pt-br', {dateStyle:'short', timeStyle:'short'})}</td>
                             <td style="padding:10px 12px; font-weight:600; color:#2f3542;">#${p.id.slice(0,7).toUpperCase()}</td>
                             <td style="padding:10px 12px; text-transform:uppercase; color:#747d8c; font-size:0.75rem;"><span style="background:#e4e7eb; padding:2px 6px; border-radius:4px; font-weight:600;">${p.formaPagamento || 'Pix'}</span></td>
                             <td style="padding:10px 12px; color:#2f3542; font-weight:600;">R$ ${valorLiquidoPedido.toFixed(2)}</td>
@@ -1515,7 +1526,17 @@
                 return;
             }
 
-            pedidosFiltrados.sort((a, b) => new Date(b.dataPedido || b.dataCriacao) - new Date(a.dataPedido || a.dataCriacao));
+            // Conversor seguro de Timestamp do Firebase
+            const converterTimestamp = (campo) => {
+                if (!campo) return new Date(0);
+                if (typeof campo.toDate === 'function') return campo.toDate();
+                if (campo.seconds) return new Date(campo.seconds * 1000);
+                const d = new Date(campo);
+                return isNaN(d.getTime()) ? new Date(0) : d;
+            };
+
+            // 🔥 ORDENAÇÃO DECRESCENTE FIXADA: Mais novo primeiro através do getTime() real
+            pedidosFiltrados.sort((a, b) => converterTimestamp(b.dataCriacao || b.dataPedido).getTime() - converterTimestamp(a.dataCriacao || a.dataPedido).getTime());
 
             pedidosFiltrados.forEach(p => {
                 const itemDiv = document.createElement('div');
@@ -1558,10 +1579,16 @@
                     htmlMotivoExibicao = `<p style="margin-top: 4px; padding: 6px; background: #fff5f5; border-radius: 6px; color: #ff6400; font-size: 0.8rem;">Recusa: "${p.motivoCancelamento}"</p>`;
                 }
 
+                // 🔥 DATA FORMATADA COM SEGURANÇA AQUI
+                const dataObjeto = converterTimestamp(p.dataCriacao || p.dataPedido);
+                const dataHoraPedido = dataObjeto.getTime() !== 0 
+                    ? dataObjeto.toLocaleString('pt-br', { dateStyle: 'short', timeStyle: 'short' }) 
+                    : '--/-- --:--';
+
                 itemDiv.innerHTML = `
                     <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #e4e7eb; padding-bottom:6px;">
                         <div>
-                            <span style="font-size:0.8rem; color:#747d8c;">ID: ${p.id.slice(0,6).toUpperCase()}</span>
+                            <span style="font-size:0.8rem; color:#747d8c;">ID: #${p.id.slice(0,6).toUpperCase()} • <i class="fa-regular fa-clock"></i> ${dataHoraPedido}</span>
                             <h4 style="color:#2f3542; margin-top:2px; font-size:0.9rem;"><i class="fa-regular fa-user"></i> ${p.clientNome || "Cliente"}</h4>
                         </div>
                         <span style="background:${corStatus}; color:white; padding:2px 8px; border-radius:20px; font-size:0.75rem; font-weight:600; text-transform:uppercase;">${p.status}</span>

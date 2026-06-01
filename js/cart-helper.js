@@ -9,15 +9,6 @@ import { auth, mostrarNotificacao } from './firebase-config.js';
 // 1. Função global para adicionar produtos ao carrinho
 window.adicionarAoCarrinho = function(id, nome, preco, imagem, lojaId, nomeLoja) {
     let carrinho = JSON.parse(localStorage.getItem('nordgo_carrinho')) || [];
-    
-    // Trava de segurança: Verifica se já existe um item de OUTRA loja no carrinho
-    if (carrinho.length > 0 && carrinho[0].lojaId !== lojaId) {
-        if (confirm("Seu carrinho possui itens de outra loja. Deseja limpar o carrinho atual para adicionar este produto?")) {
-            carrinho = [];
-        } else {
-            return; // Cancela a inserção se o cliente recusar limpar
-        }
-    }
 
     // Busca o item no carrinho. 
     // Itens simples repetidos vão somar quantidade. Itens customizados novos criam uma nova linha devido ao ID Virtual único.

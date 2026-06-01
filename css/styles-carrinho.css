@@ -109,7 +109,6 @@
 .coluna-itens {
     display: flex;
     flex-direction: column;
-    gap: 1.5rem;
 }
 
 .card-loja-carrinho {
@@ -588,4 +587,81 @@
     color: #a4b0be;
     cursor: not-allowed;
     box-shadow: none;
+}
+
+/* ============================================================
+   RESPONSIVIDADE DO ITEM DO CARRINHO (MOBILE)
+   ============================================================ */
+
+@media (max-width: 36rem) { /* Aplica em telas de celulares */
+    
+    /* Transforma a linha do item em Grid para reorganizar os filhos */
+    .item-carrinho-simples {
+        display: grid;
+        grid-template-columns: 4.5rem 1fr; /* Coluna 1: Foto | Coluna 2: Conteúdo */
+        grid-template-rows: auto auto;    /* Linha 1: Nome/Preço | Linha 2: Botões */
+        gap: 0.5rem 1rem;                 /* Espaçamento controlado entre linhas e colunas */
+        align-items: start;
+    }
+
+    /* Força a imagem a ocupar as duas linhas do Grid na esquerda */
+    .item-carrinho-simples img {
+        grid-column: 1;
+        grid-row: 1 / span 2;
+        margin: 0;
+    }
+
+    /* O contêiner de textos ganha a linha superior completa ao lado da foto */
+    .info-item {
+        grid-column: 2;
+        grid-row: 1;
+        width: 100%;
+    }
+
+    /* Os controles de quantidade vão para baixo do nome do produto */
+    .controles-qtd-carrinho {
+        grid-column: 2;
+        grid-row: 2;
+        justify-self: start; /* Impede que o botão estique na largura total */
+        gap: 0.5rem;         /* Diminui o espaço interno entre os botões */
+        padding: 0.2rem;     /* Deixa o botão estilo pílula mais fino */
+    }
+
+    /* Reduz o tamanho dos botões de + e - */
+    .controles-qtd-carrinho button {
+        width: 1.5rem;
+        height: 1.5rem;
+        font-size: 0.7rem;
+    }
+
+    /* Ajusta o tamanho do número da quantidade */
+    .controles-qtd-carrinho span {
+        font-size: 0.85rem;
+        min-width: 0.6rem;
+    }
+}
+
+@media (max-width: 36rem) {
+    /* 1. Reduz o espaçamento externo nas laterais da tela (de 1.5rem para 0.5rem) */
+    .carrinho-layout {
+        padding: 1rem 0.5rem;
+    }
+
+    /* 2. Reduz o espaçamento interno do card da loja (de 1.5rem para 0.75rem) */
+    .header-loja-carrinho {
+        padding: 1rem 0.75rem;
+    }
+
+    .itens-container {
+        padding: 0 0.75rem;
+    }
+
+    .footer-loja-carrinho {
+        padding: 0.5rem 0.5rem;
+    }
+
+    /* 3. Aplica a mesma redução de recuo para o card de resumo no final da página */
+    .coluna-resumo .card-resumo {
+        padding: 1.25rem 0.75rem;
+    }
 }
