@@ -89,7 +89,7 @@ body {
 }
 
 /* ============================================================
-    CABEÇALHO (NAVBAR) - NORDGO FOOD (VERSÃO FINAL DESKTOP)
+   CABEÇALHO (NAVBAR) - NORDGO FOOD (VERSÃO FINAL DESKTOP)
    ============================================================ */
 .main-header {
     background: #fff;
@@ -103,7 +103,6 @@ body {
 }
 
 .header-container {
-    grid-template-columns: 1fr auto 1fr;
     max-width: 75rem;
     width: 100%;
     margin: 0 auto;
@@ -115,24 +114,24 @@ body {
 
 .header-left {
     flex: 1;
-    min-width: 180px; 
+    min-width: 0; /* 🔥 AJUSTE: Permite que o container respeite o limite da tela */
     display: flex;
     align-items: center;
+    justify-content: flex-start;
 }
 
 .header-center {
-    flex: 2;
+    flex: 0 1 auto;
     display: flex;
     justify-content: center;
 }
 
 .header-right { 
     flex: 1;
-    min-width: 180px;
+    min-width: 0; /* 🔥 AJUSTE: Balanceia o peso exatamente igual ao header-left */
     display: flex;
     align-items: center;
     justify-content: flex-end; 
-    /* TRAVA DE SEGURANÇA: Impede a barra de busca de encostar no usuário */
     padding-left: 2.5rem !important; 
 }
 
@@ -199,6 +198,15 @@ body {
     flex-direction: row-reverse; 
     padding: 0 0.5rem 0 1.2rem !important; 
     gap: 0.8rem;
+    white-space: nowrap;
+    max-width: 13rem; /* 🔥 AJUSTE: Trava o tamanho máximo da pílula do usuário */
+    overflow: hidden;
+}
+
+/* 🔥 AJUSTE: Corta o nome longo do usuário com "..." */
+.pill-user span {
+    overflow: hidden;
+    text-overflow: ellipsis;
     white-space: nowrap;
 }
 
