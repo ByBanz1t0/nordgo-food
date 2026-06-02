@@ -194,7 +194,7 @@ body {
     padding: 0 0.5rem 0 1.2rem !important; 
     gap: 0.8rem;
     white-space: nowrap;
-    max-width: 13rem; /* 🔥 AJUSTE: Trava o tamanho máximo da pílula do usuário */
+    max-width: 13rem; /* Trava a largura máxima */
     overflow: hidden;
 }
 
