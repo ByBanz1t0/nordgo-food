@@ -126,8 +126,8 @@ body {
 .header-right { 
     display: flex;
     justify-content: flex-end; 
-    min-width: 0; /* Impede que nomes gigantes rebentem a coluna da grelha */
-    /* Removi o padding-left agressivo para não forçar deslocamentos no layout */
+    min-width: 0;
+    align-items: center;
 }
 
 /* --- PÍLULAS PADRONIZADAS --- */
