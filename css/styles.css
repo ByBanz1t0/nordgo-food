@@ -121,6 +121,8 @@ body {
 .header-center {
     display: flex;
     justify-content: center;
+    min-width: 22rem;
+    max-width: 24rem;
 }
 
 .header-right { 
@@ -254,6 +256,8 @@ body {
 .search-bar-wrapper {
     width: 100%;
     padding: 0 1.2rem;
+    white-space: nowrap;
+    overflow: hidden;
 }
 
 .search-bar-wrapper input {
