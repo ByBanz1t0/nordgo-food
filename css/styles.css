@@ -1197,50 +1197,54 @@ body {
 }
 
 /* ============================================================
-   ESTILIZAÇÃO DA BARRA DE ROLAGEM (SCROLLBAR)
+   ESTILIZAÇÃO DA BARRA DE ROLAGEM (SCROLLBAR) - MODAL
    ============================================================ */
-
-/* Para o conteúdo interno do modal */
 .modal-content::-webkit-scrollbar {
-    width: 0.3rem; /* Barra bem fina */
+    width: 0.4rem; /* Equivalente a 6.4px */
 }
 
 .modal-content::-webkit-scrollbar-track {
-    background: transparent;
-    /* Adiciona uma margem para a barra não encostar nas quinas arredondadas */
-    margin: 1rem; 
+    background: rgba(241, 241, 241, 0.5); 
+    border-radius: 1rem; /* 16px */
+    margin: 0.5rem; /* 8px */
 }
 
 .modal-content::-webkit-scrollbar-thumb {
     background: #d1d8e0;
-    border-radius: 1rem;
+    border-radius: 1rem; /* 16px */
+    border: 0.125rem solid transparent; /* Equivalente a 2px */
+    background-clip: padding-box;
+    transition: background 0.3s ease;
 }
 
 .modal-content::-webkit-scrollbar-thumb:hover {
-    background: #ff6400; /* Ganha a cor do seu tema ao passar o mouse */
+    background: #ff6400;
+    cursor: pointer;
 }
 
-/* Suporte para Firefox */
+.modal-content {
+    scrollbar-width: thin;
+    scrollbar-color: #d1d8e0 transparent;
+}
+
+.modal-content:hover {
+    scrollbar-color: #ff6400 transparent;
+}
+
 .modal-content {
     background: #fff;
     width: 95%;
-    max-width: 34.375rem;
-    
-    /* Define uma altura máxima para que o cartão não suma da tela */
+    max-width: 34.375rem; /* 550px */
     max-height: 85vh; 
-    
-    /* Habilita a rolagem APENAS dentro do cartão branco */
     overflow-y: auto; 
     overflow-x: hidden;
-    
-    border-radius: 1.5625rem;
-    padding: 1.875rem;
+    border-radius: 1.5625rem; /* 25px */
+    padding: 1.875rem; /* 30px */
     position: relative;
-    transform: translateY(1.875rem);
+    transform: translateY(1.875rem); /* 30px */
     transition: all 0.4s ease;
-    box-shadow: 0 1.25rem 3.125rem rgba(0,0,0,0.2);
+    box-shadow: 0 1.25rem 3.125rem rgba(0,0,0,0.2); /* 20px 50px */
 }
-
 /* ============================================================
     LOJA.HTML - ESTRUTURA E IDENTIDADE (DESKTOP/BASE)
    ============================================================ */
