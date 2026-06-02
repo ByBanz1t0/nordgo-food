@@ -9,7 +9,7 @@ body {
 
 /* Container Principal da Página */
 .pedidos-container {
-    margin-top: 6.25rem;    /* 100px */
+    margin-top: 1rem;    /* 100px */
     padding-bottom: 3.75rem; /* 60px */
     max-width: 46.875rem;   /* 750px */
     margin-left: auto;
