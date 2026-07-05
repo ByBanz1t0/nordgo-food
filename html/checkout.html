@@ -81,6 +81,7 @@
                         <select id="select-pagamento-checkout" class="select-checkout">
                             <option value="">Escolha como pagar...</option>
                             <option value="Pix">Pix</option>
+                            <option value="Cartão de Crédito">Cartão de Crédito</option>
                             <optgroup label="Pagar no Aplicativo (Cartões Salvos)" id="optgroup-cartoes-salvos"></optgroup>
                             <optgroup label="Pagar na Entrega">
                                 <option value="Dinheiro">Dinheiro</option>
@@ -135,7 +136,6 @@
         } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
         import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
 
-        // Seletores de Fluxo de Telas
         const etapaEnvio = document.getElementById('etapa-1-envio');
         const etapaPagamento = document.getElementById('etapa-2-pagamento');
         const btnProximaEtapa = document.getElementById('btn-proxima-etapa');
@@ -147,7 +147,6 @@
         const progress2 = document.getElementById('progress-2');
         const line1 = document.getElementById('line-1');
 
-        // Seletores de Inputs Internos
         const selectEndereco = document.getElementById('select-endereco-checkout');
         const selectPagamento = document.getElementById('select-pagamento-checkout');
         const containerTroco = document.getElementById('container-troco-checkout');
@@ -156,7 +155,6 @@
         let usuarioLogado = null;
         let etapaAtual = 1;
 
-        // Caches Globais de Memória e Herança de Cupons do Carrinho
         let itensCarrinho = [];
         let lojasAgrupadas = {};
         let fretesLojas = {};
@@ -170,15 +168,14 @@
         
         let escolhasLogisticaPorLoja = {};
 
-        // Helper para formatar bairros compostos de forma correta (Ex: "boa vista" -> "Boa Vista")
         function formatarNomeBairro(texto) {
             if (!texto) return "";
+            // CORRIGIDO: de text.trim() para texto.trim()
             return texto.trim().toLowerCase().split(' ').map(palavra => {
                 return palavra.charAt(0).toUpperCase() + palavra.slice(1);
             }).join(' ');
         }
 
-        // --- MONITOR DE SESSÃO DO CLIENTE ---
         onAuthStateChanged(auth, async (user) => {
             usuarioLogado = user;
             if (!user) {
@@ -265,7 +262,6 @@
             else containerTroco.classList.add('hidden');
         });
 
-        // --- CARREGAMENTO E MAPEAMENTO LOGÍSTICO DAS LOJAS ---
         async function carregarDadosDoCarrinho() {
             itensCarrinho = JSON.parse(localStorage.getItem('nordgo_carrinho')) || [];
             if (itensCarrinho.length === 0) {
@@ -289,7 +285,6 @@
                     const docSnap = await getDoc(doc(db, "lojas", lid)); 
                     if (docSnap.exists()) {
                         const d = docSnap.data();
-                        // MODIFICADO: Puxando do banco os campos de tempos dinâmicos mapeados do lojista
                         fretesLojas[lid] = {
                             taxasBairros: d.taxasBairros || {},
                             freteMinimoRetroativo: parseFloat(d.frete) || 0,
@@ -346,7 +341,6 @@
             }
         }
 
-        // --- MOTOR DE CÁLCULO GERAL ---
         function recalcularTelasEValores() {
             const subtotalGeral = itensCarrinho.reduce((acc, i) => acc + (i.preco * i.quantidade), 0);
             let totalFretesAcumulados = 0;
@@ -362,7 +356,6 @@
                 if (!txtStatusHtml) continue;
 
                 if (tipoDeEnvioEscolhido === 'retirada') {
-                    // MODIFICADO: Inserida a exibição dinâmica do tempo estimado para Retirada no Balcão
                     const tempoRet = (configLoja && configLoja.tempoRetirada) ? configLoja.tempoRetirada : '15-20';
                     txtStatusHtml.innerHTML = `
                         <span class="frete-gratis-txt"><i class="fa-solid fa-person-walking-luggage"></i> Retirada no balcão - Sem custo de frete</span>
@@ -373,7 +366,6 @@
                         const tempoEnt = configLoja.tempoEntrega || '20-30';
 
                         if (configLoja.freteGratisMin > 0 && subtotalLoja >= configLoja.freteGratisMin) {
-                            // MODIFICADO: Exibe tempo de Entrega caso ganhe frete grátis
                             txtStatusHtml.innerHTML = `
                                 <span class="frete-gratis-txt"><i class="fa-solid fa-circle-check"></i> Parabéns! Você ganhou Frete Grátis nesta loja</span>
                                 <span class="tempo-estimado-txt"><i class="fa-solid fa-clock"></i> Tempo estimado de entrega: <strong>${tempoEnt} min</strong></span>
@@ -385,7 +377,6 @@
 
                                 if (taxaBairro !== undefined) {
                                     totalFretesAcumulados += taxaBairro;
-                                    // MODIFICADO: Exibe taxa do bairro e tempo de entrega correspondente
                                     txtStatusHtml.innerHTML = `
                                         <span class="frete-pago-txt"><i class="fa-solid fa-truck"></i> Taxa de entrega para seu bairro: <strong>R$ ${taxaBairro.toFixed(2)}</strong></span>
                                         <span class="tempo-estimado-txt"><i class="fa-solid fa-clock"></i> Tempo estimado de entrega: <strong>${tempoEnt} min</strong></span>
@@ -396,7 +387,6 @@
                                 }
                             } else {
                                 totalFretesAcumulados += configLoja.freteMinimoRetroativo;
-                                // MODIFICADO: Exibe taxa base e tempo de entrega correspondente
                                 txtStatusHtml.innerHTML = `
                                     <span class="frete-pago-txt"><i class="fa-solid fa-truck"></i> Taxa base de entrega: <strong>R$ ${configLoja.freteMinimoRetroativo.toFixed(2)}</strong></span>
                                     <span class="tempo-estimado-txt"><i class="fa-solid fa-clock"></i> Tempo estimado de entrega: <strong>${tempoEnt} min</strong></span>
@@ -407,8 +397,6 @@
                 }
             }
 
-            // MODIFICADO: Removida a linha que aplicava a classe 'hidden' no card de endereço. Fica visível sempre.
-
             if (possuiErroDeBairroNaoAtendido) {
                 btnProximaEtapa.disabled = true;
                 btnProximaEtapa.style.opacity = "0.5";
@@ -418,7 +406,6 @@
                 btnProximaEtapa.removeAttribute('style');
             }
 
-            // --- CÁLCULO DOS DESCONTOS APLICADOS ---
             let totalDescontos = 0;
             if (cupomAtivo) {
                 totalDescontos += cupomAtivo.tipo === "porcentagem" ? (subtotalGeral * cupomAtivo.valor / 100) : cupomAtivo.valor;
@@ -445,7 +432,6 @@
             document.getElementById('checkout-total-final').innerText = `R$ ${Math.max(0, totalFinalCalculado).toFixed(2)}`;
         }
 
-        // --- GERENCIADOR DE ETAPAS ---
         btnProximaEtapa.onclick = () => {
             const precisaDeEndereco = Object.values(escolhasLogisticaPorLoja).includes('entrega');
             if (precisaDeEndereco && !enderecoCompletoObjetoSelecionado) {
@@ -479,7 +465,7 @@
                 btnFinalizarPedido.classList.add('hidden');
                 btnProximaEtapa.classList.remove('hidden');
 
-                txtVoltarBotao.innerText = "Voltar ao Carrinho";
+                txtVoltarBotao.innerText = "Voltar";
 
                 progress2.classList.remove('active');
                 line1.classList.remove('active');
@@ -488,13 +474,15 @@
             }
         };
 
-        // --- CONFIRMAÇÃO DO PEDIDO ---
+        // --- CONFIRMAÇÃO DO PEDIDO (INTEGRADO COM REDIRECIONAMENTO PIX) ---
         btnFinalizarPedido.onclick = async () => {
             const formaPagamento = selectPagamento.value;
             if (!formaPagamento) { mostrarNotificacao("Por favor, selecione a forma de pagamento.", "error"); return; }
 
             btnFinalizarPedido.disabled = true;
             btnFinalizarPedido.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Finalizando...';
+
+            let ultimoPedidoIdGerado = null;
 
             try {
                 for (const lid in lojasAgrupadas) {
@@ -537,7 +525,8 @@
                         };
                     });
 
-                    await addDoc(collection(db, "pedidos"), {
+                    // Cria o documento e captura a referência gerada
+                    const docRef = await addDoc(collection(db, "pedidos"), {
                         clientId: usuarioLogado.uid,
                         clientNome: nomeClienteLogado || usuarioLogado.displayName || "Cliente NordGo",
                         lojaId: lid,
@@ -546,7 +535,7 @@
                         subtotal: subtotalLoja,
                         frete: freteDaLojaIndividual,
                         desconto: descontoLojaIndividual,
-                        total: Math.max(0, totalFinalDaLoja),
+                        total: parseFloat(Math.max(0, totalFinalDaLoja).toFixed(2)), // Salva sempre como número arredondado
                         formaPagamento: formaPagamento,
                         troco: formaPagamento === 'Dinheiro' ? (document.getElementById('input-troco-valor').value.trim() || "Não precisa") : "Não se aplica",
                         tipoEntrega: tipoDeEnvioEscolhido,
@@ -554,18 +543,27 @@
                         status: "pendente",
                         dataCriacao: serverTimestamp()
                     });
+
+                    ultimoPedidoIdGerado = docRef.id;
                 }
 
                 if (cupomAtivo) {
                     await updateDoc(doc(db, "cupons", cupomAtivo.id), { usosAtuais: increment(1), usuariosQueUsaram: arrayUnion(usuarioLogado.uid) });
                 }
 
+                // Limpa o estado do carrinho antigo do cliente
                 localStorage.removeItem('nordgo_carrinho');
                 localStorage.removeItem('nordgo_cupom_global');
                 localStorage.removeItem('nordgo_cupons_locais');
 
-                mostrarNotificacao("Parabéns! Seus pedidos foram encaminhados para as cozinhas.");
-                setTimeout(() => window.location.href = "../index.html", 1500);
+                // 💡 LOGICA DE REDIRECIONAMENTO DINÂMICO
+                if (formaPagamento === 'Pix') {
+                    mostrarNotificacao("Pedido gerado! Redirecionando para a tela de pagamento...");
+                    setTimeout(() => window.location.href = `pagamento.html?id=${ultimoPedidoIdGerado}`, 1500);
+                } else {
+                    mostrarNotificacao("Parabéns! Seus pedidos foram encaminhados para as cozinhas.");
+                    setTimeout(() => window.location.href = "../index.html", 1500);
+                }
 
             } catch (err) {
                 console.error("Erro crítico ao salvar transação:", err);
