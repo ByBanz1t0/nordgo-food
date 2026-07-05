@@ -1576,8 +1576,8 @@ body {
     /* 4. CATEGORIAS */
     /* Garante que a seção do cardápio não sangre para as bordas */
     .cardapio-section {
-        padding-left: 1rem !important;
-        padding-right: 1rem !important;
+        padding-left: 0rem !important;
+        padding-right: 0rem !important;
         box-sizing: border-box !important;
     }
 
