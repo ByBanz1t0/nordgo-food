@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meu Carrinho | NordGo</title>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <link rel="icon" type="image/png" href="../assets/images/favicon.png">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="../css/styles-carrinho.css">
+</head>
+<body class="body-carrinho">
+    <div id="toast-container" class="toast-container"></div>
+
+    <header class="main-header">
+        <div class="header-container">
+            <div class="header-left">
+                <div class="pill-badge pill-back" onclick="window.history.back()">
+                    <img src="../assets/images/voltar.png" alt="Voltar" class="back-icon-img">
+                    <span class="location-text">Voltar</span>
+                </div>
+            </div>
+            <div class="header-center">
+                <div class="pill-badge pill-page-title">
+                    <span id="header-nome-loja" class="header-nome-text">Meu Carrinho</span>
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="header-user-placeholder"></div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <div id="carrinho-vazio" class="hidden">
+            <div class="vazio-content">
+                <i class="fa-solid fa-cart-plus"></i>
+                <h3>Seu carrinho está vazio</h3>
+                <p>Que tal explorar as delícias da região?</p>
+                <a href="../index.html" class="btn-primario">Explorar Lojas</a>
+            </div>
+        </div>
+
+        <div id="conteudo-carrinho" class="carrinho-layout hidden">
+            <section class="coluna-itens" id="lista-lojas-carrinho"></section>
+
+            <aside class="coluna-resumo">
+                <div class="card-resumo">
+                    <h3>Resumo do Carrinho</h3>
+                    
+                    <div class="cupom-global-area">
+                        <label>Cupom NordGo (Geral)</label>
+                        <div class="input-group">
+                            <input type="text" id="cupom-plataforma" placeholder="Código promocional">
+                            <button id="btn-aplicar-global" class="btn-aplicar">Aplicar</button>
+                        </div>
+                    </div>
+
+                    <div class="resumo-detalhes">
+                        <div class="linha-resumo">
+                            <span>Soma dos produtos</span>
+                            <span id="subtotal-geral">R$ 0,00</span>
+                        </div>
+                        <div class="linha-resumo desconto hidden" id="linha-desconto-global">
+                            <span>Descontos</span>
+                            <span id="desconto-global">- R$ 0,00</span>
+                        </div>
+                    </div>
+
+                    <button id="btn-confirmar-dados" class="btn-finalizar-checkout">Prosseguir para o Checkout</button>
+                </div>
+            </aside>
+        </div>
+    </main>
+
+    <script type="module">
+        import { db, auth, mostrarNotificacao } from '../js/firebase-config.js';
+        import { collection, query, where, getDocs, limit } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
+        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
+
+        const listaLojasHtml = document.getElementById('lista-lojas-carrinho');
+        const btnConfirmarDados = document.getElementById('btn-confirmar-dados');
+        
+        let usuarioLogado = null;
+        let cupomAtivo = null;
+        let cuponsLocaisAtivos = {}; 
+        let fotosCategorias = {}; 
+
+        // --- REDIRECIONAMENTO COM SINCRONIZAÇÃO DE CUPONS ---
+        btnConfirmarDados.onclick = () => {
+            if (!usuarioLogado) { 
+                mostrarNotificacao("Você precisa fazer login para continuar.", "error"); 
+                return; 
+            }
+            
+            const itens = JSON.parse(localStorage.getItem('nordgo_carrinho')) || [];
+            if (itens.length === 0) {
+                mostrarNotificacao("Seu carrinho está vazio.", "error");
+                return;
+            }
+
+            // Transfere o estado dos cupons aplicados no carrinho para que o checkout.html os herde automaticamente
+            localStorage.setItem('nordgo_cupom_global', JSON.stringify(cupomAtivo));
+            localStorage.setItem('nordgo_cupons_locais', JSON.stringify(cuponsLocaisAtivos));
+
+            // Avança para a nova página de checkout em etapas
+            window.location.href = "checkout.html";
+        };
+
+        // --- MONITOR DE SESSÃO ---
+        onAuthStateChanged(auth, (user) => {
+            usuarioLogado = user;
+            carregarCarrinho();
+        });
+
+        // --- SISTEMA INTERNO DE VALIDAÇÃO DE CUPONS ---
+        async function validarCupom(codigo, lojaId = null, subtotalAtual = 0) {
+            if (!usuarioLogado) { mostrarNotificacao("Faça login para usar cupons.", "error"); return null; }
+            if (!codigo) { mostrarNotificacao("Digite o código do cupom.", "error"); return null; }
+
+            try {
+                const q = query(collection(db, "cupons"), where("codigo", "==", codigo.toUpperCase()), limit(1));
+                const snapshot = await getDocs(q);
+                if (snapshot.empty) { mostrarNotificacao("Cupom inválido ou inexistente.", "error"); return null; }
+
+                const cupomDoc = snapshot.docs[0];
+                const data = cupomDoc.data();
+                const agora = new Date();
+
+                if (lojaId === null) {
+                    if (data.escopo !== "global") { mostrarNotificacao("Este cupom pertence a uma loja específica.", "error"); return null; }
+                } else {
+                    if (data.escopo === "global") { mostrarNotificacao("Insira este cupom no painel de resumo geral.", "error"); return null; }
+                    if (data.escopo === "loja" && data.lojaId !== lojaId) { mostrarNotificacao("Cupom inválido para esta loja.", "error"); return null; }
+                }
+
+                if (data.valorMinimo && subtotalAtual < data.valorMinimo) {
+                    mostrarNotificacao(`Compra mínima para este cupom: R$ ${data.valorMinimo.toFixed(2)}`, "error"); return null;
+                }
+
+                if (data.usuariosQueUsaram && data.usuariosQueUsaram.includes(usuarioLogado.uid)) { 
+                    mostrarNotificacao("Você já utilizou este cupom anteriormente.", "error"); return null; 
+                }
+
+                if (data.limiteUsos && data.usosAtuais >= data.limiteUsos) { 
+                    mostrarNotificacao("Este cupom já esgotou.", "error"); return null; 
+                }
+
+                if (data.dataExpiracao && new Date(data.dataExpiracao) < agora) { 
+                    mostrarNotificacao("Este cupom já está expirado.", "error"); return null; 
+                }
+
+                return { id: cupomDoc.id, ...data };
+            } catch (error) { 
+                console.error("Erro ao validar cupom:", error); 
+                return null; 
+            }
+        }
+
+        document.getElementById('btn-aplicar-global').addEventListener('click', async () => {
+            const codigo = document.getElementById('cupom-plataforma').value;
+            const itens = JSON.parse(localStorage.getItem('nordgo_carrinho')) || [];
+            const subtotalGeral = itens.reduce((acc, i) => acc + (i.preco * i.quantidade), 0);
+
+            const validado = await validarCupom(codigo, null, subtotalGeral);
+            if (validado) {
+                cupomAtivo = validado;
+                mostrarNotificacao("Cupom global aplicado com sucesso!");
+                carregarCarrinho();
+            }
+        });
+
+        window.aplicarCupomLocal = async (lojaId) => {
+            const input = document.getElementById(`cupom-${lojaId}`);
+            const itens = JSON.parse(localStorage.getItem('nordgo_carrinho')) || [];
+            const subtotalLoja = itens.filter(i => i.lojaId === lojaId).reduce((acc, i) => acc + (i.preco * i.quantidade), 0);
+
+            const validado = await validarCupom(input.value, lojaId, subtotalLoja);
+            if (validado) {
+                cuponsLocaisAtivos[lojaId] = validado;
+                mostrarNotificacao("Cupom da loja aplicado!");
+                carregarCarrinho();
+            }
+        };
+
+        function obterImagemProduto(item) {
+            if (item.imagem && item.imagem.trim() !== "" && !item.imagem.includes("placeholder.png")) return item.imagem;
+            const arquivoCat = fotosCategorias[item.categoria];
+            if (arquivoCat) return `../assets/images/${arquivoCat}`;
+            return '../assets/images/placeholder.png';
+        }
+
+        window.alterarQtd = (id, delta) => {
+            let car = JSON.parse(localStorage.getItem('nordgo_carrinho')) || [];
+            const i = car.findIndex(p => p.id === id);
+            if (i !== -1) {
+                car[i].quantidade += delta;
+                if (car[i].quantidade <= 0) car.splice(i, 1);
+                localStorage.setItem('nordgo_carrinho', JSON.stringify(car));
+                carregarCarrinho();
+            }
+        };
+
+        // --- GERENCIADOR DA INTERFACE E EXIBIÇÃO ---
+        function carregarCarrinho() {
+            const itens = JSON.parse(localStorage.getItem('nordgo_carrinho')) || [];
+            if (itens.length === 0) {
+                document.getElementById('carrinho-vazio').classList.remove('hidden');
+                document.getElementById('conteudo-carrinho').classList.add('hidden');
+                return;
+            }
+            document.getElementById('carrinho-vazio').classList.add('hidden');
+            document.getElementById('conteudo-carrinho').classList.remove('hidden');
+
+            const agrupados = itens.reduce((acc, item) => {
+                const lid = item.lojaId || 'outros';
+                if (!acc[lid]) acc[lid] = [];
+                acc[lid].push(item);
+                return acc;
+            }, {});
+            renderizar(agrupados);
+            calcular(itens);
+        }
+
+        function renderizar(lojas) {
+            listaLojasHtml.innerHTML = '';
+            for (const lid in lojas) {
+                const itens = lojas[lid];
+                let subtotalLoja = itens.reduce((acc, i) => acc + (i.preco * i.quantidade), 0);
+                const cupomLocal = cuponsLocaisAtivos[lid];
+
+                let h = `<div class="card-loja-carrinho">
+                    <div class="header-loja-carrinho"><i class="fa-solid fa-store"></i> <span>${itens[0].nomeLoja || 'Loja'}</span></div>
+                    <div class="itens-container">`;
+                
+                itens.forEach(item => {
+                    const imgUrl = obterImagemProduto(item);
+                    h += `<div class="item-carrinho-simples">
+                        <img src="${imgUrl}" onerror="this.src='../assets/images/placeholder.png'">
+                        <div class="info-item"><h4>${item.nome}</h4><span>R$ ${item.preco.toFixed(2)}</span></div>
+                        <div class="controles-qtd-carrinho">
+                            <button onclick="alterarQtd('${item.id}', -1)"><i class="fa-solid fa-minus"></i></button>
+                            <span>${item.quantidade}</span>
+                            <button onclick="alterarQtd('${item.id}', 1)"><i class="fa-solid fa-plus"></i></button>
+                        </div>
+                    </div>`;
+                });
+
+                h += `</div>
+                    <div class="footer-loja-carrinho">
+                        <div class="cupom-loja-area">
+                            <label style="color: #2f3542; font-weight:600; font-size:0.8rem;">${cupomLocal ? 'Cupom Aplicado ✓' : 'Cupom da Loja'}</label>
+                            <div class="input-group">
+                                <input type="text" id="cupom-${lid}" placeholder="${cupomLocal ? cupomLocal.codigo : 'Código da loja'}" ${cupomLocal ? 'disabled' : ''}>
+                                <button class="btn-aplicar" onclick="window.aplicarCupomLocal('${lid}')" ${cupomLocal ? 'disabled' : ''}>Aplicar</button>
+                            </div>
+                        </div>
+                        <div class="subtotal-loja-container"><span class="label-sub">Subtotal Loja</span><span class="valor-sub">R$ ${subtotalLoja.toFixed(2)}</span></div>
+                    </div>
+                </div>`;
+                listaLojasHtml.innerHTML += h;
+            }
+        }
+
+        function calcular(itens) {
+            const sub = itens.reduce((acc, i) => acc + (i.preco * i.quantidade), 0);
+            let totalDescontos = 0;
+
+            if (cupomAtivo) {
+                totalDescontos += cupomAtivo.tipo === "porcentagem" ? (sub * cupomAtivo.valor / 100) : cupomAtivo.valor;
+            }
+
+            for (const lid in cuponsLocaisAtivos) {
+                const cp = cuponsLocaisAtivos[lid];
+                const subLoja = itens.filter(i => i.lojaId === lid).reduce((acc, i) => acc + (i.preco * i.quantidade), 0);
+                totalDescontos += cp.tipo === "porcentagem" ? (subLoja * cp.valor / 100) : cp.valor;
+            }
+
+            if (totalDescontos > 0) {
+                document.getElementById('linha-desconto-global').classList.remove('hidden');
+                document.getElementById('desconto-global').innerText = `- R$ ${totalDescontos.toFixed(2)}`;
+            } else { 
+                document.getElementById('linha-desconto-global').classList.add('hidden'); 
+            }
+            
+            const totalFinal = sub - totalDescontos;
+            document.getElementById('subtotal-geral').innerText = `R$ ${Math.max(0, totalFinal).toFixed(2)}`;
+        }
+
+        async function inicializarCarrinhoCompleto() {
+            try {
+                const catSnap = await getDocs(collection(db, "categorias"));
+                catSnap.forEach(docCat => {
+                    const c = docCat.data();
+                    if (c.nome && c.fotoArquivo) fotosCategorias[c.nome] = c.fotoArquivo;
+                });
+            } catch (error) { console.error(error); }
+        }
+
+        inicializarCarrinhoCompleto();
+    </script>
+</body>
+</html>

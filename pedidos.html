@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meus Pedidos | NordGo</title>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <link rel="icon" type="image/png" href="../assets/images/favicon.png">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="../css/styles-pedidos.css">
+</head>
+<body>
+    <div id="toast-container" class="toast-container"></div>
+
+    <header class="main-header">
+        <div class="header-container">
+            <div class="header-left">
+                <div class="pill-badge pill-back" onclick="window.location.href='../index.html'">
+                    <img src="../assets/images/voltar.png" alt="Voltar" class="back-icon-img">
+                    <span class="location-text">Início</span>
+                </div>
+            </div>
+            <div class="header-center">
+                <div class="pill-badge pill-page-title">
+                    <span class="header-nome-text"><i class="fa-solid fa-clock-rotate-left"></i> Meus Pedidos</span>
+                </div>
+            </div>
+            <div class="header-right" id="user-area">
+                <div class="header-user-placeholder"></div>
+            </div>
+        </div>
+    </header>
+
+    <main class="pedidos-container">
+        <div id="pedidos-vazio" class="hidden">
+            <div class="pedidos-vazio-block">
+                <i class="fa-solid fa-receipt pedidos-vazio-icon"></i>
+                <h3 class="pedidos-vazio-titulo">Nenhum pedido por aqui</h3>
+                <p class="pedidos-vazio-texto">Você ainda não fez nenhum pedido no nosso aplicativo.</p>
+                <a href="../index.html" class="btn-pedir-algo">Pedir Algo Gostoso</a>
+            </div>
+        </div>
+
+        <div id="lista-pedidos-usuario">
+            <p style="text-align: center; color: #747d8c; margin-top: 2rem;">Carregando histórico de pedidos...</p>
+        </div>
+    </main>
+
+    <script type="module">
+        import { db, auth } from '../js/firebase-config.js';
+        import { collection, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
+        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
+
+        const containerLista = document.getElementById('lista-pedidos-usuario');
+        const containerVazio = document.getElementById('pedidos-vazio');
+
+        // 🔥 FUNÇÃO AUXILIAR: Converte Timestamps do Firebase com segurança para datas nativas
+        const converterTimestamp = (campo) => {
+            if (!campo) return new Date(0);
+            if (typeof campo.toDate === 'function') return campo.toDate();
+            if (campo.seconds) return new Date(campo.seconds * 1000);
+            const d = new Date(campo);
+            return isNaN(d.getTime()) ? new Date(0) : d;
+        };
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                inicializarEscutaPedidos(user.uid);
+            } else {
+                window.location.href = 'login.html';
+            }
+        });
+
+        function inicializarEscutaPedidos(clientUid) {
+            const q = query(collection(db, "pedidos"), where("clientId", "==", clientUid));
+
+            onSnapshot(q, (snapshot) => {
+                if (snapshot.empty) {
+                    containerVazio.classList.remove('hidden');
+                    containerLista.innerHTML = "";
+                    return;
+                }
+
+                containerVazio.classList.add('hidden');
+                let dadosPedidos = [];
+
+                snapshot.forEach(docSnap => {
+                    const p = docSnap.data();
+                    p.id = docSnap.id;
+                    dadosPedidos.push(p);
+                });
+
+                // 🔥 CORREÇÃO: Ordenação segura lendo dataCriacao e convertendo o Timestamp (Mais novo no topo)
+                dadosPedidos.sort((a, b) => {
+                    return converterTimestamp(b.dataCriacao || b.dataPedido).getTime() - converterTimestamp(a.dataCriacao || a.dataPedido).getTime();
+                });
+
+                renderizarPedidos(dadosPedidos);
+            });
+        }
+
+        function renderizarPedidos(pedidos) {
+            containerLista.innerHTML = "";
+
+            pedidos.forEach(p => {
+                const card = document.createElement('div');
+                card.className = "card-pedido-cliente";
+
+                let corStatus = "#ffa502"; 
+                let textoStatus = "Aguardando Confirmação";
+                
+                if (p.status === "preparo") { corStatus = "#1e90ff"; textoStatus = "Na Cozinha / Em Preparo"; }
+                if (p.status === "entrega") { 
+                    corStatus = "#9b59b6"; 
+                    textoStatus = p.tipoEntrega === "retirada" ? "Pronto para Retirada!" : "Saiu para Entrega"; 
+                }
+                if (p.status === "concluido") { corStatus = "#2ed573"; textoStatus = "Entregue / Concluído"; }
+                if (p.status === "cancelado") { corStatus = "#ff6400"; textoStatus = "Pedido Recusado"; }
+
+                // 🔥 CORREÇÃO: Formatação robusta de Data e Hora (DD/MM/AAAA HH:MM)
+                const dataObjeto = converterTimestamp(p.dataCriacao || p.dataPedido);
+                let dataExibicao = dataObjeto.getTime() !== 0 
+                    ? dataObjeto.toLocaleString('pt-br', { dateStyle: 'short', timeStyle: 'short' }) 
+                    : "--/-- --:--";
+
+                let htmlItens = p.itens.map(i => `
+                    <div class="pedido-item-linha">
+                        <span><strong class="pedido-item-qtd">${i.quantidade}x</strong> ${i.nome}</span>
+                        <span>R$ ${(i.preco * i.quantidade).toFixed(2)}</span>
+                    </div>
+                `).join('');
+
+                let htmlFreteLinha = `
+                    <div class="pedido-item-linha" style="margin-top: 0.5rem; color: #747d8c;">
+                        <span><i class="fa-solid fa-truck"></i> Taxa de Entrega:</span>
+                        <span>${p.frete > 0 ? `R$ ${parseFloat(p.frete).toFixed(2)}` : 'Grátis'}</span>
+                    </div>
+                `;
+
+                let htmlDescontoLinha = "";
+                if (p.desconto && parseFloat(p.desconto) > 0) {
+                    htmlDescontoLinha = `
+                        <div class="pedido-item-linha" style="color: #2ed573; font-weight: 600; font-size: 0.85rem; margin-top: 0.25rem;">
+                            <span><i class="fa-solid fa-ticket"></i> Desconto Aplicado:</span>
+                            <span>- R$ ${parseFloat(p.desconto).toFixed(2)}</span>
+                        </div>
+                    `;
+                }
+
+                let htmlCancelamento = p.status === "cancelado" && p.motivoCancelamento ? `
+                    <div class="box-cancelamento">
+                        <i class="fa-solid fa-circle-exclamation"></i>
+                        <div><strong>Motivo:</strong> "${p.motivoCancelamento}"</div>
+                    </div>
+                ` : "";
+
+                card.innerHTML = `
+                    <div class="pedido-header">
+                        <div>
+                            <h3 class="pedido-loja-titulo"><i class="fa-solid fa-store pedido-loja-icon"></i> ${p.nomeLoja}</h3>
+                            <div class="pedido-meta"><i class="fa-regular fa-clock"></i> ${dataExibicao} • ID: ...${p.id.slice(-6).toUpperCase()}</div>
+                        </div>
+                        <span class="badge-status" style="background: ${corStatus}">${textoStatus}</span>
+                    </div>
+                    <div class="pedido-corpo-itens">
+                        ${htmlItens}
+                        ${htmlFreteLinha}
+                        ${htmlDescontoLinha}
+                    </div>
+                    ${htmlCancelamento}
+                    <div class="pedido-footer">
+                        <span>Pagamento: <strong>${p.formaPagamento}</strong></span>
+                        <span class="pedido-total-texto">Total: R$ ${p.total.toFixed(2)}</span>
+                    </div>
+                `;
+                containerLista.appendChild(card);
+            });
+        }
+    </script>
+</body>
+</html>

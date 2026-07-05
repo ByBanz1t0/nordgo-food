@@ -1,0 +1,1674 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel da Loja | NordGo</title>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1/themes/base/jquery-ui.css">
+    <link rel="icon" type="image/png" href="../assets/images/favicon.png">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="../css/styles-perfil-loja.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div id="toast-container" class="toast-container"></div>
+
+    <header class="main-header">
+        <div class="header-container">
+            <div class="header-left">
+                <div class="pill-badge pill-back" onclick="window.location.href='../index.html'">
+                    <img src="../assets/images/voltar.png" alt="Voltar" class="back-icon-img">
+                    <span class="location-text">Voltar</span>
+                </div>
+            </div>
+            <div class="header-center">
+                <div class="pill-badge pill-page-title btn-ver-loja-header" id="btn-ver-loja" title="Ver minha loja" style="cursor: pointer;">
+                    <span id="nome-loja-titulo" class="nome-loja-titulo-text">Carregando...</span>
+                    <i class="fa-solid fa-arrow-up-right-from-square icon-link-externo"></i>
+                </div>
+            </div>
+            <div class="header-right" id="user-area">
+                <div class="user-loading-placeholder"></div>
+            </div>
+        </div>
+    </header>
+
+    <main class="dashboard-container">
+        <div class="dashboard-layout-wrapper">
+            
+            <div class="painel-operacional-esquerdo">
+                
+                <section class="grid-metricas-operacionais">
+                    <div class="card-metrica-bloco faturamento">
+                        <div class="metrica-icon-wrapper"><i class="fa-solid fa-money-bill-trend-up"></i></div>
+                        <div class="metrica-dados-texto">
+                            <span>Vendas do Dia</span>
+                            <h2 id="metric-faturamento">R$ 0,00</h2>
+                        </div>
+                    </div>
+                    <div class="card-metrica-bloco volumes">
+                        <div class="metrica-icon-wrapper"><i class="fa-solid fa-boxes-stacked"></i></div>
+                        <div class="metrica-dados-texto">
+                            <span>Pedidos Atendidos</span>
+                            <h2 id="metric-pedidos-qtd">0</h2>
+                        </div>
+                    </div>
+                    <div class="card-metrica-bloco ticket">
+                        <div class="metrica-icon-wrapper"><i class="fa-solid fa-calculator"></i></div>
+                        <div class="metrica-dados-texto">
+                            <span>Ticket Médio</span>
+                            <h2 id="metric-ticket-medio">R$ 0,00</h2>
+                        </div>
+                    </div>
+                    <div class="card-metrica-bloco cancelamentos">
+                        <div class="metrica-icon-wrapper"><i class="fa-solid fa-circle-exclamation"></i></div>
+                        <div class="metrica-dados-texto">
+                            <span>Taxa Cancelamento</span>
+                            <h2 id="metric-taxa-cancelamento">0%</h2>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="secao-graficos-financeiros-row">
+                    <div class="card-container-grafico">
+                        <div class="header-card-grafico">
+                            <h3><i class="fa-solid fa-chart-line"></i> Desempenho de Faturamento</h3>
+                            <select id="select-periodo-grafico" class="select-periodo-dash">
+                                <option value="7">Últimos 7 dias</option>
+                                <option value="30">Últimos 30 dias</option>
+                                <option value="90">Últimos 90 dias</option>
+                                <option value="365">Último 1 ano</option>
+                            </select>
+                        </div>
+                        <div class="corpo-canvas-wrapper">
+                            <canvas id="graficoFaturamentoLoja"></canvas>
+                        </div>
+                    </div>
+                </section>
+
+                <div class="grid-dashboard" id="grid-main"></div>
+            </div>
+
+            <aside class="painel-pedidos-fixo">
+                <div class="header-pedidos-fixo">
+                    <h2>
+                        <i class="fa-solid fa-receipt"></i> Painel de Pedidos 
+                        <span id="txt-contador-pedidos-badge">0</span>
+                    </h2>
+                    <div class="tabs-pedidos-fixo">
+                        <button id="tab-pedidos-ativos" class="btn-salvar" style="background:#ff6400;">Ativos / Em produção</button>
+                        <button id="tab-pedidos-historico" class="btn-salvar" style="background:#747d8c;">Histórico</button>
+                    </div>
+                </div>
+                <div id="lista-pedidos-dashboard" class="lista-pedidos-fixo-scroll">
+                    <p>Conectando à cozinha...</p>
+                </div>
+            </aside>
+
+        </div>
+    </main>
+
+    <div id="modal-info" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fa-solid fa-pen-to-square"></i> Editar Loja</h2>
+                <button class="btn-fechar-modal-perfil" onclick="window.fecharModal('modal-info')">&times;</button>
+            </div>
+            <form id="form-editar-loja" class="modal-body">
+                <div class="input-group">
+                    <label>Banner da Loja</label>
+                    <div class="banner-preview-container">
+                        <label for="edit-banner-file" class="wrapper-banner-input">
+                            <div id="preview-banner" class="banner-preview-element"></div>
+                            <div class="overlay-banner-input-upload">
+                                <i class="fa-solid fa-camera"></i> <span>Alterar Banner</span>
+                            </div>
+                        </label>
+                        <input type="file" id="edit-banner-file" class="input-file-hidden" accept="image/*">
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label>Logo da Loja</label>
+                    <div class="logo-preview-container">
+                        <label for="edit-logo-file">
+                            <img id="preview-logo" src="../assets/images/default-loja.png" alt="Logo">
+                        </label>
+                        <input type="file" id="edit-logo-file" class="input-file-hidden" accept="image/*">
+                    </div>
+                </div>
+
+                <div class="input-group"><label>Nome da Loja</label><input type="text" id="edit-nome" required></div>
+                <div class="input-group"><label>Descrição</label><input type="text" id="edit-descricao"></div>
+                <div class="input-row">
+                    <div class="input-group"><label>Categoria</label><select id="edit-categoria"></select></div>
+                    <div class="input-group"><label>CEP</label><input type="text" id="edit-cep"></div>
+                </div>
+                <div class="input-row">
+                    <div class="input-group"><label>Bairro</label><input type="text" id="edit-bairro"></div>
+                    <div class="input-group"><label>Número</label><input type="text" id="edit-numero"></div>
+                </div>
+                <div class="input-group"><label>Cor do Tema</label>
+                    <div class="color-picker-container">
+                        <input type="color" id="edit-tema" value="#ff6400" class="color-picker-input">
+                        <span id="valor-hex" class="color-picker-hex">#ff6400</span>
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn-salvar">Salvar Alterações</button>
+                
+                <div style="margin-top: 2rem; padding-top: 1.5rem; border-top: 1px dashed #ced6e0; text-align: center;">
+                    <p style="font-size: 0.8rem; color: #747d8c; margin-bottom: 0.75rem;"><i class="fa-solid fa-triangle-exclamation"></i> Zona de Perigo: Esta ação é irreversível.</p>
+                    <button type="button" id="btn-excluir-loja-modal" style="background: #fff5f5; color: #ff4757; border: 1px solid #ff4757; padding: 10px 15px; border-radius: 8px; font-family: 'Poppins', sans-serif; font-size: 0.85rem; font-weight: 600; cursor: pointer; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s;" onmouseover="this.style.background='#ff4757'; this.style.color='#ffffff';" onmouseout="this.style.background='#fff5f5'; this.style.color='#ff4757';">
+                        <i class="fa-solid fa-trash-can"></i> Excluir Estabelecimento Permanentemente
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="modal-frete" class="modal-overlay">
+        <div class="modal-content modal-content-logistica">
+            <div class="modal-header">
+                <h2><i class="fa-solid fa-truck-fast"></i> Logística de Entrega e Retirada</h2>
+                <button class="btn-fechar-modal-perfil" onclick="window.fecharModal('modal-frete')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p class="modal-subtitulo-frete">Defina suas cidades de cobertura logísticas, taxas locais e tempos estimados operacionais.</p>
+                
+                <div class="logistica-config-topo">
+                    <div class="dropdown-cidades-container">
+                        <label class="label-secao-interna">Cidades de Cobertura:</label>
+                        <div class="dropdown-cidades-selecionador" id="btn-dropdown-cidades">
+                            <span id="texto-cidades-selecionadas">Selecionar cidades...</span>
+                            <i class="fa-solid fa-chevron-down"></i>
+                        </div>
+                        <div id="wrapper-checkboxes-cidades" class="dropdown-cidades-lista"></div>
+                    </div>
+
+                    <div class="input-group">
+                        <label class="label-secao-interna">Frete Grátis a partir de (R$)</label>
+                        <input type="number" id="edit-frete-gratis-min" step="0.01" min="0" placeholder="Ex: 50.00 (0 para desativar)">
+                    </div>
+
+                    <div class="input-group">
+                        <label class="label-secao-interna">Tempo de Retirada (minutos)</label>
+                        <input type="text" id="edit-tempo-retirada" placeholder="Ex: 15-20 ou 30" required>
+                    </div>
+                </div>
+
+                <hr class="divisor-modal-frete">
+                <div id="container-logistica-cidades-actives" class="logistica-cidades-scroll"></div>
+                <button id="btn-salvar-frete" class="btn-salvar btn-salvar-frete-margin">Salvar Configurações de Logística</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-horarios" class="modal-overlay">
+        <div class="modal-content modal-content-horarios">
+            <div class="modal-header">
+                <h2><i class="fa-solid fa-clock"></i> Configuração de Funcionamento</h2>
+                <button class="btn-fechar-modal-perfil" onclick="window.fecharModal('modal-horarios')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="input-group">
+                    <label>Status Geral da Loja</label>
+                    <select id="edit-status-loja-master" class="select-status-master">
+                        <option value="automatico">Seguir Horários Semanais (Automático)</option>
+                        <option value="fechado">Forçar Loja Fechada (Manual)</option>
+                    </select>
+                </div>
+
+                <div class="divisor-sessao-horarios">
+                    <i class="fa-solid fa-calendar-days"></i> Grade de Horários Semanais
+                </div>
+
+                <form id="form-salvar-horarios" class="grade-semanal-container">
+                    <div id="wrapper-dias-semana-inputs"></div>
+                    <button type="submit" id="btn-salvar-grade-horarios" class="btn-salvar btn-salvar-horarios-margin">Salvar Grade de Funcionamento</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-produtos" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fa-solid fa-utensils"></i> Meus Itens</h2>
+                <button class="btn-fechar-modal-perfil" onclick="window.fecharModal('modal-produtos')">&times;</button>
+            </div>
+            <div class="modal-body"><div id="lista-produtos-dashboard" class="produtos-admin-list"></div></div>
+        </div>
+    </div>
+
+    <div id="modal-add-produto" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fa-solid fa-plus"></i> Novo Produto</h2>
+                <button class="btn-fechar-modal-perfil" onclick="window.fecharModal('modal-add-produto')">&times;</button>
+            </div>
+            <form id="form-add-produto" class="modal-body">
+                <div class="input-group">
+                    <label>Foto do Produto</label>
+                    <div class="logo-preview-container">
+                        <label for="add-produto-file"><img id="preview-produto-add" src="../assets/images/placeholder.png" alt="Preview"></label>
+                        <input type="file" id="add-produto-file" class="input-file-hidden" accept="image/*">
+                    </div>
+                </div>
+                <div class="input-group"><label>Nome</label><input type="text" id="add-produto-nome" required></div>
+                <div class="input-row">
+                    <div class="input-group"><label>Preço Base</label><input type="number" id="add-produto-preco" step="0.01" required></div>
+                    <div class="input-group"><label>Categoria</label><select id="add-produto-categoria-select" required></select></div>
+                </div>
+                <div class="input-group"><label>Descrição</label><textarea id="add-produto-descricao" rows="2"></textarea></div>
+                
+                <div class="input-group flex-row-check">
+                    <label class="label-checkbox-inline">
+                        <input type="checkbox" id="add-produto-com-variacao">
+                        Este produto possui variações/complementos (Ex: tamanhos, sabores)
+                    </label>
+                </div>
+                <div id="container-add-variacoes" class="container-construtor-variacoes" style="display: none;">
+                    <div class="header-construtor-variacoes">
+                        <h4><i class="fa-solid fa-layer-group"></i> Grupos de Customização</h4>
+                        <button type="button" id="btn-add-grupo-novo" class="btn-salvar btn-pequeno-azul">+ Criar Grupo</button>
+                    </div>
+                    <div id="wrapper-add-lista-grupos" class="wrapper-lista-grupos-flex"></div>
+                </div>
+
+                <button type="submit" class="btn-salvar">Cadastrar Produto</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="modal-editar-produto" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fa-solid fa-pencil"></i> Editar Item</h2>
+                <button class="btn-fechar-modal-perfil" onclick="window.fecharModal('modal-editar-produto')">&times;</button>
+            </div>
+            <form id="form-editar-produto" class="modal-body">
+                <input type="hidden" id="edit-prod-id">
+                <div class="input-group">
+                    <label>Foto do Produto</label>
+                    <div class="logo-preview-container">
+                        <label for="edit-produto-file"><img id="preview-produto-edit" src="../assets/images/placeholder.png" alt="Preview"></label>
+                        <input type="file" id="edit-produto-file" class="input-file-hidden" accept="image/*">
+                    </div>
+                </div>
+                <div class="input-group"><label>Nome</label><input type="text" id="edit-produto-nome" required></div>
+                <div class="input-row">
+                    <div class="input-group"><label>Preço Base</label><input type="number" id="edit-produto-preco" step="0.01" required></div>
+                    <div class="input-group"><label>Categoria</label><select id="edit-produto-categoria-select" required></select></div>
+                </div>
+                <div class="input-group"><label>Descrição</label><textarea id="edit-produto-descricao" rows="2"></textarea></div>
+                
+                <div class="input-group flex-row-check">
+                    <label class="label-checkbox-inline">
+                        <input type="checkbox" id="edit-produto-com-variacao">
+                        Este produto possui variações/complementos (Ex: tamanhos, sabores)
+                    </label>
+                </div>
+                <div id="container-edit-variacoes" class="container-construtor-variacoes" style="display: none;">
+                    <div class="header-construtor-variacoes">
+                        <h4><i class="fa-solid fa-layer-group"></i> Grupos de Customização</h4>
+                        <button type="button" id="btn-edit-grupo-novo" class="btn-salvar btn-pequeno-azul">+ Criar Grupo</button>
+                    </div>
+                    <div id="wrapper-edit-lista-grupos" class="wrapper-lista-grupos-flex"></div>
+                </div>
+
+                <button type="submit" class="btn-salvar">Salvar Alterações</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="modal-cupons" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fa-solid fa-ticket"></i> Meus Cupons</h2>
+                <button class="btn-fechar-modal-perfil" onclick="window.fecharModal('modal-cupons')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <button class="btn-salvar" onclick="window.abrirModal('modal-add-cupom'); window.fecharModal('modal-cupons');" style="margin-bottom: 1.25rem;">
+                    <i class="fa-solid fa-plus"></i> Criar Novo Cupom
+                </button>
+                <div id="lista-cupons-dashboard" class="produtos-admin-list"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-add-cupom" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fa-solid fa-plus"></i> Criar Cupom Próprio</h2>
+                <button class="btn-fechar-modal-perfil" onclick="window.fecharModal('modal-add-cupom')">&times;</button>
+            </div>
+            <form id="form-add-cupom" class="modal-body">
+                <div class="input-group">
+                    <label>Código do Cupom</label>
+                    <input type="text" id="add-cupom-codigo" placeholder="EX: MEUDESCONTO10" style="text-transform: uppercase;" required>
+                </div>
+                <div class="input-row">
+                    <div class="input-group">
+                        <label>Tipo de Desconto</label>
+                        <select id="add-cupom-tipo" required>
+                            <option value="porcentagem">Porcentagem (%)</option>
+                            <option value="fixo">Valor Fixo (R$)</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label>Valor do Desconto</label>
+                        <input type="number" id="add-cupom-valor" step="0.01" min="0.01" placeholder="Ex: 10.00" required>
+                    </div>
+                </div>
+                <div class="input-row">
+                    <div class="input-group">
+                        <label>Pedido Mínimo (R$)</label>
+                        <input type="number" id="add-cupom-minimo" step="0.01" min="0.01" placeholder="Ex: 20.00" required>
+                    </div>
+                    <div class="input-group">
+                        <label>Limite Total de Usos</label>
+                        <input type="number" id="add-cupom-limite" min="1" placeholder="Ex: 50" required>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label>Prazo para Expiração (Horas)</label>
+                    <input type="number" id="add-cupom-expiracao" min="1" placeholder="Ex: 24" required>
+                </div>
+                <p style="font-size: 0.8rem; color: #747d8c; margin-bottom: 1rem;"><i class="fa-solid fa-shield-halved"></i> Proteção Ativa: Cupons de valor fixo exigem obrigatoriamente um Pedido Mínimo superior ao desconto para evitar prejuízos.</p>
+                <button type="submit" class="btn-salvar">Cadastrar Cupom</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="modal-s-financeiros" class="modal-overlay">
+        <div class="modal-content modal-content-large" style="max-width: 850px;">
+            <div class="modal-header">
+                <h2><i class="fa-solid fa-file-invoice-dollar"></i> Histórico de Repasses e Fechamento</h2>
+                <button class="btn-fechar-modal-perfil" onclick="window.fecharModal('modal-repasses-financeiros')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="bloco-acoes-exportacao">
+                    <p style="font-size:0.85rem; color:#747d8c; margin:0;"><i class="fa-solid fa-circle-info"></i> Valores auditados com taxa padrão de comissão de intermediação retida pela plataforma.</p>
+                    <button id="btn-exportar-csv" class="btn-salvar" style="background:#2ed573; max-width:220px; font-size:0.85rem;"><i class="fa-solid fa-file-excel"></i> Exportar Dados (Excel/CSV)</button>
+                </div>
+                <div class="tabela-repasses-scroll-wrapper">
+                    <table style="width:100%; border-collapse:collapse; font-size:0.85rem; font-family:'Poppins', sans-serif; text-align:left;">
+                        <thead>
+                            <tr style="background:#f1f2f6; color:#2f3542; border-bottom:2px solid #e4e7eb;">
+                                <th style="padding:12px;">Data Ref</th>
+                                <th style="padding:12px;">ID Pedido</th>
+                                <th style="padding:12px;">Meio Pagamento</th>
+                                <th style="padding:12px;">Valor Bruto</th>
+                                <th style="padding:12px;">Taxa App</th>
+                                <th style="padding:12px;">Líquido Repasse</th>
+                            </tr>
+                        </thead>
+                        <tbody id="lista-linhas-repasses-financeiros">
+                            <tr>
+                                <td colspan="6" style="padding:20px; text-align:center; color:#747d8c;">Processando lançamentos contábeis...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-motivo-cancelamento" class="modal-overlay" style="z-index: 1100;">
+        <div class="modal-content" style="max-width: 450px;">
+            <div class="modal-header" style="background: #fff5f5; color: #ff6400;">
+                <h2><i class="fa-solid fa-circle-xmark"></i> Recusar Pedido</h2>
+                <button class="btn-fechar-modal-perfil" onclick="window.fecharModal('modal-motivo-cancelamento')">&times;</button>
+            </div>
+            <form id="form-motivo-cancelamento" class="modal-body">
+                <input type="hidden" id="cancelar-pedido-id">
+                <div class="input-group">
+                    <label style="color: #2f3542; font-weight: 600;">Informe o motivo da recusa:</label>
+                    <textarea id="txt-motivo-recusa" rows="3" placeholder="Ex: Ingredientes esgotados, estabelecimento fechando, endereço fora da região de entrega..." required style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ced6e0; font-family: 'Poppins', sans-serif; resize: none; margin-top: 5px;"></textarea>
+                </div>
+                <p style="font-size: 0.8rem; color: #747d8c; margin-bottom: 1.25rem;"><i class="fa-solid fa-circle-info"></i> Esta justificativa aparecerá imediatamente na tela do cliente.</p>
+                <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                    <button type="button" class="btn-salvar" style="background: #747d8c;" onclick="window.fecharModal('modal-motivo-cancelamento')">Voltar</button>
+                    <button type="submit" class="btn-salvar" style="background: #ff6400;">Confirmar Recusa</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script type="module">
+        import { auth, db, storage, mostrarNotificacao } from '../js/firebase-config.js';
+        import { ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-storage.js";
+        import { 
+            doc, getDoc, updateDoc, deleteDoc, collection, getDocs, addDoc, query, where, orderBy, onSnapshot 
+        } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
+        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
+
+        let idLojaGlobal = "";
+        let horariosFuncionamentoLocal = {};
+        let logisticaCidadesLocal = {};
+        let databaseRegionalLocal = {};
+        let listaPedidosLocal = []; 
+        let filtroAbaPedidos = "ativos"; 
+        
+        let instanciaGraficoFaturamento = null;
+        
+        const gridMain = document.getElementById('grid-main');
+        const tituloLoja = document.getElementById('nome-loja-titulo');
+
+        let blobLogoCurrent = null;
+        let blobBannerCurrent = null;
+        let blobAddProdutoCurrent = null;
+        let blobEditProdutoCurrent = null;
+        let fotosCategorias = {};
+
+        const diasDaSemanaChaves = [
+            { id: "seg", nome: "Segunda-feira" },
+            { id: "ter", nome: "Terça-feira" },
+            { id: "qua", nome: "Quarta-feira" },
+            { id: "qui", nome: "Quinta-feira" },
+            { id: "sex", nome: "Sexta-feira" },
+            { id: "sab", nome: "Sábado" },
+            { id: "dom", nome: "Domingo" }
+        ];
+
+        function renderizarDashboard() {
+            gridMain.innerHTML = `
+                <div class="card-dash" onclick="window.abrirModal('modal-info')"><i class="fa-solid fa-store"></i><h3>Informações</h3><p>Nome, Banner e CEP</p></div>
+                <div class="card-dash" onclick="window.abrirModal('modal-frete')"><i class="fa-solid fa-truck-fast"></i><h3>Entregas</h3><p>Bairros e taxas</p></div>
+                <div class="card-dash" onclick="window.abrirModal('modal-horarios')"><i class="fa-solid fa-clock"></i><h3>Horários</h3><p>Status e horários semanais</p></div>
+                <div class="card-dash" onclick="window.abrirModal('modal-repasses-financeiros')"><i class="fa-solid fa-file-invoice-dollar"></i><h3>Financeiro</h3><p>Repasses e relatórios</p></div>
+                <div class="card-dash" onclick="window.abrirModal('modal-add-produto')"><i class="fa-solid fa-circle-plus"></i><h3>Novo Produto</h3><p>Cadastrar rápido</p></div>
+                <div class="card-dash" onclick="window.abrirGerenciadorProdutos()"><i class="fa-solid fa-utensils"></i><h3>Cardápio</h3><p>Editar e excluir itens</p></div>
+                <div class="card-dash" onclick="window.abrirGerenciadorCupons()"><i class="fa-solid fa-ticket"></i><h3>Cupons</h3><p>Criar e remover cupons</p></div>
+            `;
+            
+            const gatilhoExcluirModal = document.getElementById('btn-excluir-loja-modal');
+            if (gatilhoExcluirModal) {
+                gatilhoExcluirModal.onclick = () => window.excluirLojaCompleta();
+            }
+        }
+
+        window.excluirLojaCompleta = async () => {
+            const user = auth.currentUser;
+            if (!user || !idLojaGlobal) return;
+
+            const confirmacao1 = confirm("Tem certeza absoluta de que deseja excluir sua loja permanentemente?\n\nEsta ação apagará todo o seu cardápio, cupons ativos e configurações logísticas!");
+            if (!confirmacao1) return;
+
+            const confirmacao2 = confirm("Aviso Final: Os dados financeiros históricos salvos continuarão auditados no banco, mas o acesso a este painel será revogado imediatamente e a loja deixará de existir para os clientes. Deseja prosseguir?");
+            if (!confirmacao2) return;
+
+            try {
+                mostrarNotificacao("Iniciando processo de exclusão...", "info");
+
+                const qProdutos = query(collection(db, "produtos"), where("lojaId", "==", idLojaGlobal));
+                const snapProdutos = await getDocs(qProdutos);
+                const promisesProdutos = [];
+                snapProdutos.forEach(docSnap => {
+                    promisesProdutos.push(deleteDoc(doc(db, "produtos", docSnap.id)));
+                });
+                await Promise.all(promisesProdutos);
+
+                const qCupons = query(collection(db, "cupons"), where("lojaId", "==", idLojaGlobal));
+                const snapCupons = await getDocs(qCupons);
+                const promisesCupons = [];
+                snapCupons.forEach(docSnap => {
+                    promisesCupons.push(deleteDoc(doc(db, "cupons", docSnap.id)));
+                });
+                await Promise.all(promisesCupons);
+
+                await updateDoc(doc(db, "usuarios", user.uid), {
+                    loja: null
+                });
+
+                await deleteDoc(doc(db, "lojas", idLojaGlobal));
+
+                mostrarNotificacao("Sua loja foi excluída com sucesso.");
+                setTimeout(() => {
+                    window.location.href = "../index.html";
+                }, 1500);
+
+            } catch (error) {
+                console.error("Erro crítico no fluxo de exclusão da loja:", error);
+                mostrarNotificacao("Falha ao excluir o estabelecimento. Contate o suporte.", "error");
+            }
+        };
+
+        async function carregarRegioesDoBanco() {
+            try {
+                const snap = await getDocs(collection(db, "regioes"));
+                databaseRegionalLocal = {};
+                snap.forEach(docSnap => {
+                    databaseRegionalLocal[docSnap.id] = docSnap.data().bairros || [];
+                });
+            } catch (err) { console.error("Erro ao carregar regiões globais:", err); }
+        }
+
+        function atualizarTextoCidadesSelecionadas() {
+            const cidadesAtivas = Object.keys(logisticaCidadesLocal).sort();
+            const txtSpan = document.getElementById('texto-cidades-selecionadas');
+            if (!txtSpan) return;
+            
+            if (cidadesAtivas.length === 0) {
+                txtSpan.innerText = "Selecionar cidades...";
+                txtSpan.style.color = "#a4b0be";
+            } else {
+                txtSpan.innerText = cidadesAtivas.join(", ");
+                txtSpan.style.color = "#2f3542";
+            }
+        }
+
+        function inicializerCheckboxesCidades() {
+            const wrapper = document.getElementById('wrapper-checkboxes-cidades');
+            if (!wrapper) return;
+            wrapper.innerHTML = "";
+
+            Object.keys(databaseRegionalLocal).forEach(cidade => {
+                const checked = logisticaCidadesLocal[cidade] ? "checked" : "";
+                const div = document.createElement('div');
+                div.className = "checkbox-cidade-item";
+                div.innerHTML = `
+                    <input type="checkbox" id="check-cidade-${cidade.replace(/\s+/g, '')}" value="${cidade}" ${checked}>
+                    <label for="check-cidade-${cidade.replace(/\s+/g, '')}">${cidade}</label>
+                `;
+                wrapper.appendChild(div);
+
+                div.querySelector('input').addEventListener('change', (e) => {
+                    if (e.target.checked) {
+                        logisticaCidadesLocal[cidade] = logisticaCidadesLocal[cidade] || { tempoMin: 40, tempoMax: 80, bairros: {} };
+                    } else {
+                        delete logisticaCidadesLocal[cidade];
+                    }
+                    renderizarPaineisCidadesAtivas();
+                    atualizarTextoCidadesSelecionadas();
+                });
+            });
+            atualizarTextoCidadesSelecionadas();
+        }
+
+        function renderizarPaineisCidadesAtivas() {
+            const container = document.getElementById('container-logistica-cidades-actives');
+            if (!container) return;
+            container.innerHTML = "";
+
+            const cidadesAtivas = Object.keys(logisticaCidadesLocal).sort();
+
+            if (cidadesAtivas.length === 0) {
+                container.innerHTML = `<p class="logistica-vazia-text">Nenhuma cidade EM rota logistica.</p>`;
+                return;
+            }
+
+            cidadesAtivas.forEach(cidade => {
+                const dadosCidade = logisticaCidadesLocal[cidade];
+                const cardCidade = document.createElement('div');
+                cardCidade.className = "card-logistica-cidade-painel";
+                
+                let html = `
+                    <div class="header-cidade-painel">
+                        <h4><i class="fa-solid fa-city"></i> ${cidade}</h4>
+                        <div class="inputs-tempo-entrega">
+                            <i class="fa-solid fa-stopwatch"></i>
+                            <input type="number" id="time-min-${cidade.replace(/\s+/g, '')}" value="${dadosCidade.tempoMin || 40}" min="1" placeholder="Min">
+                            <span>a</span>
+                            <input type="number" id="time-max-${cidade.replace(/\s+/g, '')}" value="${dadosCidade.tempoMax || 80}" min="1" placeholder="Max">
+                            <span class="unidade-tempo">min</span>
+                        </div>
+                    </div>
+                    <div class="grade-bairros-logistica">
+                `;
+
+                const bairrosDaCidade = databaseRegionalLocal[cidade] || [];
+                bairrosDaCidade.forEach(bairro => {
+                    const dadosBairro = dadosCidade.bairros[bairro] || { ativo: false, taxa: 0 };
+                    const checkedBairro = dadosBairro.active || dadosBairro.ativo ? "checked" : "";
+                    
+                    html += `
+                        <div class="bairro-logistica-row">
+                            <div class="bairro-check-block">
+                                <input type="checkbox" id="check-bairro-${cidade.replace(/\s+/g, '')}-${bairro.replace(/\s+/g, '')}" ${checkedBairro}>
+                                <label for="check-bairro-${cidade.replace(/\s+/g, '')}-${bairro.replace(/\s+/g, '')}">${bairro}</label>
+                            </div>
+                            <div class="bairro-taxa-block">
+                                <span>R$</span>
+                                <input type="number" id="taxa-bairro-${cidade.replace(/\s+/g, '')}-${bairro.replace(/\s+/g, '')}" step="0.01" min="0" value="${dadosBairro.taxa ? dadosBairro.taxa.toFixed(2) : '0.00'}" ${dadosBairro.ativo || dadosBairro.active ? '' : 'disabled'}>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                html += `</div>`;
+                cardCidade.innerHTML = html;
+                container.appendChild(cardCidade);
+
+                document.getElementById(`time-min-${cidade.replace(/\s+/g, '')}`).oninput = (e) => dadosCidade.tempoMin = parseInt(e.target.value) || 0;
+                document.getElementById(`time-max-${cidade.replace(/\s+/g, '')}`).oninput = (e) => dadosCidade.tempoMax = parseInt(e.target.value) || 0;
+
+                bairrosDaCidade.forEach(bairro => {
+                    const checkBairro = document.getElementById(`check-bairro-${cidade.replace(/\s+/g, '')}-${bairro.replace(/\s+/g, '')}`);
+                    const inputTaxa = document.getElementById(`taxa-bairro-${cidade.replace(/\s+/g, '')}-${bairro.replace(/\s+/g, '')}`);
+
+                    if (checkBairro && inputTaxa) {
+                        checkBairro.addEventListener('change', (e) => {
+                            inputTaxa.disabled = !e.target.checked;
+                            if (!e.target.checked) inputTaxa.value = "0.00";
+                            
+                            logisticaCidadesLocal[cidade].bairros[bairro] = {
+                                ativo: e.target.checked,
+                                taxa: parseFloat(inputTaxa.value) || 0
+                            };
+                        });
+
+                        inputTaxa.oninput = (e) => {
+                            logisticaCidadesLocal[cidade].bairros[bairro] = {
+                                ativo: checkBairro.checked,
+                                taxa: parseFloat(e.target.value) || 0
+                            };
+                        };
+                    }
+                });
+            });
+        }
+
+        document.getElementById('btn-salvar-frete').onclick = async () => {
+            if (!idLojaGlobal) return;
+            const btn = document.getElementById('btn-salvar-frete');
+            btn.disabled = true; btn.innerText = "Salvando Rota Logística...";
+            
+            const taxasBairrosAchatado = {};
+            let menorTaxaGeral = 999;
+            let possuiBairroAtivo = false;
+
+            Object.keys(logisticaCidadesLocal).forEach(cidade => {
+                const bairrosObj = logisticaCidadesLocal[cidade].bairros || {};
+                Object.keys(bairrosObj).forEach(bairro => {
+                    if (bairrosObj[bairro].ativo || bairrosObj[bairro].active) {
+                        const taxa = bairrosObj[bairro].taxa || 0;
+                        taxasBairrosAchatado[bairro] = taxa;
+                        possuiBairroAtivo = true;
+                        if (taxa < menorTaxaGeral) menorTaxaGeral = taxa;
+                    }
+                });
+            });
+
+            const freteMinimoCalculado = possuiBairroAtivo ? menorTaxaGeral : 0;
+
+            let tempoEntregaSincronizado = "20-30";
+            const primeiraCidadeAtiva = Object.keys(logisticaCidadesLocal)[0];
+            if (primeiraCidadeAtiva) {
+                const cTime = logisticaCidadesLocal[primeiraCidadeAtiva];
+                tempoEntregaSincronizado = `${cTime.tempoMin || 30}-${cTime.tempoMax || 50}`;
+            }
+
+            try {
+                await updateDoc(doc(db, "lojas", idLojaGlobal), {
+                    logisticaCidades: logisticaCidadesLocal,
+                    taxasBairros: taxasBairrosAchatado,
+                    frete: freteMinimoCalculado,
+                    freteGratisMin: parseFloat(document.getElementById('edit-frete-gratis-min').value) || 0,
+                    tempoRetirada: document.getElementById('edit-tempo-retirada').value.trim() || "15-20",
+                    tempoEntrega: tempoEntregaSincronizado
+                });
+                
+                mostrarNotificacao("Configurações de frete e prazos atualizadas!");
+                window.fecharModal('modal-frete');
+                await carregarDadosLoja();
+            } catch (err) { 
+                console.error(err);
+                mostrarNotificacao("Erro ao salvar dados logísticos.", "error"); 
+            } finally { 
+                btn.disabled = false; 
+                btn.innerText = "Salvar Configurações de Logística"; 
+            }
+        };
+
+        function gerarInputsGradeSemanal() {
+            const wrapper = document.getElementById('wrapper-dias-semana-inputs');
+            wrapper.innerHTML = "";
+
+            diasDaSemanaChaves.forEach(dia => {
+                const dadosDia = horariosFuncionamentoLocal[dia.id] || { aberto: false, inicio: "18:00", fim: "23:00" };
+                
+                const row = document.createElement('div');
+                row.className = "dia-horario-row";
+                row.innerHTML = `
+                    <div class="dia-checkbox-block">
+                        <input type="checkbox" id="check-aberto-${dia.id}" class="checkbox-dia-toggle" ${dadosDia.aberto ? 'checked' : ''}>
+                        <label for="check-aberto-${dia.id}" class="label-dia-nome">${dia.nome}</label>
+                    </div>
+                    <div class="dia-times-block" id="block-times-${dia.id}">
+                        <input type="time" id="time-inicio-${dia.id}" value="${dadosDia.inicio || '18:00'}" class="input-time-picker">
+                        <span>até</span>
+                        <input type="time" id="time-fim-${dia.id}" value="${dadosDia.fim || '23:00'}" class="input-time-picker">
+                    </div>
+                `;
+                wrapper.appendChild(row);
+
+                const checkbox = row.querySelector(`#check-aberto-${dia.id}`);
+                const blockTimes = row.querySelector(`#block-times-${dia.id}`);
+                
+                const alternarEstadoCampos = (ativo) => {
+                    blockTimes.style.opacity = ativo ? "1" : "0.3";
+                    blockTimes.querySelectorAll('input').forEach(i => i.disabled = !ativo);
+                };
+                
+                checkbox.addEventListener('change', (e) => alternarEstadoCampos(e.target.checked));
+                alternarEstadoCampos(dadosDia.aberto);
+            });
+        }
+
+        document.getElementById('form-salvar-horarios').onsubmit = async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('btn-salvar-grade-horarios');
+            btn.disabled = true; btn.innerText = "Salvando Horários...";
+
+            const novaGrade = {};
+            diasDaSemanaChaves.forEach(dia => {
+                novaGrade[dia.id] = {
+                    aberto: document.getElementById(`check-aberto-${dia.id}`).checked,
+                    inicio: document.getElementById(`time-inicio-${dia.id}`).value,
+                    fim: document.getElementById(`time-fim-${dia.id}`).value
+                };
+            });
+
+            try {
+                await updateDoc(doc(db, "lojas", idLojaGlobal), {
+                    statusMaster: document.getElementById('edit-status-loja-master').value,
+                    horariosSemana: novaGrade
+                });
+                mostrarNotificacao("Grade de horários atualizada!");
+                window.fecharModal('modal-horarios');
+                await carregarDadosLoja();
+            } catch (err) {
+                console.error(err);
+                mostrarNotificacao("Erro ao salvar horários.", "error");
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "Salvar Grade de Funcionamento";
+            }
+        };
+
+        document.getElementById('form-editar-loja').onsubmit = async (e) => {
+            e.preventDefault();
+            const btn = e.target.querySelector('button');
+            btn.disabled = true; btn.innerText = "Processando...";
+            try {
+                let urlLogo = document.getElementById('preview-logo').src;
+                if (blobLogoCurrent) urlLogo = await realizarUploadBlob(blobLogoCurrent, 'perfil', 'logo');
+                let urlBanner = document.getElementById('preview-banner').style.backgroundImage.replace(/^url\(['"]?/, '').replace(/['"]?\)$/, '');
+                if (blobBannerCurrent) urlBanner = await realizarUploadBlob(blobBannerCurrent, 'perfil', 'banner');
+
+                await updateDoc(doc(db, "lojas", idLojaGlobal), {
+                    nome: document.getElementById('edit-nome').value,
+                    descricao: document.getElementById('edit-descricao').value,
+                    categoria: document.getElementById('edit-categoria').value,
+                    cepLoja: document.getElementById('edit-cep').value,
+                    bairroLoja: document.getElementById('edit-bairro').value,
+                    numeroLoja: document.getElementById('edit-numero').value,
+                    temaLoja: document.getElementById('edit-tema').value,
+                    logoUrl: urlLogo,
+                    bannerLoja: urlBanner
+                });
+                mostrarNotificacao("Dados básicos updated!");
+                window.fecharModal('modal-info');
+                carregarDadosLoja();
+            } catch (err) { mostrarNotificacao("Erro ao salvar.", "error"); }
+            finally { btn.disabled = false; btn.innerText = "Salvar Alterações"; }
+        };
+
+        async function carregarDadosLoja() {
+            const snap = await getDoc(doc(db, "lojas", idLojaGlobal));
+            if (snap.exists()) {
+                const d = snap.data();
+                tituloLoja.innerText = d.nome || "Minha Loja";
+                document.getElementById('edit-nome').value = d.nome || "";
+                document.getElementById('edit-descricao').value = d.descricao || "";
+                document.getElementById('edit-categoria').value = d.categoria || "";
+                document.getElementById('edit-cep').value = d.cepLoja || "";
+                document.getElementById('edit-bairro').value = d.bairroLoja || "";
+                document.getElementById('edit-numero').value = d.numeroLoja || "";
+                document.getElementById('preview-logo').src = d.logoUrl || '../assets/images/default-loja.png';
+                document.getElementById('edit-tema').value = d.temaLoja || "#ff6400";
+                document.getElementById('valor-hex').innerText = (d.temaLoja || "#ff6400").toUpperCase();
+                
+                const bannerElem = document.getElementById('preview-banner');
+                if (d.bannerLoja) bannerElem.style.backgroundImage = `url('${d.bannerLoja}')`;
+                else bannerElem.style.backgroundColor = d.temaLoja || "#ff6400";
+
+                document.getElementById('edit-frete-gratis-min').value = d.freteGratisMin || 0;
+                document.getElementById('edit-tempo-retirada').value = d.tempoRetirada || "15-20";
+                
+                logisticaCidadesLocal = d.logisticaCidades || {};
+                inicializerCheckboxesCidades();
+                renderizarPaineisCidadesAtivas();
+
+                horariosFuncionamentoLocal = d.horariosSemana || {};
+                document.getElementById('edit-status-loja-master').value = d.statusMaster || "automatico";
+                gerarInputsGradeSemanal();
+
+                document.getElementById('btn-ver-loja').onclick = () => {
+                    window.location.href = `../html/loja.html?id=${idLojaGlobal}`;
+                };
+            }
+        }
+
+        function obterImagemProduto(p) {
+            if (p.imagem && p.imagem.trim() !== "" && !p.imagem.includes("placeholder.png")) return p.imagem;
+            const arquivoCat = fotosCategorias[p.categoria];
+            return arquivoCat ? `../assets/images/${arquivoCat}` : '../assets/images/placeholder.png';
+        }
+
+        function otimizarImagem(arquivo, maxLargura, maxAltura, maxPesoBytes) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(arquivo);
+                reader.onload = (event) => {
+                    const img = new Image();
+                    img.src = event.target.result;
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        let largura = img.width, altura = img.height;
+                        if (largura > maxLargura || altura > maxAltura) {
+                            if (largura/altura > maxLargura/maxAltura) { largura = maxLargura; altura = Math.round(img.height * (maxLargura/img.width)); }
+                            else { altura = maxAltura; largura = Math.round(img.width * (maxAltura/img.height)); }
+                        }
+                        canvas.width = largura; canvas.height = altura;
+                        const ctx = canvas.getContext('2d');
+                        ctx.fillStyle = "#FFFFFF"; ctx.fillRect(0,0,largura,altura);
+                        ctx.drawImage(img,0,0,largura,altura);
+                        canvas.toBlob((blob) => { resolve(blob); }, 'image/jpeg', 0.8);
+                    };
+                };
+            });
+        }
+
+        async function realizarUploadBlob(blob, pasta, sufixo) {
+            const refStorage = ref(storage, `lojas/${idLojaGlobal}/${pasta}/${Date.now()}_${sufixo}.jpg`);
+            await uploadBytes(refStorage, blob);
+            return await getDownloadURL(refStorage);
+        }
+
+        document.getElementById('edit-logo-file').onchange = async (e) => {
+            const blob = await otimizarImagem(e.target.files[0], 500, 500, 500000);
+            blobLogoCurrent = blob;
+            document.getElementById('preview-logo').src = URL.createObjectURL(blob);
+        };
+        document.getElementById('edit-banner-file').onchange = async (e) => {
+            const blob = await otimizarImagem(e.target.files[0], 1200, 400, 1200000);
+            blobBannerCurrent = blob;
+            document.getElementById('preview-banner').style.backgroundImage = `url('${URL.createObjectURL(blob)}')`;
+        };
+
+        const addCheckVariacao = document.getElementById('add-produto-com-variacao');
+        const addContainerVariacoes = document.getElementById('container-add-variacoes');
+        const btnAddGrupoNovo = document.getElementById('btn-add-grupo-novo');
+        const wrapperAddListaGrupos = document.getElementById('wrapper-add-lista-grupos');
+
+        const editCheckVariacao = document.getElementById('edit-produto-com-variacao');
+        const editContainerVariacoes = document.getElementById('container-edit-variacoes');
+        const btnEditGrupoNovo = document.getElementById('btn-edit-grupo-novo');
+        const wrapperEditListaGrupos = document.getElementById('wrapper-edit-lista-grupos');
+
+        addCheckVariacao.addEventListener('change', (e) => {
+            addContainerVariacoes.style.display = e.target.checked ? 'block' : 'none';
+            if (e.target.checked && wrapperAddListaGrupos.children.length === 0) {
+                criarEstruturaGrupoNoDOM(wrapperAddListaGrupos);
+            }
+        });
+
+        editCheckVariacao.addEventListener('change', (e) => {
+            editContainerVariacoes.style.display = e.target.checked ? 'block' : 'none';
+            if (e.target.checked && wrapperEditListaGrupos.children.length === 0) {
+                criarEstruturaGrupoNoDOM(wrapperEditListaGrupos);
+            }
+        });
+
+        btnAddGrupoNovo.addEventListener('click', () => criarEstruturaGrupoNoDOM(wrapperAddListaGrupos));
+        btnEditGrupoNovo.addEventListener('click', () => criarEstruturaGrupoNoDOM(wrapperEditListaGrupos));
+
+        function criarEstruturaGrupoNoDOM(containerAlvo, dadosGrupoExistente = null) {
+            const idGrupoUnico = dadosGrupoExistente ? dadosGrupoExistente.idGrupo : 'g_' + Date.now() + Math.random().toString(36).substr(2, 4);
+
+            const divGrupo = document.createElement('div');
+            divGrupo.className = 'card-cadastro-grupo-variacao';
+            divGrupo.dataset.id = idGrupoUnico;
+
+            const tituloVal = dadosGrupoExistente ? dadosGrupoExistente.titulo : '';
+            const maxVal = dadosGrupoExistente ? dadosGrupoExistente.maxEscolhas : 1;
+            const obrigatorioCheck = dadosGrupoExistente ? (dadosGrupoExistente.obrigatorio ? 'checked' : '') : 'checked';
+
+            divGrupo.innerHTML = `
+                <button type="button" class="btn-deletar-grupo"><i class="fa-solid fa-trash"></i></button>
+                <div class="input-row align-end-row">
+                    <div class="input-group no-margin"><label>Título do Grupo</label><input type="text" placeholder="Ex: Escolha o tamanho" class="grupo-titulo-input" value="${tituloVal}" required></div>
+                    <div class="input-group no-margin"><label>Qtd Máxima</label><input type="number" value="${maxVal}" min="1" class="grupo-max-input"></div>
+                    <div class="input-group no-margin flex-inline-row-check"><input type="checkbox" ${obrigatorioCheck} class="grupo-obrigatorio-input"><label>Obrigatório</label></div>
+                </div>
+                <div class="container-subopcoes-itens"></div>
+                <button type="button" class="btn-add-item-subopcao">+ Adicionar Opção</button>
+            `;
+
+            containerAlvo.appendChild(divGrupo);
+            const containerSubOpcoes = divGrupo.querySelector('.container-subopcoes-itens');
+            const btnAddItemSubopcao = divGrupo.querySelector('.btn-add-item-subopcao');
+
+            divGrupo.querySelector('.btn-deletar-grupo').onclick = () => divGrupo.remove();
+
+            if (dadosGrupoExistente && dadosGrupoExistente.opcoes) {
+                dadosGrupoExistente.opcoes.forEach(opcao => criarLinhaSubOpcao(containerSubOpcoes, opcao));
+            } else {
+                criarLinhaSubOpcao(containerSubOpcoes);
+            }
+            btnAddItemSubopcao.onclick = () => criarLinhaSubOpcao(containerSubOpcoes);
+        }
+
+        function criarLinhaSubOpcao(container, dadosOpcaoExistente = null) {
+            const divLinha = document.createElement('div');
+            divLinha.className = 'linha-subopcao-item-grid';
+            
+            const nomeVal = dadosOpcaoExistente ? dadosOpcaoExistente.nome : '';
+            const precoVal = dadosOpcaoExistente ? dadosOpcaoExistente.precoAdicional.toFixed(2) : '0.00';
+
+            divLinha.innerHTML = `
+                <input type="text" placeholder="Nome (Ex: Pote 500ml)" class="subopcao-nome" value="${nomeVal}" required>
+                <input type="number" placeholder="Preço + (R$)" step="0.01" value="${precoVal}" class="subopcao-preco" required>
+                <button type="button" class="btn-remover-linha-opcao"><i class="fa-solid fa-xmark"></i></button>
+            `;
+
+            container.appendChild(divLinha);
+            divLinha.querySelector('.btn-remover-linha-opcao').onclick = () => divLinha.remove();
+        }
+
+        function extrairPayloadGrupoDeOpcoes(containerWrapper) {
+            const listaGruposPayload = [];
+            const cardsGrupos = containerWrapper.querySelectorAll('.card-cadastro-grupo-variacao');
+            
+            cardsGrupos.forEach(card => {
+                const titulo = card.querySelector('.grupo-titulo-input').value.trim();
+                const maxChoices = parseInt(card.querySelector('.grupo-max-input').value) || 1;
+                const isObrigatorio = card.querySelector('.grupo-obrigatorio-input').checked;
+
+                const subOpcoes = [];
+                const linhasOpcoes = card.querySelectorAll('.container-subopcoes-itens > .linha-subopcao-item-grid');
+                
+                linhasOpcoes.forEach(linha => {
+                    // 🔥 CORREÇÃO 3: Alterado de inline para linha para evitar travamento nas variações
+                    const nomeOp = linha.querySelector('.subopcao-nome').value.trim();
+                    const precoOp = parseFloat(linha.querySelector('.subopcao-preco').value) || 0;
+                    if (nomeOp !== "") {
+                        subOpcoes.push({ nome: nomeOp, precoAdicional: precoOp });
+                    }
+                });
+
+                if (titulo !== "" && subOpcoes.length > 0) {
+                    listaGruposPayload.push({
+                        idGrupo: card.dataset.id,
+                        titulo: titulo,
+                        obrigatorio: isObrigatorio,
+                        maxEscolhas: maxChoices,
+                        minEscolhas: isObrigatorio ? 1 : 0,
+                        opcoes: subOpcoes
+                    });
+                }
+            });
+            return listaGruposPayload;
+        }
+
+        window.abrirGerenciadorProdutos = async () => {
+            window.abrirModal('modal-produtos');
+            const lista = document.getElementById('lista-produtos-dashboard');
+            lista.innerHTML = "<p class='loading-produtos-text'>Carregando...</p>";
+            const q = query(collection(db, "produtos"), where("lojaId", "==", idLojaGlobal));
+            const snap = await getDocs(q);
+            lista.innerHTML = "";
+            snap.forEach(docSnap => {
+                const p = docSnap.data();
+                const itemDiv = document.createElement('div');
+                itemDiv.className = "produto-item-admin";
+                const precoExibirTexto = p.temVariacoes ? "Preço Variável" : `R$ ${p.preco.toFixed(2)}`;
+
+                itemDiv.innerHTML = `<img src="${obterImagemProduto(p)}" class="img-prod-admin">
+                    <div class="info-prod-admin"><h4>${p.nome}</h4><p>${precoExibirTexto}</p></div>
+                    <div class="actions-prod-admin">
+                        <button class="btn-action-prod btn-editar-prod" onclick="window.abrirEdicaoProduto('${docSnap.id}')"><i class="fa-solid fa-pencil"></i></button>
+                        <button class="btn-action-prod btn-excluir-prod" onclick="window.excluirProduto('${docSnap.id}')"><i class="fa-solid fa-trash"></i></button>
+                    </div>`;
+                lista.appendChild(itemDiv);
+            });
+        };
+
+        window.abrirEdicaoProduto = async (idProduto) => {
+            try {
+                const docSnap = await getDoc(doc(db, "produtos", idProduto));
+                if (docSnap.exists()) {
+                    const p = docSnap.data();
+                    document.getElementById('edit-prod-id').value = idProduto;
+                    document.getElementById('edit-produto-nome').value = p.nome || "";
+                    document.getElementById('edit-produto-preco').value = p.preco || 0;
+                    document.getElementById('edit-produto-categoria-select').value = p.categoria || "";
+                    document.getElementById('edit-produto-descricao').value = p.descricao || "";
+                    document.getElementById('preview-produto-edit').src = obterImagemProduto(p);
+                    
+                    wrapperEditListaGrupos.innerHTML = "";
+                    if (p.temVariacoes) {
+                        editCheckVariacao.checked = true;
+                        editContainerVariacoes.style.display = 'block';
+                        const gruposBanco = p.grupoDeOpcoes || p.gruposDeOpcoes || [];
+                        gruposBanco.forEach(grupo => criarEstruturaGrupoNoDOM(wrapperEditListaGrupos, grupo));
+                    } else {
+                        editCheckVariacao.checked = false;
+                        editContainerVariacoes.style.display = 'none';
+                    }
+                    blobEditProdutoCurrent = null; 
+                    window.abrirModal('modal-editar-produto');
+                } else { mostrarNotificacao("Produto não localizado.", "error"); }
+            } catch (err) { console.error("Erro ao buscar produto:", err); }
+        };
+
+        window.excluirProduto = async (idProduto) => {
+            if (confirm("Tem certeza de que deseja excluir este item?")) {
+                try {
+                    await deleteDoc(doc(db, "produtos", idProduto));
+                    mostrarNotificacao("Produto removido!");
+                    window.abrirGerenciadorProdutos();
+                } catch (err) { mostrarNotificacao("Erro ao remover o produto.", "error"); }
+            }
+        };
+
+        document.getElementById('form-editar-produto').onsubmit = async (e) => {
+            e.preventDefault();
+            const idProd = document.getElementById('edit-prod-id').value;
+            const btn = e.target.querySelector('button');
+            btn.disabled = true; btn.innerText = "Atualizando...";
+
+            try {
+                let imgUrl = "";
+                if (blobEditProdutoCurrent) {
+                    imgUrl = await realizarUploadBlob(blobEditProdutoCurrent, 'produtos', 'item');
+                } else {
+                    const docSnap = await getDoc(doc(db, "produtos", idProd));
+                    if (docSnap.exists()) {
+                        const dadosAtuais = docSnap.data();
+                        if (dadosAtuais.imagem && !dadosAtuais.imagem.includes('../assets/images/')) imgUrl = dadosAtuais.imagem;
+                    }
+                }
+
+                const isVariacaoAtiva = editCheckVariacao.checked;
+                const arrayGruposPayload = extrairPayloadGrupoDeOpcoes(wrapperEditListaGrupos);
+
+                await updateDoc(doc(db, "produtos", idProd), {
+                    nome: document.getElementById('edit-produto-nome').value.trim(),
+                    preco: parseFloat(document.getElementById('edit-produto-preco').value) || 0,
+                    categoria: document.getElementById('edit-produto-categoria-select').value,
+                    descricao: document.getElementById('edit-produto-descricao').value.trim(),
+                    imagem: imgUrl,
+                    temVariacoes: isVariacaoAtiva,
+                    grupoDeOpcoes: arrayGruposPayload
+                });
+
+                mostrarNotificacao("Item atualizado!");
+                window.fecharModal('modal-editar-produto');
+                window.abrirGerenciadorProdutos();
+            } catch (err) {
+                console.error(err);
+                mostrarNotificacao("Erro ao atualizar o item.", "error");
+            } finally { btn.disabled = false; btn.innerText = "Salvar Alterações"; }
+        };
+
+        document.getElementById('edit-produto-file').onchange = async (e) => {
+            if (e.target.files.length > 0) {
+                const blob = await otimizarImagem(e.target.files[0], 600, 600, 600000);
+                blobEditProdutoCurrent = blob;
+                document.getElementById('preview-produto-edit').src = URL.createObjectURL(blob);
+            }
+        };
+        document.getElementById('add-produto-file').onchange = async (e) => {
+            if (e.target.files.length > 0) {
+                const blob = await otimizarImagem(e.target.files[0], 600, 600, 600000);
+                blobAddProdutoCurrent = blob;
+                document.getElementById('preview-produto-add').src = URL.createObjectURL(blob);
+            }
+        };
+
+        document.getElementById('form-add-produto').onsubmit = async (e) => {
+            e.preventDefault();
+            const btn = e.target.querySelector('button');
+            btn.disabled = true; btn.innerText = "Cadastrando...";
+
+            try {
+                let imgUrl = "";
+                if (blobAddProdutoCurrent) imgUrl = await realizarUploadBlob(blobAddProdutoCurrent, 'produtos', 'item');
+
+                const isVariacaoAtiva = addCheckVariacao.checked;
+                const arrayGruposPayload = extrairPayloadGrupoDeOpcoes(wrapperAddListaGrupos);
+
+                await addDoc(collection(db, "produtos"), {
+                    lojaId: idLojaGlobal,
+                    nomeLoja: tituloLoja.innerText,
+                    nome: document.getElementById('add-produto-nome').value.trim(),
+                    preco: parseFloat(document.getElementById('add-produto-preco').value) || 0,
+                    categoria: document.getElementById('add-produto-categoria-select').value,
+                    descricao: document.getElementById('add-produto-descricao').value.trim(),
+                    imagem: imgUrl,
+                    dataCriacao: new Date().toISOString(),
+                    temVariacoes: isVariacaoAtiva,
+                    grupoDeOpcoes: arrayGruposPayload
+                });
+
+                mostrarNotificacao("Item cadastrado no cardápio!");
+                // 🔥 CORREÇÃO 1: Mapeado de ui para e para evitar estouro de erro fatal
+                e.target.reset();
+                document.getElementById('preview-produto-add').src = "../assets/images/placeholder.png";
+                blobAddProdutoCurrent = null;
+                wrapperAddListaGrupos.innerHTML = "";
+                addCheckVariacao.checked = false;
+                addContainerVariacoes.style.display = 'none';
+                window.fecharModal('modal-add-produto');
+            } catch (err) { 
+                console.error(err);
+                mostrarNotificacao("Erro ao inserir produto.", "error"); 
+            } finally { btn.disabled = false; btn.innerText = "Cadastrar Produto"; }
+        };
+
+        async function carregarCategoriasSelects() {
+            const snap = await getDocs(collection(db, "categorias"));
+            const selects = [document.getElementById('edit-categoria'), document.getElementById('add-produto-categoria-select'), document.getElementById('edit-produto-categoria-select')];
+            selects.forEach(s => s.innerHTML = '<option value="">Selecione...</option>');
+            snap.forEach(docSnap => {
+                const d = docSnap.data();
+                fotosCategorias[d.nome] = d.fotoArquivo;
+                selects.forEach(s => s.innerHTML += `<option value="${d.nome}">${d.nome}</option>`);
+            });
+        }
+
+        window.abrirGerenciadorCupons = async () => {
+            window.abrirModal('modal-cupons');
+            const lista = document.getElementById('lista-cupons-dashboard');
+            lista.innerHTML = "<p class='loading-produtos-text'>Buscando cupons...</p>";
+            
+            try {
+                const q = query(collection(db, "cupons"), where("lojaId", "==", idLojaGlobal));
+                const snap = await getDocs(q);
+                lista.innerHTML = "";
+
+                if (snap.empty) {
+                    lista.innerHTML = "<p class='loading-produtos-text' style='color:#747d8c;'>Você não possui cupons ativos.</p>";
+                    return;
+                }
+
+                snap.forEach(docSnap => {
+                    const c = docSnap.data();
+                    
+                    // 🔥 PROTEÇÃO: Garante valores numéricos e aceita o mapeamento antigo/novo
+                    const valorCupom = Number(c.valor || 0);
+                    const minPedido = Number(c.valorMinimo || c.usoMinimo || 0);
+                    const usos = c.usosAtuais || 0;
+                    const limite = c.limiteUsos || "∞";
+
+                    const expirado = c.dataExpiracao ? new Date(c.dataExpiracao) < new Date() : false;
+                    const esgotado = c.limiteUsos && (usos >= c.limiteUsos);
+                    
+                    const itemDiv = document.createElement('div');
+                    itemDiv.className = "produto-item-admin";
+                    
+                    itemDiv.innerHTML = `
+                        <div class="info-prod-admin" style="padding-left: 0.5rem;">
+                            <h4 style="color:#ff6400; font-weight:600;">${c.codigo || 'SEM CÓDIGO'}</h4>
+                            <p>${c.tipo === 'porcentagem' ? `${valorCupom}% OFF` : `R$ ${valorCupom.toFixed(2)} de desconto`}</p>
+                            <p style="font-size:0.8rem; color:#747d8c; margin: 2px 0;">Min. Pedido: R$ ${minPedido.toFixed(2)} | Usos: ${usos}/${limite}</p>
+                            <small style="color:${expirado || esgotado ? '#ff6400' : '#2ed573'}; font-size:0.75rem; font-weight:600;">
+                                ${expirado ? 'Expirado' : esgotado ? 'Esgotado' : `Válido até: ${c.dataExpiracao ? new Date(c.dataExpiracao).toLocaleString('pt-br') : 'Sem prazo'}`}
+                            </small>
+                        </div>
+                        <div class="actions-prod-admin">
+                            <button class="btn-action-prod btn-excluir-prod" onclick="window.excluirCupom('${docSnap.id}')" title="Excluir Cupom"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                    `;
+                    lista.appendChild(itemDiv);
+                });
+            } catch (err) { 
+                console.error("Erro detalhado ao carregar cupons:", err);
+                lista.innerHTML = "<p class='loading-produtos-text'>Erro ao carregar cupons.</p>"; 
+            }
+        };
+
+        window.excluirCupom = async (idCupom) => {
+            if (confirm("Deseja apagar esse cupom?")) {
+                try {
+                    await deleteDoc(doc(db, "cupons", idCupom));
+                    mostrarNotificacao("Cupom removido!");
+                    window.abrirGerenciadorCupons();
+                } catch (err) { mostrarNotificacao("Falha ao remover cupom.", "error"); }
+            }
+        };
+
+        document.getElementById('form-add-cupom').onsubmit = async (e) => {
+            e.preventDefault();
+            const btn = e.target.querySelector('button');
+            const codigoInput = document.getElementById('add-cupom-codigo').value.trim().toUpperCase();
+            const tipo = document.getElementById('add-cupom-tipo').value;
+            const valor = parseFloat(document.getElementById('add-cupom-valor').value) || 0;
+            const valorMinimo = parseFloat(document.getElementById('add-cupom-minimo').value) || 0;
+            const limiteUsos = parseInt(document.getElementById('add-cupom-limite').value) || 0;
+            const horasExpiracao = parseInt(document.getElementById('add-cupom-expiracao').value) || 0;
+
+            if (tipo === 'fixo' && valor >= valorMinimo) {
+                mostrarNotificacao("Proteção: Em cupons fixos, o desconto não pode ser maior ou igual ao Pedido Mínimo!", "error");
+                return;
+            }
+
+            btn.disabled = true; btn.innerText = "Cadastrando Cupom...";
+            const dataCriacao = new Date();
+            const dataExpiracao = new Date(dataCriacao.getTime() + horasExpiracao * 60 * 60 * 1000);
+
+            try {
+                await addDoc(collection(db, "cupons"), {
+                    codigo: codigoInput,
+                    tipo: tipo,
+                    valor: valor,
+                    valorMinimo: valorMinimo,
+                    limiteUsos: limiteUsos, 
+                    escopo: "loja", 
+                    lojaId: idLojaGlobal, 
+                    nomeLoja: tituloLoja.innerText,
+                    validadeHoras: horasExpiracao,
+                    dataCriacao: dataCriacao.toISOString(),
+                    dataExpiracao: dataExpiracao.toISOString(),
+                    usosAtuais: 0,
+                    usuariosQueUsaram: [] 
+                });
+
+                mostrarNotificacao("Cupom próprio ativado!");
+                // 🔥 CORREÇÃO 2: Ajustado de ui para e para evitar travamento em cascata nos cupons
+                e.target.reset();
+                window.fecharModal('modal-add-cupom');
+                window.abrirGerenciadorCupons();
+            } catch (err) { mostrarNotificacao("Erro ao cadastrar cupom.", "error"); }
+            finally { btn.disabled = false; btn.innerText = "Cadastrar Cupom"; }
+        };
+
+        function initializeEscutaPedidosRealtime() {
+            const q = query(collection(db, "pedidos"), where("lojaId", "==", idLojaGlobal));
+            
+            const selectPeriodo = document.getElementById('select-periodo-grafico');
+            if (selectPeriodo) {
+                selectPeriodo.onchange = () => {
+                    processarEAtualizarDadosDashboard();
+                };
+            }
+
+            onSnapshot(q, (snapshot) => {
+                listaPedidosLocal = [];
+                snapshot.forEach(docSnap => {
+                    const p = docSnap.data();
+                    p.id = docSnap.id;
+                    listaPedidosLocal.push(p);
+                });
+
+                processarEAtualizarDadosDashboard();
+
+            }, (error) => { console.error("Erro realtime listener:", error); });
+        }
+
+        function processarEAtualizarDadosDashboard() {
+            let contagemPendentes = 0;
+            let faturamentoDiaAcumulado = 0;
+            let totalPedidosConcluidosDia = 0;
+            let totalPedidosCanceladosDia = 0;
+            
+            const hoje = new Date();
+            const hojeStr = hoje.toLocaleDateString('pt-br');
+
+            const selectPeriodo = document.getElementById('select-periodo-grafico');
+            const diasFiltro = selectPeriodo ? parseInt(selectPeriodo.value) : 7;
+
+            const mapaCronologicoPeriodo = {};
+            for (let i = diasFiltro - 1; i >= 0; i--) {
+                const d = new Date();
+                d.setDate(hoje.getDate() - i);
+                mapaCronologicoPeriodo[d.toLocaleDateString('pt-br')] = 0;
+            }
+
+            const tabelaRepassesCorpo = document.getElementById('lista-linhas-repasses-financeiros');
+            if (tabelaRepassesCorpo) tabelaRepassesCorpo.innerHTML = "";
+
+            // Conversor seguro de Timestamp do Firebase
+            const converterTimestamp = (campo) => {
+                if (!campo) return new Date();
+                if (typeof campo.toDate === 'function') return campo.toDate();
+                if (campo.seconds) return new Date(campo.seconds * 1000);
+                const d = new Date(campo);
+                return isNaN(d.getTime()) ? new Date() : d;
+            };
+
+            listaPedidosLocal.forEach(p => {
+                // 🔥 ALINHADO: Lê 'dataCriacao' e trata o Timestamp do Firebase com segurança
+                const objetoData = converterTimestamp(p.dataCriacao || p.dataPedido);
+                const dataFormatada = objetoData.toLocaleDateString('pt-br');
+
+                if (p.status === "pendente" || p.status === "preparo" || p.status === "entrega") {
+                    contagemPendentes++;
+                }
+
+                if (p.status === "concluido") {
+                    totalPedidosConcluidosDia++;
+                    const valorLiquidoPedido = parseFloat(p.total) || 0;
+                    
+                    if (mapaCronologicoPeriodo[dataFormatada] !== undefined) {
+                        mapaCronologicoPeriodo[dataFormatada] += valorLiquidoPedido;
+                    }
+
+                    if (dataFormatada === hojeStr) {
+                        faturamentoDiaAcumulado += valorLiquidoPedido;
+                    }
+
+                    if (tabelaRepassesCorpo) {
+                        const taxaRetidaApp = valorLiquidoPedido * 0.01; 
+                        const liquidoFinalRepasseLoja = valorLiquidoPedido - taxaRetidaApp;
+                        
+                        const tr = document.createElement('tr');
+                        tr.style.borderBottom = "1px solid #e4e7eb";
+                        tr.innerHTML = `
+                            <td style="padding:10px 12px; color:#57606f;">${objetoData.toLocaleString('pt-br', {dateStyle:'short', timeStyle:'short'})}</td>
+                            <td style="padding:10px 12px; font-weight:600; color:#2f3542;">#${p.id.slice(0,7).toUpperCase()}</td>
+                            <td style="padding:10px 12px; text-transform:uppercase; color:#747d8c; font-size:0.75rem;"><span style="background:#e4e7eb; padding:2px 6px; border-radius:4px; font-weight:600;">${p.formaPagamento || 'Pix'}</span></td>
+                            <td style="padding:10px 12px; color:#2f3542; font-weight:600;">R$ ${valorLiquidoPedido.toFixed(2)}</td>
+                            <td style="padding:10px 12px; color:#ff6400;">- R$ ${taxaRetidaApp.toFixed(2)}</td>
+                            <td style="padding:10px 12px; color:#2ed573; font-weight:600;">R$ ${liquidoFinalRepasseLoja.toFixed(2)}</td>
+                        `;
+                        tabelaRepassesCorpo.appendChild(tr);
+                    }
+                } else if (p.status === "cancelado") {
+                    totalPedidosCanceladosDia++;
+                }
+            });
+
+            const ticketMedioCalculado = totalPedidosConcluidosDia > 0 ? (faturamentoDiaAcumulado / totalPedidosConcluidosDia) : 0;
+            const totalPedidosGeralDenominador = (totalPedidosConcluidosDia + totalPedidosCanceladosDia);
+            const taxaCancelamentoCalculada = totalPedidosGeralDenominador > 0 ? Math.round((totalPedidosCanceladosDia / totalPedidosGeralDenominador) * 100) : 0;
+
+            document.getElementById('metric-faturamento').innerText = faturamentoDiaAcumulado.toLocaleString('pt-br', { style: 'currency', currency: 'BRL' });
+            document.getElementById('metric-pedidos-qtd').innerText = totalPedidosConcluidosDia;
+            document.getElementById('metric-ticket-medio').innerText = ticketMedioCalculado.toLocaleString('pt-br', { style: 'currency', currency: 'BRL' });
+            document.getElementById('metric-taxa-cancelamento').innerText = `${taxaCancelamentoCalculada}%`;
+
+            if (tabelaRepassesCorpo && tabelaRepassesCorpo.children.length === 0) {
+                tabelaRepassesCorpo.innerHTML = `<tr><td colspan="6" style="padding:30px; text-align:center; color:#747d8c;">Nenhum repasse ou pedido finalizado computado.</td></tr>`;
+            }
+
+            const badgeContador = document.getElementById('txt-contador-pedidos-badge');
+            if (badgeContador) badgeContador.innerText = contagemPendentes;
+            
+            renderizarListaPedidosModal();
+            sincronizarGraficoFaturamento(mapaCronologicoPeriodo);
+        }
+
+        function sincronizarGraficoFaturamento(dadosMapaCronologico) {
+            const ctxCanvas = document.getElementById('graficoFaturamentoLoja');
+            if (!ctxCanvas) return;
+
+            const labelsDias = Object.keys(dadosMapaCronologico);
+            const valoresFaturamento = Object.values(dadosMapaCronologico);
+
+            if (instanciaGraficoFaturamento) {
+                instanciaGraficoFaturamento.data.labels = labelsDias;
+                instanciaGraficoFaturamento.data.datasets[0].data = valoresFaturamento;
+                instanciaGraficoFaturamento.data.datasets[0].pointRadius = labelsDias.length > 30 ? 1 : 4;
+                instanciaGraficoFaturamento.update();
+            } else {
+                instanciaGraficoFaturamento = new Chart(ctxCanvas, {
+                    type: 'line',
+                    data: {
+                        labels: labelsDias,
+                        datasets: [{
+                            label: 'Faturamento Bruto (R$)',
+                            data: valoresFaturamento,
+                            borderColor: '#ff6400',
+                            backgroundColor: 'rgba(255, 71, 87, 0.1)',
+                            borderWidth: 3,
+                            fill: true,
+                            tension: 0.3,
+                            pointBackgroundColor: '#ff6400',
+                            pointRadius: labelsDias.length > 30 ? 1 : 4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    callback: function(value) { return 'R$ ' + value.toFixed(2); },
+                                    font: { family: 'Poppins', size: 10 }
+                                }
+                            },
+                            x: {
+                                ticks: { 
+                                    font: { family: 'Poppins', size: 10 },
+                                    maxTicksLimit: 12
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        document.getElementById('btn-exportar-csv').onclick = () => {
+            const linesTabela = document.querySelectorAll('#lista-linhas-repasses-financeiros tr');
+            if (linesTabela.length === 0 || linesTabela[0].innerText.includes("Nenhum repasse")) {
+                mostrarNotificacao("Não há dados consolidados para exportar.", "error");
+                return;
+            }
+
+            let csvConteudo = "\uFEFF"; 
+            csvConteudo += "Data Lancamento;ID Pedido;Meio Pagamento;Valor Bruto (R$);Taxa Plataforma (R$);Valor Liquido (R$)\n";
+
+            linesTabela.forEach(tr => {
+                const colunas = tr.querySelectorAll('td');
+                if (colunas.length === 6) {
+                    const data = colunas[0].innerText.trim();
+                    const id = colunas[1].innerText.trim().replace('#', '');
+                    const pagamento = colunas[2].innerText.trim();
+                    const bruto = colunas[3].innerText.trim().replace('R$', '').trim();
+                    const taxa = colunas[4].innerText.trim().replace('- R$', '').trim();
+                    const liquido = colunas[5].innerText.trim().replace('R$', '').trim();
+
+                    csvConteudo += `${data};${id};${pagamento};${bruto};${taxa};${liquido}\n`;
+                }
+            });
+
+            const blobArquivo = new Blob([csvConteudo], { type: 'text/csv;charset=utf-8;' });
+            const urlDownload = URL.createObjectURL(blobArquivo);
+            const linkGatilho = document.createElement("a");
+            
+            linkGatilho.setAttribute("href", urlDownload);
+            linkGatilho.setAttribute("download", `Fechamento_Contabil_Loja_${idLojaGlobal.slice(0,5)}.csv`);
+            linkGatilho.style.visibility = 'hidden';
+            
+            document.body.appendChild(linkGatilho);
+            linkGatilho.click();
+            document.body.removeChild(linkGatilho);
+            mostrarNotificacao("Relatório CSV baixado com sucesso!");
+        };
+
+        document.getElementById('tab-pedidos-ativos').onclick = (e) => {
+            filtroAbaPedidos = "ativos";
+            e.target.style.background = "#ff6400";
+            document.getElementById('tab-pedidos-historico').style.background = "#747d8c";
+            renderizarListaPedidosModal();
+        };
+        document.getElementById('tab-pedidos-historico').onclick = (e) => {
+            filtroAbaPedidos = "historico";
+            e.target.style.background = "#ff6400";
+            document.getElementById('tab-pedidos-ativos').style.background = "#747d8c";
+            renderizarListaPedidosModal();
+        };
+
+        function renderizarListaPedidosModal() {
+            const container = document.getElementById('lista-pedidos-dashboard');
+            if (!container) return;
+            container.innerHTML = "";
+
+            const pedidosFiltrados = listaPedidosLocal.filter(p => {
+                if (filtroAbaPedidos === "ativos") return p.status === "pendente" || p.status === "preparo" || p.status === "entrega";
+                return p.status === "concluido" || p.status === "cancelado";
+            });
+
+            if (pedidosFiltrados.length === 0) {
+                container.innerHTML = `<p style='text-align:center; padding:2rem; color:#747d8c;'>Nenhum pedido nesta seção.</p>`;
+                return;
+            }
+
+            // Conversor seguro de Timestamp do Firebase
+            const converterTimestamp = (campo) => {
+                if (!campo) return new Date(0);
+                if (typeof campo.toDate === 'function') return campo.toDate();
+                if (campo.seconds) return new Date(campo.seconds * 1000);
+                const d = new Date(campo);
+                return isNaN(d.getTime()) ? new Date(0) : d;
+            };
+
+            // 🔥 ORDENAÇÃO DECRESCENTE FIXADA: Mais novo primeiro através do getTime() real
+            pedidosFiltrados.sort((a, b) => converterTimestamp(b.dataCriacao || b.dataPedido).getTime() - converterTimestamp(a.dataCriacao || a.dataPedido).getTime());
+
+            pedidosFiltrados.forEach(p => {
+                const itemDiv = document.createElement('div');
+                itemDiv.style.cssText = "background:#ffffff; border:1px solid #e4e7eb; border-radius:12px; padding:15px; display:flex; flex-direction:column; gap:10px; flex-shrink: 0; margin-bottom: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.02);";
+
+                let strItens = p.itens.map(i => `<span style="font-weight:600; color:#2f3542;">${i.quantidade}x</span> ${i.nome}`).join('<br>');
+                let corStatus = "#ffa502"; 
+                if (p.status === "preparo") corStatus = "#1e90ff"; 
+                if (p.status === "entrega") corStatus = "#9b59b6"; 
+                if (p.status === "concluido") corStatus = "#2ed573"; 
+                if (p.status === "cancelado") corStatus = "#ff6400"; 
+
+                let strEntrega = "";
+                if (p.tipoEntrega === "retirada" || p.enderecoEntrega === "Retirada no Balcão") {
+                    strEntrega = `<span style="color:#1e90ff; font-weight:600;"><i class="fa-solid fa-store"></i> Retirada no Balcão</span>`;
+                } else if (p.enderecoEntrega) {
+                    const end = p.enderecoEntrega;
+                    strEntrega = `<strong>Delivery:</strong> ${end.rua}, Nº ${end.numero} - ${end.bairro}`;
+                }
+
+                let htmlBotoesAcao = "";
+                if (p.status === "pendente") {
+                    htmlBotoesAcao = `
+                        <button class="btn-salvar" onclick="window.alterarStatusPedido('${p.id}', 'preparo')" style="background:#1e90ff; padding: 6px 10px; font-size:0.75rem;"><i class="fa-solid fa-utensils"></i> Aceitar</button>
+                        <button class="btn-salvar" onclick="window.abrirModalRecusa('${p.id}')" style="background:#ff6400; padding: 6px 10px; font-size:0.75rem;"><i class="fa-solid fa-xmark"></i> Recusar</button>
+                    `;
+                } else if (p.status === "preparo") {
+                    const txtBotao = (p.tipoEntrega === "retirada" || p.enderecoEntrega === "Retirada no Balcão") ? "Pronto" : "Despachar";
+                    htmlBotoesAcao = `
+                        <button class="btn-salvar" onclick="window.alterarStatusPedido('${p.id}', 'entrega')" style="background:#9b59b6; padding: 6px 10px; font-size:0.75rem;"><i class="fa-solid fa-motorcycle"></i> ${txtBotao}</button>
+                    `;
+                } else if (p.status === "entrega") {
+                    htmlBotoesAcao = `
+                        <button class="btn-salvar" onclick="window.alterarStatusPedido('${p.id}', 'concluido')" style="background:#2ed573; padding: 6px 10px; font-size:0.75rem;"><i class="fa-solid fa-circle-check"></i> Finalizar</button>
+                    `;
+                }
+
+                let htmlMotivoExibicao = "";
+                if (p.status === "cancelado" && p.motivoCancelamento) {
+                    htmlMotivoExibicao = `<p style="margin-top: 4px; padding: 6px; background: #fff5f5; border-radius: 6px; color: #ff6400; font-size: 0.8rem;">Recusa: "${p.motivoCancelamento}"</p>`;
+                }
+
+                // 🔥 DATA FORMATADA COM SEGURANÇA AQUI
+                const dataObjeto = converterTimestamp(p.dataCriacao || p.dataPedido);
+                const dataHoraPedido = dataObjeto.getTime() !== 0 
+                    ? dataObjeto.toLocaleString('pt-br', { dateStyle: 'short', timeStyle: 'short' }) 
+                    : '--/-- --:--';
+
+                itemDiv.innerHTML = `
+                    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #e4e7eb; padding-bottom:6px;">
+                        <div>
+                            <span style="font-size:0.8rem; color:#747d8c;">ID: #${p.id.slice(0,6).toUpperCase()} • <i class="fa-regular fa-clock"></i> ${dataHoraPedido}</span>
+                            <h4 style="color:#2f3542; margin-top:2px; font-size:0.9rem;"><i class="fa-regular fa-user"></i> ${p.clientNome || "Cliente"}</h4>
+                        </div>
+                        <span style="background:${corStatus}; color:white; padding:2px 8px; border-radius:20px; font-size:0.75rem; font-weight:600; text-transform:uppercase;">${p.status}</span>
+                    </div>
+                    <div style="font-size:0.85rem; color:#57606f; line-height:1.4;">
+                        <div style="background:#f8f9fa; border:1px solid #e4e7eb; padding:8px; border-radius:6px; margin-bottom:6px;">${strItens}</div>
+                        <p style="margin-bottom:2px;">${strEntrega}</p>
+                        <p><strong>Pagamento:</strong> ${p.formaPagamento} ${p.troco && p.troco !== 'Não se aplica' ? ` (Troco: ${p.troco})` : ''}</p>
+                        ${htmlMotivoExibicao}
+                    </div>
+                    <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid #e4e7eb; padding-top:8px; margin-top:2px;">
+                        <span style="font-size:0.95rem; color:#2f3542; font-weight:600;">R$ ${p.total.toFixed(2)}</span>
+                        <div style="display:flex; gap:6px;">${htmlBotoesAcao}</div>
+                    </div>
+                `;
+                container.appendChild(itemDiv);
+            });
+        }
+
+        window.alterarStatusPedido = async (idPedido, novoStatus) => {
+            try {
+                await updateDoc(doc(db, "pedidos", idPedido), { status: novoStatus });
+                mostrarNotificacao(`Pedido alterado com sucesso!`);
+            } catch (err) { mostrarNotificacao("Permissão negada ao alterar status.", "error"); }
+        };
+
+        window.abrirModalRecusa = (idPedido) => {
+            document.getElementById('cancelar-pedido-id').value = idPedido;
+            document.getElementById('txt-motivo-recusa').value = "";
+            window.abrirModal('modal-motivo-cancelamento');
+        };
+
+        document.getElementById('form-motivo-cancelamento').onsubmit = async (e) => {
+            e.preventDefault();
+            const idPedido = document.getElementById('cancelar-pedido-id').value;
+            const motivoTexto = document.getElementById('txt-motivo-recusa').value.trim();
+            const btnSubmit = e.target.querySelector('button[type="submit"]');
+
+            btnSubmit.disabled = true; btnSubmit.innerText = "Processando...";
+            try {
+                await updateDoc(doc(db, "pedidos", idPedido), { status: "cancelado", motivoCancelamento: motivoTexto });
+                mostrarNotificacao("Pedido recusado e cliente notificado.");
+                window.fecharModal('modal-motivo-cancelamento');
+            } catch (err) { mostrarNotificacao("Falha ao salvar recusa.", "error"); }
+            finally { btnSubmit.disabled = false; btnSubmit.innerText = "Confirmar Recusa"; }
+        };
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                const snap = await getDoc(doc(db, "usuarios", user.uid));
+                if (snap.exists() && snap.data().loja) { 
+                    idLojaGlobal = snap.data().loja; 
+                    await carregarRegioesDoBanco(); 
+                    await carregarCategoriasSelects();
+                    await carregarDadosLoja(); 
+                    renderizarDashboard(); 
+                    initializeEscutaPedidosRealtime(); 
+                }
+                else window.location.href = 'login-loja.html';
+            } else window.location.href = 'login.html';
+        });
+
+        const btnDropdown = document.getElementById('btn-dropdown-cidades');
+        const listaDropdown = document.getElementById('wrapper-checkboxes-cidades');
+
+        if (btnDropdown && listaDropdown) {
+            btnDropdown.addEventListener('click', (e) => {
+                e.stopPropagation();
+                listaDropdown.classList.toggle('active');
+            });
+            document.addEventListener('click', (e) => {
+                if (!btnDropdown.contains(e.target) && !listaDropdown.contains(e.target)) {
+                    listaDropdown.classList.remove('active');
+                }
+            });
+        }
+
+        window.abrirModal = (id) => document.getElementById(id).classList.add('active');
+        window.fecharModal = (id) => document.getElementById(id).classList.remove('active');
+    </script>
+</body>
+</html>

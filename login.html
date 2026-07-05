@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Autenticação | NordGo</title>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <link rel="icon" type="image/png" href="../assets/images/favicon.png">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="../css/styles-login.css">
+</head>
+<body>
+    <div id="toast-container" class="toast-container"></div>
+    
+    <header class="main-header">
+        <div class="header-container">
+            <div class="header-left">
+                <div class="pill-badge pill-back" id="btn-voltar-index">
+                    <img src="../assets/images/voltar.png" alt="Voltar" class="back-icon-img">
+                    <span class="location-text">Voltar</span>
+                </div>
+            </div>
+
+            <div class="header-center">
+                <div class="pill-badge pill-page-title">
+                    <span class="page-title-text" id="header-dinamico-titulo">Login</span>
+                </div>
+            </div>
+
+            <div class="header-right"></div>
+        </div>
+    </header>
+
+    <main class="login-screen">
+        <div class="login-container">
+            
+            <div id="section-skeleton">
+                <div class="login-header">
+                    <div class="skeleton skeleton-title"></div>
+                    <div class="skeleton skeleton-subtitle"></div>
+                </div>
+                <div class="login-form">
+                    <div class="skeleton skeleton-input"></div>
+                    <div class="skeleton skeleton-input"></div>
+                    <div class="skeleton skeleton-button"></div>
+                    <div class="skeleton skeleton-link"></div>
+                </div>
+            </div>
+
+            <div id="section-login" class="hidden">
+                <header class="login-header">
+                    <h2>Bem-vindo</h2>
+                    <p>Acesse sua conta</p>
+                </header>
+                <div class="login-form">
+                    <input type="email" id="email" placeholder="E-mail">
+                    <input type="password" id="senha" placeholder="Senha">
+                    
+                    <div class="recovery-area">
+                        <a href="#" id="btn-esqueci-senha">Esqueceu a senha?</a>
+                    </div>
+
+                    <button id="btn-login" class="btn-principal btn-entrar">Entrar</button>
+                    
+                    <div class="divider">ou</div>
+                    
+                    <button id="btn-google" class="btn-principal btn-google">
+                        <i class="fa-brands fa-google"></i> Entrar com Google
+                    </button>
+                    
+                    <div class="form-footer">
+                        <p>Não tem uma conta ainda? 
+                            <a href="#" id="link-ir-cadastro">Cadastre-se já!</a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div id="section-cadastro" class="hidden">
+                <header class="login-header">
+                    <h2>Crie sua conta</h2>
+                    <p>Preencha seus dados de entrega</p>
+                </header>
+                <div class="login-form grid-cadastro">
+                    <input type="text" id="reg-nome" class="full-width" placeholder="Nome Completo">
+                    <input type="email" id="reg-email" class="full-width" placeholder="E-mail">
+                    
+                    <div class="input-row full-width" style="grid-template-columns: 1fr 1fr; display: grid; gap: 15px;">
+                        <input type="password" id="reg-senha" placeholder="Senha (Mín. 8 caract.)">
+                        <input type="password" id="reg-senha-confirmar" placeholder="Repita a Senha">
+                    </div>
+                    
+                    <input type="text" id="reg-cpf" placeholder="CPF (000.000.000-00)" maxlength="14">
+                    <input type="text" id="reg-telefone" placeholder="Telefone / WhatsApp" maxlength="15">
+                    
+                    <input type="text" id="reg-cep" placeholder="CEP (00000-000)" maxlength="9">
+                    <input type="text" id="reg-bairro" placeholder="Bairro">
+                    
+                    <input type="text" id="reg-cidade" placeholder="Cidade" readonly class="input-bloqueado">
+                    <input type="text" id="reg-estado" placeholder="UF" readonly class="input-bloqueado">
+                    
+                    <input type="text" id="reg-rua" class="full-width" placeholder="Rua / Avenida">
+                    
+                    <input type="text" id="reg-numero" placeholder="Número">
+                    <input type="text" id="reg-obs" placeholder="Complemento/Obs">
+                    
+                    <button id="btn-cadastrar-final" class="btn-principal full-width btn-success">Finalizar Cadastro</button>
+                    <button id="btn-voltar-login" class="btn-principal full-width btn-secondary">Voltar</button>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <script type="module">
+        import { auth, db, mostrarNotificacao } from '../js/firebase-config.js';
+        import { 
+            signInWithEmailAndPassword, 
+            createUserWithEmailAndPassword, 
+            GoogleAuthProvider, 
+            signInWithPopup,
+            sendPasswordResetEmail,
+            onAuthStateChanged,
+            signOut
+        } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
+        
+        import { 
+            doc, setDoc, getDoc, updateDoc, arrayUnion, query, where, collection, getDocs 
+        } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
+
+        const sectionLogin = document.getElementById('section-login');
+        const sectionCadastro = document.getElementById('section-cadastro');
+        const sectionSkeleton = document.getElementById('section-skeleton');
+        const txtTituloHeader = document.getElementById('header-dinamico-titulo');
+
+        let cadastrandoUsuario = false;
+
+        document.getElementById('btn-voltar-index').onclick = () => {
+            window.location.href = '../index.html';
+        };
+
+        // INTERCEPTOR DE CONTAS SUSPENSAS
+        onAuthStateChanged(auth, async (user) => {
+            if (user && !cadastrandoUsuario) {
+                try {
+                    const userDoc = await getDoc(doc(db, "usuarios", user.uid));
+                    if (userDoc.exists()) {
+                        const userData = userDoc.data();
+                        
+                        if (userData.status === "suspenso") {
+                            mostrarNotificacao("Sua conta está suspensa. Contate o administrador.", "error");
+                            await signOut(auth);
+                            localStorage.removeItem('nordgo_cep_usuario'); 
+                            sectionSkeleton.classList.add('hidden');
+                            sectionLogin.classList.remove('hidden');
+                            return;
+                        }
+                    }
+                    sectionSkeleton.classList.add('hidden');
+                    window.location.href = '../index.html';
+                } catch (err) {
+                    console.error("Erro na verificação de acesso:", err);
+                    sectionSkeleton.classList.add('hidden');
+                    sectionLogin.classList.remove('hidden');
+                }
+            } else if (!user) {
+                sectionSkeleton.classList.add('hidden');
+                sectionLogin.classList.remove('hidden');
+            }
+        });
+
+        // --- MÁSCARAS ---
+        const aplicarMascaraCPF = (v) => {
+            v = v.replace(/\D/g, "");
+            v = v.replace(/(\d{3})(\d)/, "$1.$2");
+            v = v.replace(/(\d{3})(\d)/, "$1.$2");
+            v = v.replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+            return v;
+        };
+
+        const aplicarMascaraTel = (v) => {
+            v = v.replace(/\D/g, "");
+            v = v.replace(/^(\d{2})(\d)/g, "($1) $2");
+            v = v.replace(/(\d)(\d{4})$/, "$1-$2");
+            return v;
+        };
+
+        const aplicarMascaraCEP = (v) => {
+            v = v.replace(/\D/g, "");
+            v = v.replace(/^(\d{5})(\d)/, "$1-$2");
+            return v;
+        };
+
+        document.getElementById('reg-cpf').oninput = (e) => e.target.value = aplicarMascaraCPF(e.target.value);
+        document.getElementById('reg-telefone').oninput = (e) => e.target.value = aplicarMascaraTel(e.target.value);
+        document.getElementById('reg-cep').oninput = (e) => e.target.value = aplicarMascaraCEP(e.target.value);
+
+        // --- VIA CEP ---
+        document.getElementById('reg-cep').addEventListener('blur', async (e) => {
+            const cep = e.target.value.replace(/\D/g, "");
+            if (cep.length !== 8) {
+                if (cep.length > 0) mostrarNotificacao("CEP incompleto.", "error");
+                return;
+            }
+
+            const inputBairro = document.getElementById('reg-bairro');
+            const inputCidade = document.getElementById('reg-cidade');
+            const inputEstado = document.getElementById('reg-estado');
+            const inputRua = document.getElementById('reg-rua');
+
+            try {
+                inputCidade.value = "Buscando...";
+                const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+                const dados = await response.json();
+
+                if (dados.erro) {
+                    mostrarNotificacao("CEP não localizado.", "error");
+                    inputCidade.value = "";
+                    return;
+                }
+
+                inputCidade.value = dados.localidade || "";
+                inputEstado.value = dados.uf || "";
+
+                if (dados.bairro && dados.bairro.trim() !== "") {
+                    inputBairro.value = dados.bairro;
+                    inputBairro.readOnly = true;
+                    inputBairro.classList.add('input-bloqueado');
+                } else {
+                    inputBairro.value = "";
+                    inputBairro.readOnly = false;
+                    inputBairro.classList.remove('input-bloqueado');
+                    inputBairro.placeholder = "Informe o seu bairro";
+                }
+                inputRua.value = dados.logradouro || "";
+                document.getElementById('reg-numero').focus();
+            } catch (err) {
+                console.error(err);
+                inputCidade.value = "";
+            }
+        });
+
+        const validarSenhaForte = (senha) => {
+            return /^(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*])(?=.{8,})/.test(senha);
+        };
+
+        // 🔥 FUNÇÃO AUXILIAR: VALIDAÇÃO MATEMÁTICA E ALGORÍTMICA DE CPF
+        const validarCPFMatematico = (cpf) => {
+            cpf = cpf.replace(/\D/g, "");
+            
+            // Elimina strings com 11 caracteres contendo números idênticos conhecidos
+            if (cpf.length !== 11 || /^(\d)\1{10}$/.test(cpf)) return false;
+            
+            let soma = 0;
+            let resto;
+            
+            // Validação matemática do primeiro dígito verificador
+            for (let i = 1; i <= 9; i++) {
+                soma = soma + parseInt(cpf.substring(i - 1, i)) * (11 - i);
+            }
+            resto = (soma * 10) % 11;
+            if ((resto === 10) || (resto === 11)) resto = 0;
+            if (resto !== parseInt(cpf.substring(9, 10))) return false;
+            
+            // Validação matemática do segundo dígito verificador
+            soma = 0;
+            for (let i = 1; i <= 10; i++) {
+                soma = soma + parseInt(cpf.substring(i - 1, i)) * (12 - i);
+            }
+            resto = (soma * 10) % 11;
+            if ((resto === 10) || (resto === 11)) resto = 0;
+            if (resto !== parseInt(cpf.substring(10, 11))) return false;
+            
+            return true;
+        };
+
+        document.getElementById('link-ir-cadastro').onclick = (e) => {
+            e.preventDefault();
+            sectionLogin.classList.add('hidden'); 
+            sectionCadastro.classList.remove('hidden'); 
+            txtTituloHeader.innerText = "Cadastro"; 
+        };
+
+        document.getElementById('btn-voltar-login').onclick = () => {
+            sectionCadastro.classList.add('hidden'); 
+            sectionLogin.classList.remove('hidden'); 
+            txtTituloHeader.innerText = "Login"; 
+        };
+
+        // --- LOGIN COM E-MAIL E SENHA ---
+        document.getElementById('btn-login').onclick = async () => {
+            const email = document.getElementById('email').value.trim();
+            const senha = document.getElementById('senha').value;
+            if(!email || !senha) { mostrarNotificacao("Preencha os campos.", "error"); return; }
+
+            try {
+                const btn = document.getElementById('btn-login');
+                btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Entrando...';
+                await signInWithEmailAndPassword(auth, email, senha);
+                mostrarNotificacao("Bem-vindo de volta!");
+                setTimeout(() => window.location.href = '../index.html', 1000);
+            } catch (error) {
+                document.getElementById('btn-login').innerText = 'Entrar';
+                mostrarNotificacao("E-mail ou senha incorretos.", "error");
+            }
+        };
+
+        // --- CADASTRO SEGURO POR FORMULÁRIO + TRAVA DE CPF ---
+        document.getElementById('btn-cadastrar-final').onclick = async () => {
+            const obterValor = (id) => {
+                const el = document.getElementById(id);
+                return el ? el.value.trim() : "";
+            };
+
+            const nome = obterValor('reg-nome');
+            const email = obterValor('reg-email');
+            const senha = document.getElementById('reg-senha')?.value || "";
+            const senhaConfirmar = document.getElementById('reg-senha-confirmar')?.value || "";
+            const cpfCliente = obterValor('reg-cpf');
+            const telefoneCliente = obterValor('reg-telefone');
+            const rua = obterValor('reg-rua');
+            const numero = obterValor('reg-numero');
+            
+            const bairroCru = obterValor('reg-bairro');
+            const bairro = bairroCru.charAt(0).toUpperCase() + bairroCru.slice(1).toLowerCase();
+            
+            const cidadeCru = obterValor('reg-cidade');
+            const cidade = cidadeCru.charAt(0).toUpperCase() + cidadeCru.slice(1).toLowerCase();
+            
+            const estado = obterValor('reg-estado').toUpperCase();
+            const observacao = obterValor('reg-obs') || "Sem observação";
+            const cep = obterValor('reg-cep');
+
+            if(!nome || !email || !senha || !senhaConfirmar || !cpfCliente || !rua || !numero || !bairro || !cep || !cidade || !estado) {
+                mostrarNotificacao("Preencha todos os dados obrigatórios.", "error");
+                return;
+            }
+
+            if (senha !== senhaConfirmar) {
+                mostrarNotificacao("As senhas não coincidem. Verifique.", "error");
+                return;
+            }
+
+            if (!validarSenhaForte(senha)) {
+                mostrarNotificacao("Senha fraca! Use letras maiúsculas, números e caracteres especiais.", "error");
+                return;
+            }
+
+            // 🔥 NOVO CHECKPOINT: VALIDAÇÃO DO ALGORITMO DO CPF ANTES DE EXECUTAR REQUISIÇÕES
+            if (!validarCPFMatematico(cpfCliente)) {
+                mostrarNotificacao("O CPF informado é inválido. Verifique os dígitos.", "error");
+                return;
+            }
+
+            const btn = document.getElementById('btn-cadastrar-final');
+
+            try {
+                cadastrandoUsuario = true;
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Verificando dados...';
+                
+                // ==========================================================================
+                // 🔥 TRAVA ANTI-FRAUDE OTIMIZADA DENTRO DE /USUARIOS (USANDO DOCUMENTO GET)
+                // ==========================================================================
+                console.log("[DEBUG] Passo 1: Consultando CPF diretamente na coleção /usuarios...");
+                const cpfLimpoId = cpfCliente.replace(/\D/g, "");
+                
+                const cpfRef = doc(db, "usuarios", `cpf_${cpfLimpoId}`);
+                const cpfSnap = await getDoc(cpfRef);
+
+                if (cpfSnap.exists()) {
+                    mostrarNotificacao("O CPF informado já foi utilizado em outra conta.", "error");
+                    btn.disabled = false;
+                    btn.innerText = 'Finalizar Cadastro';
+                    cadastrandoUsuario = false;
+                    return;
+                }
+
+                console.log("[DEBUG] Passo 2: CPF livre! Criando credenciais no Firebase Auth...");
+                btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Criando conta...';
+                const userCred = await createUserWithEmailAndPassword(auth, email, senha);
+                
+                if (!userCred || !userCred.user || !userCred.user.uid) {
+                    throw new Error("Falha crítica: UID do usuário não gerado pelo Auth.");
+                }
+
+                const novoEnderecoObj = {
+                    id: Date.now().toString(),
+                    apelido: "Casa",
+                    rua: rua,
+                    numero: numero,
+                    bairro: bairro,
+                    cidade: `${cidade} - ${estado}`,
+                    observacao: observacao,
+                    padrao: true,
+                    cep: cep
+                };
+
+                const payloadFinal = {
+                    nome: nome,
+                    email: email,
+                    cpfCliente: cpfCliente,
+                    telefoneCliente: telefoneCliente,
+                    tipo: "cliente",
+                    isAdmin: false,
+                    status: "ativo",
+                    dataCriacao: new Date().toISOString(),
+                    fotoUrl: "",
+                    enderecoCliente: [novoEnderecoObj]
+                };
+
+                console.log("[DEBUG] Passo 3: Gravando payload do novo cliente na coleção /usuarios...");
+                await setDoc(doc(db, "usuarios", userCred.user.uid), payloadFinal);
+
+                console.log("[DEBUG] Passo 4: Vinculando trava exclusiva de CPF dentro de /usuarios...");
+                await setDoc(doc(db, "usuarios", `cpf_${cpfLimpoId}`), {
+                    isCpfLock: true,
+                    userId: userCred.user.uid,
+                    dataVinculo: new Date().toISOString()
+                });
+
+                console.log("[DEBUG] Passo 5: Analisando mapeamento geográfico na coleção /regioes...");
+                const idRegiaoDoc = `${cidade}-${estado}`;
+                const regiaoRef = doc(db, "regioes", idRegiaoDoc);
+                const regiaoSnap = await getDoc(regiaoRef);
+
+                if (!regiaoSnap.exists()) {
+                    await setDoc(regiaoRef, {
+                        cidade: cidade,
+                        uf: estado,
+                        bairros: [bairro]
+                    });
+                } else {
+                    await updateDoc(regiaoRef, {
+                        bairros: arrayUnion(bairro)
+                    });
+                }
+
+                console.log("[DEBUG] Cadastro concluído com sucesso total!");
+                mostrarNotificacao("Conta criada com sucesso!");
+                setTimeout(() => window.location.href = '../index.html', 1500);
+
+            } catch (error) { 
+                cadastrandoUsuario = false; 
+                btn.disabled = false;
+                btn.innerText = 'Finalizar Cadastro';
+                
+                console.error("Erro capturado no fluxo de cadastro:", error);
+                
+                if (error.code === 'auth/email-already-in-use') {
+                    mostrarNotificacao("Este e-mail já está em uso por outro usuário.", "error");
+                } else {
+                    mostrarNotificacao("Falha ao criar conta. Tente novamente.", "error");
+                }
+            }
+        };
+
+        // Esqueci Senha
+        document.getElementById('btn-esqueci-senha').onclick = async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value.trim();
+            if (!email) { mostrarNotificacao("Informe seu e-mail.", "error"); return; }
+            try {
+                await sendPasswordResetEmail(auth, email);
+                mostrarNotificacao("E-mail enviado!");
+            } catch (e) { mostrarNotificacao("Erro.", "error"); }
+        };
+
+        // --- LOGIN COM O GOOGLE ---
+        document.getElementById('btn-google').onclick = async () => {
+            const provider = new GoogleAuthProvider();
+            try {
+                cadastrandoUsuario = true; 
+
+                const result = await signInWithPopup(auth, provider);
+                const user = result.user;
+                
+                const userDoc = await getDoc(doc(db, "usuarios", user.uid));
+                
+                if (!userDoc.exists()) {
+                    await setDoc(doc(db, "usuarios", user.uid), {
+                        nome: user.displayName || "Usuário Google",
+                        email: user.email,
+                        tipo: "cliente",
+                        isAdmin: false,
+                        status: "ativo",
+                        fotoUrl: user.photoURL || "",
+                        dataCriacao: new Date().toISOString(),
+                        enderecoCliente: []
+                    });
+                    mostrarNotificacao("Conta criada com sucesso via Google!");
+                } else if (userDoc.data().status === "suspenso") {
+                    mostrarNotificacao("Esta conta Google está suspensa pelo administrador.", "error");
+                    await signOut(auth);
+                    localStorage.removeItem('nordgo_cep_usuario');
+                    cadastrandoUsuario = false; 
+                    return;
+                } else {
+                    mostrarNotificacao("Bem-vindo de volta!");
+                }
+
+                setTimeout(() => {
+                    window.location.href = '../index.html';
+                }, 1000);
+
+            } catch (e) { 
+                cadastrandoUsuario = false; 
+                console.error("Erro completo no fluxo do Google Auth:", e);
+                mostrarNotificacao("Falha no login Google ou permissão negada.", "error"); 
+            }
+        };
+    </script>
+</body>
+</html>

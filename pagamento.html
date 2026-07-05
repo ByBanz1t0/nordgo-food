@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pagamento Pix | NordGo</title>
+    <link rel="icon" type="image/png" href="../assets/images/favicon.png">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/styles.css">
+    <style>
+        .body-pagamento {
+            background-color: #f9f9f9;
+            font-family: 'Poppins', sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        .card-pagamento {
+            background: #ffffff;
+            max-width: 480px;
+            width: 100%;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            padding: 30px;
+            text-align: center;
+            box-sizing: border-box;
+        }
+        .logo-pix {
+            color: #32bcad;
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+        .valor-pix {
+            font-size: 32px;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin: 10px 0;
+        }
+        .box-chave {
+            background-color: #f4f6f8;
+            border: 1px dashed #32bcad;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            cursor: pointer;
+            position: relative;
+            transition: background 0.2s;
+        }
+        .box-chave:hover {
+            background-color: #eef9f8;
+        }
+        .lbl-chave {
+            font-size: 11px;
+            text-transform: uppercase;
+            color: #718096;
+            display: block;
+            margin-bottom: 4px;
+        }
+        .txt-chave {
+            font-size: 13px;
+            font-weight: 600;
+            color: #2d3748;
+            word-break: break-all;
+            display: block;
+            max-height: 50px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .status-container {
+            margin-top: 25px;
+            padding: 15px;
+            border-radius: 10px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+        .status-container.aguardando {
+            background-color: #fffaf0;
+            color: #dd6b20;
+            border: 1px solid #fbd38d;
+        }
+        .status-container.sucesso {
+            background-color: #f0fff4;
+            color: #38a169;
+            border: 1px solid #9ae6b4;
+            display: block;
+        }
+        .spinner-pix {
+            border: 3px solid #feebc8;
+            border-top: 3px solid #dd6b20;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .info-aviso {
+            font-size: 12px;
+            color: #718096;
+            margin-top: 15px;
+            line-height: 1.5;
+        }
+        .sucesso-icon {
+            font-size: 45px;
+            color: #38a169;
+            margin-bottom: 10px;
+            animation: popUp 0.4s ease-out;
+        }
+        @keyframes popUp {
+            0% { transform: scale(0.5); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body class="body-pagamento">
+
+    <div class="card-pagamento">
+        <div id="bloco-processamento-pix">
+            <div class="logo-pix"><i class="fa-solid fa-pix"></i></div>
+            <h2>Copia e Cola Gerado!</h2>
+            <p>Clique na caixa abaixo para copiar o código Pix com o valor já embutido.</p>
+            
+            <div class="valor-pix" id="display-valor">R$ 0,00</div>
+
+            <div class="box-chave" id="btn-copiar-chave" title="Clique para copiar o código">
+                <span class="lbl-chave" id="lbl-copiar-status">Clique para copiar o código Pix <i class="fa-regular fa-copy"></i></span>
+                <span class="txt-chave" id="display-copia-cola">Gerando código Pix...</span>
+            </div>
+
+            <div class="status-container aguardando" id="status-pagamento">
+                <div class="spinner-pix"></div>
+                <span>Aguardando a confirmação do seu Pix...</span>
+            </div>
+
+            <p class="info-aviso">
+                💡 Ao colar o código no aplicativo do seu banco, o valor e os dados do destinatário aparecerão preenchidos automaticamente.
+            </p>
+        </div>
+
+        <div id="bloco-sucesso-pix" class="hidden">
+            <div class="sucesso-icon"><i class="fa-solid fa-circle-check"></i></div>
+            <h2>Pagamento Confirmado!</h2>
+            <p>Seu pagamento foi reconhecido com sucesso pelo nosso robô.</p>
+            <div class="status-container sucesso">
+                <span>🎉 Pedido enviado para a cozinha!</span>
+            </div>
+            <p class="info-aviso">Redirecionando você de volta para a página inicial...</p>
+        </div>
+    </div>
+
+    <script type="module">
+        import { db } from '../js/firebase-config.js';
+        import { doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
+
+        // =========================================================================
+        // ⚙️ CHAVE PIX ATUALIZADA (Telefone no formato internacional padrão BACEN)
+        // =========================================================================
+        const MINHA_CHAVE_PIX = '+5582998116884'; 
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const pedidoId = urlParams.get('id');
+
+        if (!pedidoId) {
+            alert("ID do pedido inválido ou ausente.");
+            window.location.href = "../index.html";
+        }
+
+        let codigoPixCopiaColaGlobal = "";
+
+        // --- GERADOR MANUAL DO PAYLOAD PIX (PADRÃO EMV CO BR CODE) ---
+        function gerarPayloadPixEstatico(chave, valor, txid = '***') {
+            const f = (id, conteúdo) => id + String(conteúdo.length).padStart(2, '0') + conteúdo;
+            
+            const merchantAccount = f('00', 'br.gov.bcb.pix') + f('01', chave);
+            // Linha com erro removida, pois o 'additionalData' não era utilizado aqui.
+
+            const payloadBase = [
+                f('00', '01'),                      // Payload Format Indicator
+                f('26', merchantAccount),            // Merchant Account Information
+                f('52', '0000'),                     // Merchant Category Code
+                f('53', '986'),                      // Transaction Currency (BRL)
+                f('54', valor.toFixed(2)),           // Transaction Amount
+                f('58', 'BR'),                       // Country Code
+                f('59', 'EZEQUIAS PEREIRA'),         // Menos de 25 caracteres e limpo
+                f('60', 'ARAPIRACA'),                // Maiúsculo e sem erros
+                f('62', f('05', txid)),              // Utiliza o txid padrão '***' com segurança
+                '6304'                               // CRC16 Checksum Indicator
+            ].join('');
+
+            return payloadBase + calcularCRC16(payloadBase);
+        }
+
+        function calcularCRC16(str) {
+            let crc = 0xFFFF;
+            for (let c = 0; c < str.length; c++) {
+                crc ^= str.charCodeAt(c) << 8;
+                for (let i = 0; i < 8; i++) {
+                    if ((crc & 0x8000) !== 0) crc = (crc << 1) ^ 0x1021;
+                    else crc <<= 1;
+                }
+            }
+            return (crc & 0xFFFF).toString(16).toUpperCase().padStart(4, '0');
+        }
+
+        document.getElementById('btn-copiar-chave').onclick = () => {
+            if (!codigoPixCopiaColaGlobal) return;
+            
+            navigator.clipboard.writeText(codigoPixCopiaColaGlobal).then(() => {
+                const lbl = document.getElementById('lbl-copiar-status');
+                lbl.innerHTML = '<span style="color: #32bcad; font-weight: 600;">¡Código Copiado! Base copiada</span>';
+                setTimeout(() => {
+                    lbl.innerHTML = 'Clique para copiar o código Pix <i class="fa-regular fa-copy"></i>';
+                }, 2500);
+            }).catch(err => console.error("Erro ao copiar", err));
+        };
+
+        // --- ESCUTA EM TEMPO REAL DO FIRESTORE ---
+        const pedidoRef = doc(db, "pedidos", pedidoId);
+
+        const unsubscribe = onSnapshot(pedidoRef, (docSnap) => {
+            if (docSnap.exists()) {
+                const dadosPedido = docSnap.data();
+                const valorTotal = dadosPedido.total;
+                
+                document.getElementById('display-valor').innerText = `R$ ${valorTotal.toFixed(2).replace('.', ',')}`;
+
+                codigoPixCopiaColaGlobal = gerarPayloadPixEstatico(MINHA_CHAVE_PIX, valorTotal);
+                document.getElementById('display-copia-cola').innerText = codigoPixCopiaColaGlobal;
+
+                // CORRIGIDO: Agora a tela reconhece o pagamento assim que ele entra em 'preparo'
+                if (dadosPedido.status === 'preparo') {
+                    document.getElementById('bloco-processamento-pix').classList.add('hidden');
+                    document.getElementById('bloco-sucesso-pix').classList.remove('hidden');
+
+                    unsubscribe();
+
+                    setTimeout(() => {
+                        window.location.href = "../index.html";
+                    }, 4000);
+                }
+            } else {
+                console.error("Pedido não localizado no banco.");
+            }
+        }, (error) => {
+            console.error("Erro no listener do Pix:", error);
+        });
+    </script>
+</body>
+</html>

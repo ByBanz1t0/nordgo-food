@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carregando Loja... | NordGo</title>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <link rel="icon" type="image/png" href="../assets/images/favicon.png">
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="../css/styles-loja.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="loja-detalhe">
+    <div id="toast-container" class="toast-container"></div>
+
+    <header class="main-header">
+        <div class="header-container">
+            <div class="header-left">
+                <div class="pill-badge pill-back" onclick="history.back()">
+                    <img src="../assets/images/voltar.png" alt="Voltar" class="back-icon-img">
+                    <span class="location-text">Voltar</span>
+                </div>
+            </div>
+            <div class="header-center">
+                <div class="pill-badge pill-page-title">
+                    <span id="header-nome-loja" class="header-nome-text">Carregando...</span>
+                </div>
+            </div>
+            <div class="header-right" id="user-area">
+                <div class="header-user-placeholder"></div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <div id="loja-content">
+            <section class="loja-hero">
+                <div class="loja-banner" id="loja-img-fundo"></div>
+                <div class="loja-perfil">
+                    <div class="loja-logo-container">
+                        <img id="detalhe-logo-loja" 
+                             src="../assets/images/default-loja.png" 
+                             alt="Logo" 
+                             class="loja-logo-circular"
+                             onerror="this.src='../assets/images/default-loja.png'">
+                    </div>
+                    <h1 id="detalhe-nome-loja">Nome da Loja</h1>
+                    <p id="detalhe-categoria-loja" class="tag-categoria">Categoria</p>
+                    <div class="loja-meta">
+                        <span class="meta-item"><i class="fa-solid fa-star"></i> <span id="detalhe-avaliacao">0.0</span></span>
+                        <span class="divisor">•</span>
+                        <span class="meta-item" id="detalhe-tempo">-- min</span>
+                        <span class="divisor">•</span>
+                        <span class="meta-item" id="detalhe-frete">---</span>
+                    </div>
+                    <p id="detalhe-descricao" class="loja-desc"></p>
+                </div>
+            </section>
+
+            <!-- SEÇÃO DE CUPONS DA LOJA (Carrossel Horizontal limpo) -->
+            <section id="section-cupons-loja" class="hidden secao-cupons-container">
+                <h3 class="titulo-cupons-loja">
+                    <i class="fa-solid fa-ticket"></i> Cupons Disponíveis nesta Loja
+                </h3>
+                <div id="lista-cupons-loja" class="horizontal-scroll-container lista-cupons-carrossel"></div>
+            </section>
+
+            <section class="cardapio-section">
+                <div id="container-mais-pedidos" class="hidden">
+                    <h2 class="titulo-sessao">Mais Pedidos</h2>
+                    <div id="lista-mais-pedidos" class="horizontal-scroll-container"></div>
+                </div>
+                <div id="cardapio-agrupado"></div>
+            </section>
+        </div>
+    </main>
+
+    <div id="modal-customizar-produto" class="modal-overlay-public">
+        <div class="modal-content-public animate-pop">
+            <div class="modal-public-header">
+                <div class="header-info-prod-modal">
+                    <h2 id="modal-cust-titulo-produto">Customizar Item</h2>
+                    <p id="modal-cust-desc-produto">Detalhes do item selecionado.</p>
+                </div>
+                <button class="btn-fechar-modal-public" id="btn-fechar-cust">&times;</button>
+            </div>
+            
+            <div class="modal-public-body">
+                <div id="container-grupos-customizacao"></div>
+            </div>
+
+            <div class="modal-public-footer">
+                <div class="footer-preco-total-bloco">
+                    <span>Total do item</span>
+                    <h3 id="txt-preco-dinamico-modal">R$ 0,00</h3>
+                </div>
+                <button id="btn-confirmar-customizacao" class="btn-adicionar-customizado">
+                    <i class="fa-solid fa-cart-plus"></i> Adicionar ao Carrinho
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { db } from '../js/firebase-config.js';
+        import { doc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
+        import { atualizarCarrinhoFlutuante } from '../js/cart-helper.js';
+
+        const params = new URLSearchParams(window.location.search);
+        const lojaId = params.get('loja') || params.get('id'); 
+        let nomeLojaGlobal = ""; 
+        let fotosCategorias = {}; 
+        
+        let produtosCarregadosLocais = [];
+        let produtoSelecionadoAtual = null;
+
+        if (!lojaId) { 
+            window.location.href = '../index.html'; 
+        } else { 
+            inicializarPagina(); 
+        }
+
+        async function inicializarPagina() {
+            try {
+                const catSnap = await getDocs(collection(db, "categorias"));
+                catSnap.forEach(docCat => {
+                    const c = docCat.data();
+                    if (c.nome && c.fotoArquivo) {
+                        fotosCategorias[c.nome] = c.fotoArquivo;
+                    }
+                });
+
+                await carregarDadosLoja();
+                await carregarCuponsLoja();
+                atualizarCarrinhoFlutuante();
+            } catch (error) {
+                console.error("Erro na inicialização:", error);
+            }
+        }
+
+        async function carregarDadosLoja() {
+            const lojaRef = doc(db, "lojas", lojaId);
+            const lojaSnap = await getDoc(lojaRef);
+            
+            if (!lojaSnap.exists()) { 
+                window.location.href = '../index.html'; 
+                return; 
+            }
+
+            const loja = lojaSnap.data();
+
+            if (loja.status !== 'aprovado') {
+                document.title = "Estabelecimento Indisponível | Nordgo Food";
+                document.getElementById('header-nome-loja').innerText = "Indisponível";
+                
+                document.getElementById('loja-content').innerHTML = `
+                    <div class="loja-indisponivel-container" style="text-align: center; padding: 5rem 1rem; font-family: 'Poppins', sans-serif;">
+                        <i class="fa-solid fa-store-slash" style="font-size: 4rem; color: #ff6400; margin-bottom: 1.5rem;"></i>
+                        <h2 style="color: #2f3542; font-size: 1.5rem; margin-bottom: 0.5rem; font-weight: 600;">Estabelecimento Indisponível</h2>
+                        <p style="color: #747d8c; margin-bottom: 2rem; font-size: 0.95rem;">Desculpe, este estabelecimento está temporariamente fechado ou foi desativado pela plataforma.</p>
+                        <button onclick="window.location.href='../index.html'" class="btn-principal" style="max-width: 200px; margin: 0 auto; display: block;">Voltar para o Início</button>
+                    </div>
+                `;
+                return;
+            }
+
+            nomeLojaGlobal = loja.nome; 
+            renderizarDadosLoja(loja);
+
+            const q = query(collection(db, "produtos"), where("lojaId", "==", lojaId));
+            const querySnapshot = await getDocs(q);
+            
+            const produtos = [];
+            querySnapshot.forEach(doc => produtos.push({ id: doc.id, ...doc.data() }));
+            
+            produtosCarregadosLocais = produtos;
+            renderizarCardapio(produtos);
+        }
+
+        function renderizarDadosLoja(loja) {
+            document.title = `${loja.nome} | Nordgo Food`;
+
+            document.getElementById('header-nome-loja').innerText = loja.nome;
+            document.getElementById('detalhe-nome-loja').innerText = loja.nome; 
+            document.getElementById('detalhe-categoria-loja').innerText = loja.categoria;
+            document.getElementById('detalhe-descricao').innerText = loja.descricao || "";
+            document.getElementById('detalhe-avaliacao').innerText = loja.avaliacao || "Novo";
+            document.getElementById('detalhe-tempo').innerText = `${loja.tempoEntrega || '20-30'} min`;
+            
+            document.getElementById('detalhe-logo-loja').src = loja.logoUrl || loja.logoLoja || '../assets/images/default-store.png'; 
+            
+            const banner = document.getElementById('loja-img-fundo');
+            if (loja.bannerLoja) { 
+                banner.style.backgroundImage = `url('${loja.bannerLoja}')`; 
+            } else { 
+                banner.style.backgroundColor = loja.temaLoja || '#ff6400'; 
+            }
+            
+            const freteElem = document.getElementById('detalhe-frete');
+            freteElem.innerText = (!loja.frete || loja.frete == 0) 
+                ? "Frete Grátis" 
+                : parseFloat(loja.frete).toLocaleString('pt-br', { style: 'currency', currency: 'BRL' });
+        }
+
+        // BUSCA E RENDERIZAÇÃO DE CUPONS ATIVOS COM A NOVA CLASSE CSS
+        async function carregarCuponsLoja() {
+            const sectionCupons = document.getElementById('section-cupons-loja');
+            const listaCupons = document.getElementById('lista-cupons-loja');
+            if (!listaCupons) return;
+
+            try {
+                const q = query(collection(db, "cupons"), where("lojaId", "==", lojaId));
+                const snap = await getDocs(q);
+                
+                listaCupons.innerHTML = "";
+                let possuiCupomValido = false;
+                const agora = new Date();
+
+                snap.forEach(docSnap => {
+                    const c = docSnap.data();
+                    const expirado = c.dataExpiracao ? new Date(c.dataExpiracao) < agora : false;
+                    const esgotado = c.limiteUsos && (c.usosAtuais >= c.limiteUsos);
+
+                    if (!expirado && !esgotado) {
+                        possuiCupomValido = true;
+                        
+                        const descontoTexto = c.tipo === 'porcentagem' ? `${c.valor}% OFF` : `R$ ${c.valor.toFixed(2)} OFF`;
+                        const minimoTexto = c.valorMinimo > 0 ? `Min: R$ ${c.valorMinimo.toFixed(2)}` : 'Sem mínimo';
+
+                        const cardCupom = document.createElement('div');
+                        // MODIFICADO: Passou a carregar os estilos de classe mapeados do CSS regional
+                        cardCupom.className = "card-cupom-individual";
+                        cardCupom.title = "Clique para copiar o código";
+                        
+                        cardCupom.onclick = () => {
+                            navigator.clipboard.writeText(c.codigo);
+                            if (typeof mostrarNotificacao === "function") {
+                                mostrarNotificacao(`Código ${c.codigo} copiado!`);
+                            } else {
+                                alert(`Código ${c.codigo} copiado para a área de transferência!`);
+                            }
+                        };
+
+                        cardCupom.innerHTML = `
+                            <span>Cupom Próprio</span>
+                            <h4>${c.codigo}</h4>
+                            <div>
+                                <span>${descontoTexto}</span>
+                                <span>${minimoTexto}</span>
+                            </div>
+                        `;
+                        listaCupons.appendChild(cardCupom);
+                    }
+                });
+
+                if (possuiCupomValido) {
+                    sectionCupons.classList.remove('hidden');
+                }
+
+            } catch (err) {
+                console.error("Erro ao processar cupons da loja:", err);
+            }
+        }
+
+        function obterImagemProduto(p) {
+            if (p.imagem && p.imagem.trim() !== "" && !p.imagem.includes("placeholder.png")) {
+                return p.imagem;
+            }
+            const arquivoCat = fotosCategorias[p.categoria];
+            if (arquivoCat) return `../assets/images/${arquivoCat}`;
+            return '../assets/images/placeholder.png';
+        }
+
+        function criarCardQuadradoHTML(p, customClass = "") {
+            const indisponivel = p.disponibilidade === false;
+            const imgUrl = obterImagemProduto(p);
+            
+            const cliqueAcao = p.temVariacoes 
+                ? `window.abrirModalCustomizacao('${p.id}')`
+                : `adicionarAoCarrinho('${p.id}', '${p.nome}', ${p.preco}, '${imgUrl}', '${lojaId}', '${nomeLojaGlobal}')`;
+
+            return `
+                <div class="card-produto-quadrado ${customClass} ${indisponivel ? 'prod-esgotado' : ''}">
+                    <img src="${imgUrl}" 
+                         alt="${p.nome}"
+                         onerror="this.src='../assets/images/placeholder.png'">
+                    ${indisponivel ? '<span class="badge-esgotado">Esgotado</span>' : ''}
+                    <div class="info-overlay">
+                        <h3>${p.nome}</h3>
+                        <span class="preco-tag">${p.temVariacoes ? 'A partir de ' : ''}R$ ${p.preco.toLocaleString('pt-br', {minimumFractionDigits: 2})}</span>
+                    </div>
+                    ${!indisponivel ? `
+                        <button class="btn-add-carrinho" onclick="${cliqueAcao}">
+                            <i class="fa-solid ${p.temVariacoes ? 'fa-sliders' : 'fa-plus'}"></i><i class="fa-solid fa-cart-shopping"></i>
+                        </button>` : ''}
+                </div>
+            `;
+        }
+
+        function criarCardHorizontalHTML(p) {
+            const indisponivel = p.disponibilidade === false;
+            const imgUrl = obterImagemProduto(p);
+
+            const cliqueAcao = p.temVariacoes 
+                ? `window.abrirModalCustomizacao('${p.id}')`
+                : `adicionarAoCarrinho('${p.id}', '${p.nome}', ${p.preco}, '${imgUrl}', '${lojaId}', '${nomeLojaGlobal}')`;
+
+            return `
+                <div class="card-produto-horizontal ${indisponivel ? 'prod-esgotado' : ''}" onclick="${p.temVariacoes && !indisponivel ? cliqueAcao : ''}" style="${p.temVariacoes ? 'cursor:pointer;' : ''}">
+                    <div class="prod-foto-lateral">
+                        <img src="${imgUrl}" 
+                            alt="${p.nome}"
+                            onerror="this.src='../assets/images/placeholder.png'">
+                    </div>
+                    <div class="prod-conteudo">
+                        <div class="prod-textos">
+                            <div class="prod-header-info">
+                                <h4>${p.nome}</h4>
+                            </div>
+                            <p class="prod-desc-completa">${p.descricao || 'Nenhuma descrição disponível.'}</p>
+                        </div>
+                        
+                        <div class="prod-acoes-lateral" onclick="event.stopPropagation();">
+                            <span class="preco-detalhe">${p.temVariacoes ? 'A partir de ' : ''}R$ ${p.preco.toLocaleString('pt-br', {minimumFractionDigits: 2})}</span>
+                            
+                            ${!indisponivel ? `
+                                <button class="btn-add-carrinho" onclick="${cliqueAcao}">
+                                    <i class="fa-solid ${p.temVariacoes ? 'fa-sliders' : 'fa-plus'}"></i><i class="fa-solid fa-cart-shopping"></i>
+                                </button>` : ''}
+                                
+                            <span class="status-badge ${indisponivel ? 'status-indisponivel' : 'status-disponivel'}">
+                                <i class="fa-solid ${indisponivel ? 'fa-circle-xmark' : 'fa-circle-check'}"></i> 
+                                ${indisponivel ? 'Indisponível' : 'Disponível'}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderizarCardapio(produtos) {
+            const containerMaisPedidos = document.getElementById('container-mais-pedidos');
+            const listaMaisPedidos = document.getElementById('lista-mais-pedidos');
+            const cardapioAgrupado = document.getElementById('cardapio-agrupado');
+            
+            listaMaisPedidos.innerHTML = ""; 
+            cardapioAgrupado.innerHTML = "";
+
+            const maisPedidos = produtos.filter(p => p.destaque === true);
+            if (maisPedidos.length > 0) {
+                containerMaisPedidos.classList.remove('hidden');
+                maisPedidos.forEach(p => { listaMaisPedidos.innerHTML += criarCardQuadradoHTML(p, "scroll-item"); });
+            }
+
+            const categoriesEncontradas = {};
+            produtos.forEach(p => {
+                const cat = p.categoria || "Outros";
+                if (!categoriesEncontradas[cat]) categoriesEncontradas[cat] = [];
+                categoriesEncontradas[cat].push(p);
+            });
+
+            Object.keys(categoriesEncontradas).sort().forEach(catNome => {
+                const produtosDaCat = categoriesEncontradas[catNome].sort((a, b) => a.nome.localeCompare(b.nome));
+                let htmlCategoria = `
+                    <div class="categoria-bloco">
+                        <h2 class="titulo-categoria">${catNome}</h2>
+                        <div class="grid-produtos-detalhado">`;
+                
+                produtosDaCat.forEach(p => { htmlCategoria += criarCardHorizontalHTML(p); });
+                
+                htmlCategoria += `</div></div>`;
+                cardapioAgrupado.innerHTML += htmlCategoria;
+            });
+        }
+
+        const overlayCust = document.getElementById('modal-customizar-produto');
+        const containerGrupos = document.getElementById('container-grupos-customizacao');
+        const txtPrecoModal = document.getElementById('txt-preco-dinamico-modal');
+
+        window.abrirModalCustomizacao = (idProduto) => {
+            const prod = produtosCarregadosLocais.find(item => item.id === idProduto);
+            if (!prod) return;
+
+            produtoSelecionadoAtual = prod;
+            document.getElementById('modal-cust-titulo-produto').innerText = prod.nome;
+            document.getElementById('modal-cust-desc-produto').innerText = prod.descricao || 'Selecione as opções desejadas abaixo.';
+            
+            containerGrupos.innerHTML = "";
+
+            const grupos = prod.grupoDeOpcoes || [];
+
+            grupos.forEach((grupo, idxGrupo) => {
+                const divGrupo = document.createElement('div');
+                divGrupo.className = "bloco-grupo-escolha";
+                
+                const textoObrigatorio = grupo.obrigatorio 
+                    ? `<span class="badge-obrigatorio-tag">Obrigatório</span>` 
+                    : `<span class="badge-opcional-tag">Opcional</span>`;
+
+                const subtextoLimite = grupo.maxEscolhas > 1 
+                    ? `<small class="txt-limite-escolhas">Escolha até ${grupo.maxEscolhas} opções</small>`
+                    : '';
+
+                divGrupo.innerHTML = `
+                    <div class="header-grupo-escolha-meta">
+                        <div>
+                            <h4>${grupo.titulo}</h4>
+                            ${subtextoLimite}
+                        </div>
+                        ${textoObrigatorio}
+                    </div>
+                    <div class="lista-opcoes-grupo-inputs"></div>
+                `;
+
+                const containerInputs = divGrupo.querySelector('.lista-opcoes-grupo-inputs');
+
+                grupo.opcoes.forEach((opcao, idxOpcao) => {
+                    const divOpcao = document.createElement('div');
+                    divOpcao.className = "linha-opcao-item-custom";
+
+                    const inputType = grupo.maxEscolhas === 1 ? 'radio' : 'checkbox';
+                    const inputName = `grupo_${grupo.idGrupo || idxGrupo}`;
+                    const inputId = `input_${inputName}_${idxOpcao}`;
+
+                    const txtPrecoAdicional = opcao.precoAdicional > 0 
+                        ? `<span class="preco-adicional-tag-item">+ R$ ${opcao.precoAdicional.toFixed(2)}</span>`
+                        : `<span class="preco-adicional-tag-item gratis">Grátis</span>`;
+
+                    divOpcao.innerHTML = `
+                        <label for="${inputId}" class="label-wrapper-opcao-public">
+                            <div class="esquerda-label-bloco">
+                                <input type="${inputType}" 
+                                       id="${inputId}" 
+                                       name="${inputName}" 
+                                       value="${idxOpcao}" 
+                                       data-preco="${opcao.precoAdicional}"
+                                       data-nome="${opcao.nome}"
+                                       data-grupo="${grupo.titulo}"
+                                       data-idgrupo="${grupo.idGrupo || idxGrupo}"
+                                       data-max="${grupo.maxEscolhas}">
+                                <span class="nome-opcao-texto-span">${opcao.nome}</span>
+                            </div>
+                            ${txtPrecoAdicional}
+                        </label>
+                    `;
+
+                    if (inputType === 'checkbox') {
+                        const inputCheckbox = divOpcao.querySelector('input');
+                        inputCheckbox.addEventListener('change', (e) => {
+                            const marcados = containerInputs.querySelectorAll('input:checked');
+                            if (marcados.length > grupo.maxEscolhas) {
+                                e.target.checked = false; 
+                                alert(`Você pode escolher no máximo ${grupo.maxEscolhas} opções para o grupo: ${grupo.titulo}`);
+                            }
+                            atualizarPrecoDinamicoModal();
+                        });
+                    } else {
+                        divOpcao.querySelector('input').addEventListener('change', atualizarPrecoDinamicoModal);
+                    }
+
+                    containerInputs.appendChild(divOpcao);
+                });
+
+                containerGrupos.appendChild(divGrupo);
+            });
+
+            atualizarPrecoDinamicoModal();
+            overlayCust.classList.add('active');
+        };
+
+        function atualizarPrecoDinamicoModal() {
+            if (!produtoSelecionadoAtual) return;
+
+            let precoAcumulado = parseFloat(produtoSelecionadoAtual.preco) || 0;
+            const inputsMarcados = containerGrupos.querySelectorAll('input:checked');
+
+            inputsMarcados.forEach(input => {
+                precoAcumulado += parseFloat(input.dataset.preco) || 0;
+            });
+
+            txtPrecoModal.innerText = precoAcumulado.toLocaleString('pt-br', { style: 'currency', currency: 'BRL' });
+        }
+
+        document.getElementById('btn-confirmar-customizacao').onclick = () => {
+            if (!produtoSelecionadoAtual) return;
+
+            const gruposConfig = produtoSelecionadoAtual.grupoDeOpcoes || [];
+            let validacaoSucesso = true;
+            let nomesOpcoesEscolhidas = [];
+            let precoTotalItem = parseFloat(produtoSelecionadoAtual.preco) || 0;
+
+            for (let i = 0; i < gruposConfig.length; i++) {
+                const grupo = gruposConfig[i];
+                const inputName = `grupo_${grupo.idGrupo || i}`;
+                const marcados = containerGrupos.querySelectorAll(`input[name="${inputName}"]:checked`);
+
+                if (grupo.obrigatorio && marcados.length === 0) {
+                    alert(`Por favor, faça uma escolha obrigatória no grupo: ${grupo.titulo}`);
+                    validacaoSucesso = false;
+                    break;
+                }
+            }
+
+            if (!validacaoSucesso) return;
+
+            const marcadosFinais = containerGrupos.querySelectorAll('input:checked');
+            marcadosFinais.forEach(input => {
+                nomesOpcoesEscolhidas.push(input.dataset.nome);
+                precoTotalItem += parseFloat(input.dataset.preco) || 0;
+            });
+
+            let nomeProdutoCustomizado = produtoSelecionadoAtual.nome;
+            if (nomesOpcoesEscolhidas.length > 0) {
+                nomeProdutoCustomizado += ` (${nomesOpcoesEscolhidas.join(', ')})`;
+            }
+
+            const imgUrl = obterImagemProduto(produtoSelecionadoAtual);
+            const idVirtualUnico = `${produtoSelecionadoAtual.id}_v_${Date.now()}`;
+
+            if (typeof window.adicionarAoCarrinho === "function") {
+                window.adicionarAoCarrinho(
+                    idVirtualUnico, 
+                    nomeProdutoCustomizado, 
+                    precoTotalItem, 
+                    imgUrl, 
+                    lojaId, 
+                    nomeLojaGlobal
+                );
+            } else {
+                adicionarAoCarrinho(
+                    idVirtualUnico, 
+                    nomeProdutoCustomizado, 
+                    precoTotalItem, 
+                    imgUrl, 
+                    lojaId, 
+                    nomeLojaGlobal
+                );
+            }
+
+            overlayCust.classList.remove('active');
+            produtoSelecionadoAtual = null;
+        };
+
+        document.getElementById('btn-fechar-cust').onclick = () => {
+            overlayCust.classList.remove('active');
+            produtoSelecionadoAtual = null;
+        };
+
+        overlayCust.addEventListener('click', (e) => {
+            if (e.target === overlayCust) {
+                overlayCust.classList.remove('active');
+                produtoSelecionadoAtual = null;
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meu Perfil | NordGo</title>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <link rel="icon" type="image/png" href="../assets/images/favicon.png">
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="../css/styles-perfil.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div id="toast-container" class="toast-container"></div>
+
+    <header class="main-header">
+        <div class="header-container">
+            <div class="header-left">
+                <div class="pill-badge pill-back" id="btn-voltar-index">
+                    <img src="../assets/images/voltar.png" alt="Voltar" class="back-icon-img">
+                    <span class="location-text">Voltar</span>
+                </div>
+            </div>
+            <div class="header-center">
+                <div class="pill-badge pill-page-title">
+                    <span class="page-title-text">Meu Perfil</span>
+                </div>
+            </div>
+            <div class="header-right" id="user-area">
+                <div class="user-loading-placeholder"></div>
+            </div>
+        </div>
+    </header>
+
+    <main class="perfil-screen">
+        <div class="perfil-dashboard-grid">
+            
+            <div class="card-resumo-perfil" id="trigger-modal-dados">
+                <div class="card-resumo-icon"><i class="fa-regular fa-user"></i></div>
+                <div class="card-resumo-info">
+                    <img id="avatar-dashboard-preview" src="../assets/images/default-user.png" alt="Avatar">
+                    <div class="textos-resumo">
+                        <h3>Meus Dados</h3>
+                        <p id="txt-resumo-nome">Carregando...</p>
+                        <small>Editar foto, nome, telefone e conta</small>
+                    </div>
+                </div>
+                <div class="card-resumo-arrow"><i class="fa-solid fa-chevron-right"></i></div>
+            </div>
+
+            <div class="card-resumo-perfil" id="trigger-modal-enderecos">
+                <div class="card-resumo-icon"><i class="fa-solid fa-location-dot"></i></div>
+                <div class="card-resumo-info">
+                    <div class="textos-resumo">
+                        <h3>Endereços de Entrega</h3>
+                        <p id="txt-resumo-enderecos">Nenhum endereço cadastrado</p>
+                        <small>Gerenciar locais de entrega salvos</small>
+                    </div>
+                </div>
+                <div class="card-resumo-arrow"><i class="fa-solid fa-chevron-right"></i></div>
+            </div>
+
+            <div class="card-resumo-perfil" id="trigger-modal-cartoes">
+                <div class="card-resumo-icon"><i class="fa-solid fa-credit-card"></i></div>
+                <div class="card-resumo-info">
+                    <div class="textos-resumo">
+                        <h3>Cartões Salvos</h3>
+                        <p id="txt-resumo-cartoes">Nenhum cartão salvo</p>
+                        <small>Gerenciar cartões de crédito e débito</small>
+                    </div>
+                </div>
+                <div class="card-resumo-arrow"><i class="fa-solid fa-chevron-right"></i></div>
+            </div>
+
+        </div>
+    </main>
+
+    <div class="modal-perfil-wrapper" id="modal-dados-basicos">
+        <div class="modal-perfil-container">
+            <header class="modal-perfil-header">
+                <h3>Dados da Conta</h3>
+                <button class="btn-fechar-modal-perfil" data-modal="modal-dados-basicos"><i class="fa-solid fa-xmark"></i></button>
+            </header>
+            <div class="modal-perfil-body login-form">
+                <div class="perfil-foto-container">
+                    <label for="input-foto-perfil" class="wrapper-foto">
+                        <img id="foto-perfil-display" src="../assets/images/default-user.png" alt="Sua Foto" class="foto-perfil-edit">
+                        <div class="overlay-upload"><i class="fa-solid fa-camera"></i></div>
+                    </label>
+                    <input type="file" id="input-foto-perfil" class="input-file-hidden" accept="image/*">
+                    <p class="instrucao-upload">Clique para alterar foto</p>
+                </div>
+                
+                <label for="perfil-nome">Nome Completo *</label>
+                <input type="text" id="perfil-nome" placeholder="Seu nome" required>
+
+                <label for="perfil-email">E-mail</label>
+                <input type="email" id="perfil-email" readonly class="input-bloqueado">
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="perfil-cpf">CPF (Bloqueado para alteração)</label>
+                        <input type="text" id="perfil-cpf" placeholder="000.000.000-00" maxlength="14">
+                    </div>
+                    <div class="form-group">
+                        <label for="perfil-telefone">Telefone *</label>
+                        <input type="text" id="perfil-telefone" placeholder="(00) 00000-0000" maxlength="15" required>
+                    </div>
+                </div>
+                
+                <button id="btn-salvar-perfil" class="btn-principal">Salvar Alterações</button>
+                <div class="divider-perfil"></div>
+                <button id="btn-logout" class="btn-secundario">Sair da Conta</button>
+                <button id="btn-deletar-conta" class="btn-perigo">Excluir Conta Permanentemente</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-perfil-wrapper" id="modal-enderecos">
+        <div class="modal-perfil-container">
+            <header class="modal-perfil-header">
+                <h3>Endereços Cadastrados</h3>
+                <button class="btn-fechar-modal-perfil" data-modal="modal-enderecos"><i class="fa-solid fa-xmark"></i></button>
+            </header>
+            <div class="modal-perfil-body">
+                <button id="btn-adicionar-novo-end-modal" class="btn-adicionar-modal-item"><i class="fa-solid fa-plus"></i> Cadastrar Novo Endereço</button>
+                
+                <div id="form-endereco-inline" class="hidden inline-form-box login-form">
+                    <h4 id="titulo-form-endereco">Novo Endereço</h4>
+                    <input type="hidden" id="edit-endereco-index">
+                    <div class="form-row">
+                        <input type="text" id="end-apelido" placeholder="Apelido (Ex: Casa, Trabalho)">
+                        <input type="text" id="end-cep" placeholder="CEP" maxlength="9">
+                    </div>
+                    <div class="form-row">
+                        <input type="text" id="end-bairro" placeholder="Bairro">
+                        <input type="text" id="end-cidade-uf" placeholder="Cidade - UF" readonly class="input-bloqueado">
+                    </div>
+                    <input type="text" id="end-rua" placeholder="Rua / Avenida">
+                    <div class="form-row">
+                        <input type="text" id="end-numero" placeholder="Número">
+                        <input type="text" id="end-obs" placeholder="Complemento / Obs">
+                    </div>
+                    <label class="label-checkbox"><input type="checkbox" id="end-padrao"> Definir como padrão</label>
+                    <div class="form-actions-inline">
+                        <button id="btn-confirmar-endereco" class="btn-principal">Salvar</button>
+                        <button id="btn-cancelar-endereco" class="btn-secundario">Cancelar</button>
+                    </div>
+                </div>
+
+                <div id="container-lista-enderecos" class="lista-itens-perfil"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-perfil-wrapper" id="modal-cartoes">
+        <div class="modal-perfil-container">
+            <header class="modal-perfil-header">
+                <h3>Cartões Salvos</h3>
+                <button class="btn-fechar-modal-perfil" data-modal="modal-cartoes"><i class="fa-solid fa-xmark"></i></button>
+            </header>
+            <div class="modal-perfil-body">
+                <button id="btn-adicionar-novo-card-modal" class="btn-adicionar-modal-item"><i class="fa-solid fa-plus"></i> Adicionar Novo Cartão</button>
+                
+                <div id="form-cartao-inline" class="hidden inline-form-box login-form">
+                    <h4>Cadastrar Cartão</h4>
+                    <input type="text" id="card-titular" placeholder="Nome Impresso no Cartão">
+                    <input type="text" id="card-numero" placeholder="Número do Cartão" maxlength="19">
+                    <div class="form-row">
+                        <input type="text" id="card-validade" placeholder="Validade (MM/AA)" maxlength="5">
+                        <select id="card-tipo" class="select-perfil">
+                            <option value="crédito">Crédito</option>
+                            <option value="débito">Débito</option>
+                        </select>
+                    </div>
+                    <div class="form-actions-inline">
+                        <button id="btn-confirmar-cartao" class="btn-principal">Salvar Cartão</button>
+                        <button id="btn-cancelar-cartao" class="btn-secundario">Cancelar</button>
+                    </div>
+                </div>
+
+                <div id="container-lista-cartoes" class="lista-itens-perfil"></div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { auth, db, storage, mostrarNotificacao } from '../js/firebase-config.js';
+        import { ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-storage.js";
+        import { doc, getDoc, updateDoc, deleteDoc, setDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
+        import { onAuthStateChanged, signOut, deleteUser } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
+
+        const campos = {
+            nome: document.getElementById('perfil-nome'),
+            email: document.getElementById('perfil-email'),
+            cpf: document.getElementById('perfil-cpf'),
+            telefone: document.getElementById('perfil-telefone'),
+            fotoDisplay: document.getElementById('foto-perfil-display'),
+            fotoInput: document.getElementById('input-foto-perfil')
+        };
+
+        const formEndInline = document.getElementById('form-endereco-inline');
+        const formCardInline = document.getElementById('form-cartao-inline');
+
+        let listaEnderecosLocal = [];
+        let listaCartoesLocal = [];
+
+        document.getElementById('btn-voltar-index').onclick = () => window.location.href = '../index.html';
+
+        const abrirModal = (id) => document.getElementById(id).classList.add('active');
+        const fecharModal = (id) => document.getElementById(id).classList.remove('active');
+
+        document.getElementById('trigger-modal-dados').onclick = () => abrirModal('modal-dados-basicos');
+        document.getElementById('trigger-modal-enderecos').onclick = () => abrirModal('modal-enderecos');
+        document.getElementById('trigger-modal-cartoes').onclick = () => abrirModal('modal-cartoes');
+
+        document.querySelectorAll('.btn-fechar-modal-perfil').forEach(btn => {
+            btn.onclick = (e) => fecharModal(e.currentTarget.getAttribute('data-modal'));
+        });
+
+        const aplicarMascaraCPF = (v) => String(v || '').replace(/\D/g, '').replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d{1,2})/, '$1-$2').replace(/(-\d{2})\d+?$/, '$1');
+        const aplicarMascaraTelefone = (v) => String(v || '').replace(/\D/g, '').replace(/(\d{2})(\d)/, '($1) $2').replace(/(\d{5})(\d)/, '$1-$2').replace(/(-\d{4})\d+?$/, '$1');
+        const aplicarMascaraCEP = (v) => String(v || '').replace(/\D/g, "").replace(/^(\d{5})(\d)/, "$1-$2");
+
+        campos.cpf.addEventListener('input', (e) => e.target.value = aplicarMascaraCPF(e.target.value));
+        campos.telefone.addEventListener('input', (e) => e.target.value = aplicarMascaraTelefone(e.target.value));
+        document.getElementById('end-cep').addEventListener('input', (e) => e.target.value = aplicarMascaraCEP(e.target.value));
+        document.getElementById('card-numero').oninput = (e) => e.target.value = e.target.value.replace(/\D/g, "").replace(/(\d{4})(?=\d)/g, "$1 ");
+        document.getElementById('card-validade').oninput = (e) => {
+            let v = e.target.value.replace(/\D/g, "");
+            if (v.length > 2) v = v.substring(0,2) + "/" + v.substring(2,4);
+            e.target.value = v;
+        };
+
+        // 🔥 FUNÇÃO AUXILIAR: VALIDAÇÃO MATEMÁTICA E ALGORÍTMICA DE CPF
+        const validarCPFMatematico = (cpf) => {
+            cpf = cpf.replace(/\D/g, "");
+            
+            // Elimina strings conhecidas com números repetidos
+            if (cpf.length !== 11 || /^(\d)\1{10}$/.test(cpf)) return false;
+            
+            let soma = 0;
+            let resto;
+            
+            // Validação matemática do primeiro dígito verificador
+            for (let i = 1; i <= 9; i++) {
+                soma = soma + parseInt(cpf.substring(i - 1, i)) * (11 - i);
+            }
+            resto = (soma * 10) % 11;
+            if ((resto === 10) || (resto === 11)) resto = 0;
+            if (resto !== parseInt(cpf.substring(9, 10))) return false;
+            
+            // Validação matemática do segundo dígito verificador
+            soma = 0;
+            for (let i = 1; i <= 10; i++) {
+                soma = soma + parseInt(cpf.substring(i - 1, i)) * (12 - i);
+            }
+            resto = (soma * 10) % 11;
+            if ((resto === 10) || (resto === 11)) resto = 0;
+            if (resto !== parseInt(cpf.substring(10, 11))) return false;
+            
+            return true;
+        };
+
+        document.getElementById('end-cep').addEventListener('blur', async (e) => {
+            const cep = e.target.value.replace(/\D/g, "");
+            if (cep.length !== 8) return;
+            try {
+                document.getElementById('end-cidade-uf').value = "Buscando...";
+                const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+                const dados = await response.json();
+                if (!dados.erro) {
+                    document.getElementById('end-bairro').value = dados.bairro || "";
+                    document.getElementById('end-cidade-uf').value = `${dados.localidade} - ${dados.uf.toUpperCase()}`;
+                    document.getElementById('end-rua').value = dados.logradouro || "";
+                    document.getElementById('end-numero').focus();
+                }
+            } catch (err) { console.error(err); }
+        });
+
+        campos.fotoInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (event) => campos.fotoDisplay.src = event.target.result;
+                reader.readAsDataURL(file);
+            }
+        });
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                await atualizarSessaoPerfil(user.uid);
+            } else { window.location.href = "login.html"; }
+        });
+
+        async function atualizarSessaoPerfil(uid) {
+            try {
+                const userSnap = await getDoc(doc(db, "usuarios", uid));
+                if (userSnap.exists()) {
+                    const d = userSnap.data();
+                    
+                    campos.nome.value = d.nome || "";
+                    campos.email.value = d.email || "";
+                    campos.telefone.value = aplicarMascaraTelefone(d.telefoneCliente || "");
+                    if (d.fotoUrl) campos.fotoDisplay.src = d.fotoUrl;
+
+                    if (d.cpfCliente && d.cpfCliente.trim() !== "") {
+                        campos.cpf.value = aplicarMascaraCPF(d.cpfCliente);
+                        campos.cpf.readOnly = true;
+                        campos.cpf.classList.add('input-bloqueado');
+                    } else {
+                        campos.cpf.value = "";
+                        campos.cpf.readOnly = false;
+                        campos.cpf.classList.remove('input-bloqueado');
+                    }
+
+                    listaEnderecosLocal = d.enderecoCliente || [];
+                    listaCartoesLocal = d.cartoesCliente || [];
+
+                    document.getElementById('avatar-dashboard-preview').src = d.fotoUrl || "../assets/images/default-user.png";
+                    document.getElementById('txt-resumo-nome').innerText = d.nome || "Cliente";
+                    
+                    const padrao = listaEnderecosLocal.find(end => end && (end.padrao === true || end.padrao === "true"));
+                    
+                    document.getElementById('txt-resumo-enderecos').innerText = padrao 
+                        ? `${String(padrao.apelido || "Endereço").toUpperCase()}: ${padrao.rua || ""}, № ${padrao.numero || ""}` 
+                        : `${listaEnderecosLocal.length} endereço(s) salvo(s)`;
+
+                    document.getElementById('txt-resumo-cartoes').innerText = listaCartoesLocal.length > 0 
+                        ? `${listaCartoesLocal.length} cartão(ões) cadastrado(s)` 
+                        : "Nenhum cartão salvo";
+
+                    renderizarEnderecos();
+                    renderizarCartoes();
+                }
+            } catch (e) { console.error(e); }
+        }
+
+        document.getElementById('btn-salvar-perfil').onclick = async () => {
+            const user = auth.currentUser;
+            if (!user) return;
+
+            const nomeVal = campos.nome.value.trim();
+            const cpfVal = campos.cpf.value.trim();
+            const telefoneVal = campos.telefone.value.trim();
+
+            if (!nomeVal || !cpfVal || !telefoneVal) {
+                mostrarNotificacao("Os campos de Nome, CPF e Telefone são obrigatórios.", "error");
+                return;
+            }
+
+            // 1. Validação Algorítmica do CPF
+            if (!validarCPFMatematico(cpfVal)) {
+                mostrarNotificacao("O CPF informado é inválido. Verifique os dígitos.", "error");
+                return;
+            }
+
+            const cpfLimpoId = cpfVal.replace(/\D/g, "");
+
+            try {
+                const userRef = doc(db, "usuarios", user.uid);
+                const userSnap = await getDoc(userRef);
+                let cpfAntigo = "";
+
+                if (userSnap.exists()) {
+                    cpfAntigo = userSnap.data().cpfCliente || "";
+                }
+
+                // 2. Se o usuário NÃO tinha CPF (Logou pelo Google) e está inserindo agora
+                if (cpfAntigo.trim() === "") {
+                    mostrarNotificacao("Validando integridade do CPF...", "info");
+                    
+                    // Consulta cirúrgica por ID na trava exclusiva do banco
+                    const cpfRef = doc(db, "usuarios", `cpf_${cpfLimpoId}`);
+                    const cpfSnap = await getDoc(cpfRef);
+
+                    if (cpfSnap.exists()) {
+                        mostrarNotificacao("Este CPF já está sendo utilizado por outra conta.", "error");
+                        return;
+                    }
+
+                    // Cria o documento de trava dentro da mesma coleção /usuarios
+                    await setDoc(cpfRef, {
+                        isCpfLock: true,
+                        userId: user.uid,
+                        dataVinculo: new Date().toISOString()
+                    });
+                }
+
+                // 3. Processamento de Upload de Imagem (Mantido idêntico)
+                const arquivo = campos.fotoInput.files[0];
+                let urlFotoFinal = campos.fotoDisplay.src;
+                if (arquivo) {
+                    mostrarNotificacao("Enviando foto...", "info");
+                    const storageRef = ref(storage, `usuarios/${user.uid}/perfil_${Date.now()}`);
+                    await uploadBytes(storageRef, arquivo);
+                    urlFotoFinal = await getDownloadURL(storageRef);
+                }
+                
+                // 4. Salva as atualizações no perfil do usuário
+                await updateDoc(userRef, {
+                    nome: nomeVal,
+                    cpfCliente: cpfVal,
+                    telefoneCliente: telefoneVal,
+                    fotoUrl: urlFotoFinal
+                });
+                
+                mostrarNotificacao("Perfil atualizado com sucesso!");
+                fecharModal('modal-dados-basicos');
+                await atualizarSessaoPerfil(user.uid);
+            } catch (e) { 
+                console.error("Erro ao salvar perfil:", e);
+                mostrarNotificacao("Erro ao salvar alterações.", "error"); 
+            }
+        };
+
+        document.getElementById('btn-adicionar-novo-end-modal').onclick = () => {
+            limparFormEndereco();
+            document.getElementById('titulo-form-endereco').innerText = "Novo Endereço";
+            formEndInline.classList.remove('hidden');
+        };
+        document.getElementById('btn-cancelar-endereco').onclick = () => formEndInline.classList.add('hidden');
+
+        document.getElementById('btn-confirmar-endereco').onclick = async () => {
+            const index = document.getElementById('edit-endereco-index').value;
+            const apelido = document.getElementById('end-apelido').value.trim() || "Outro";
+            const cep = document.getElementById('end-cep').value.trim();
+            const bairroCru = document.getElementById('end-bairro').value.trim();
+            const cidadeUfFull = document.getElementById('end-cidade-uf').value.trim();
+            const rua = document.getElementById('end-rua').value.trim();
+            const numero = document.getElementById('end-numero').value.trim();
+            const obs = document.getElementById('end-obs').value.trim() || "Sem observação";
+            const marcouPadrao = document.getElementById('end-padrao').checked;
+
+            if (!cep || !bairroCru || !cidadeUfFull || !rua || !numero) {
+                mostrarNotificacao("Campos obrigatórios vazios.", "error"); return;
+            }
+
+            const partesRegiao = cidadeUfFull.split(" - ");
+            const cidadeCru = partesRegiao[0] || "";
+            const estado = (partesRegiao[1] || "").toUpperCase();
+
+            const cidade = cidadeCru.charAt(0).toUpperCase() + cidadeCru.slice(1).toLowerCase();
+            const bairro = bairroCru.charAt(0).toUpperCase() + bairroCru.slice(1).toLowerCase();
+
+            const id = index !== "" ? listaEnderecosLocal[index].id : Date.now().toString();
+
+            const novoEnderecoObj = {
+                id: id,
+                apelido: apelido,
+                rua: rua,
+                numero: numero,
+                bairro: bairro,
+                cidade: `${cidade} - ${estado}`,
+                observacao: obs,
+                padrao: marcouPadrao,
+                cep: cep
+            };
+
+            if (marcouPadrao) {
+                listaEnderecosLocal = listaEnderecosLocal.map(end => {
+                    if(end) end.padrao = false;
+                    return end;
+                });
+            }
+
+            if (index !== "") {
+                listaEnderecosLocal[index] = novoEnderecoObj;
+            } else {
+                listaEnderecosLocal.push(novoEnderecoObj);
+            }
+
+            await updateDoc(doc(db, "usuarios", auth.currentUser.uid), { enderecoCliente: listaEnderecosLocal });
+
+            if (cidade && estado && bairro) {
+                try {
+                    const idRegiaoDoc = `${cidade}-${estado}`;
+                    const regiaoRef = doc(db, "regioes", idRegiaoDoc);
+                    const regiaoSnap = await getDoc(regiaoRef);
+
+                    if (!regiaoSnap.exists()) {
+                        await setDoc(regiaoRef, {
+                            cidade: cidade,
+                            uf: estado,
+                            bairros: [bairro]
+                        });
+                    } else {
+                        await updateDoc(regiaoRef, {
+                            bairros: arrayUnion(bairro)
+                        });
+                    }
+                } catch (geoError) {
+                    console.warn("[NordGo Maps - Aviso de Permissão no Perfil]:", geoError.message);
+                }
+            }
+
+            formEndInline.classList.add('hidden');
+            mostrarNotificacao("Endereço salvo!");
+            await atualizarSessaoPerfil(auth.currentUser.uid);
+        };
+
+        function renderizarEnderecos() {
+            const container = document.getElementById('container-lista-enderecos'); 
+            container.innerHTML = "";
+            
+            listaEnderecosLocal.forEach((end, index) => {
+                if(!end) return;
+                const isPadrao = end.padrao === true || end.padrao === "true";
+                const div = document.createElement('div');
+                div.className = `item-lista-card ${isPadrao ? 'item-padrao-ativo' : ''}`;
+                
+                div.innerHTML = `
+                    <div class="item-lista-info">
+                        <strong>${String(end.apelido || 'Endereço').toUpperCase()} ${isPadrao ? '<span class="badge-padrao">Padrão</span>' : ''}</strong>
+                        <span>${end.rua || ""}, Nº ${end.numero || ""} - ${end.bairro || ""}</span>
+                    </div>
+                    <div class="item-lista-actions">
+                        <button class="btn-action-edit" data-idx="${index}"><i class="fa-solid fa-pen"></i></button>
+                        <button class="btn-action-delete" data-idx="${index}"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+
+            container.querySelectorAll('.btn-action-edit').forEach(b => {
+                b.onclick = (e) => {
+                    const idx = e.currentTarget.getAttribute('data-idx');
+                    const end = listaEnderecosLocal[idx];
+                    if(!end) return;
+                    
+                    document.getElementById('edit-endereco-index').value = idx;
+                    document.getElementById('end-apelido').value = end.apelido || "";
+                    document.getElementById('end-rua').value = end.rua || "";
+                    document.getElementById('end-numero').value = end.numero || "";
+                    document.getElementById('end-bairro').value = end.bairro || "";
+                    document.getElementById('end-cidade-uf').value = end.cidade || "";
+                    document.getElementById('end-obs').value = end.observacao === "Sem observação" ? "" : (end.observacao || "");
+                    document.getElementById('end-padrao').checked = end.padrao === true || end.padrao === "true";
+                    document.getElementById('end-cep').value = end.cep || "";
+                    
+                    document.getElementById('titulo-form-endereco').innerText = "Editar Endereço";
+                    formEndInline.classList.remove('hidden');
+                };
+            });
+
+            container.querySelectorAll('.btn-action-delete').forEach(b => {
+                b.onclick = async (e) => {
+                    if (confirm("Remover endereço?")) {
+                        listaEnderecosLocal.splice(e.currentTarget.getAttribute('data-idx'), 1);
+                        await updateDoc(doc(db, "usuarios", auth.currentUser.uid), { enderecoCliente: listaEnderecosLocal });
+                        await atualizarSessaoPerfil(auth.currentUser.uid);
+                    }
+                };
+            });
+        }
+
+        function limparFormEndereco() {
+            document.getElementById('edit-endereco-index').value = "";
+            ['end-apelido', 'end-cep', 'end-bairro', 'end-cidade-uf', 'end-rua', 'end-numero', 'end-obs'].forEach(id => {
+                document.getElementById(id).value = "";
+            });
+            document.getElementById('end-padrao').checked = false;
+        }
+
+        document.getElementById('btn-adicionar-novo-card-modal').onclick = () => {
+            document.getElementById('card-titular').value = "";
+            document.getElementById('card-numero').value = "";
+            document.getElementById('card-validade').value = "";
+            formCardInline.classList.remove('hidden');
+        };
+        document.getElementById('btn-cancelar-cartao').onclick = () => formCardInline.classList.add('hidden');
+
+        document.getElementById('btn-confirmar-cartao').onclick = async () => {
+            const titular = document.getElementById('card-titular').value.trim();
+            const numFull = document.getElementById('card-numero').value.trim();
+            const val = document.getElementById('card-validade').value.trim();
+            const tipo = document.getElementById('card-tipo').value;
+
+            if(!titular || numFull.length < 19 || val.length < 5) {
+                mostrarNotificacao("Dados inválidos do cartão.", "error"); return;
+            }
+            const final = numFull.substring(numFull.length - 4);
+            const bandeira = numFull.startsWith('5') ? 'Mastercard' : 'Visa';
+
+            listaCartoesLocal.push({
+                id: Date.now().toString(),
+                exibicao: `${bandeira} ${tipo.toUpperCase()} final ${final}`,
+                titular: titular
+            });
+
+            await updateDoc(doc(db, "usuarios", auth.currentUser.uid), { cartoesCliente: listaCartoesLocal });
+            formCardInline.classList.add('hidden');
+            mostrarNotificacao("Cartão salvo!");
+            await atualizarSessaoPerfil(auth.currentUser.uid);
+        };
+
+        function renderizarCartoes() {
+            const container = document.getElementById('container-lista-cartoes'); container.innerHTML = "";
+            listaCartoesLocal.forEach((c, idx) => {
+                if(!c) return;
+                const div = document.createElement('div'); div.className = "item-lista-card";
+                div.innerHTML = `
+                    <div class="item-lista-info">
+                        <strong><i class="fa-solid fa-credit-card"></i> ${c.exibicao || "Cartão Salvo"}</strong>
+                        <span>Titular: ${c.titular || ""}</span>
+                    </div>
+                    <div class="item-lista-actions">
+                        <button class="btn-action-delete-card" data-idx="${idx}"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+
+            container.querySelectorAll('.btn-action-delete-card').forEach(b => {
+                b.onclick = async (e) => {
+                    if (confirm("Remover cartão?")) {
+                        listaCartoesLocal.splice(e.currentTarget.getAttribute('data-idx'), 1);
+                        await updateDoc(doc(db, "usuarios", auth.currentUser.uid), { cartoesCliente: listaCartoesLocal });
+                        await atualizarSessaoPerfil(auth.currentUser.uid);
+                    }
+                };
+            });
+        }
+
+        document.getElementById('btn-logout').onclick = () => signOut(auth).then(() => window.location.href = "../index.html");
+        
+        // ==========================================================================
+        // 🔥 LOGICA DE EXCLUSÃO DE CONTA REVISADA: DELETA A LOJA, TRAVA DE CPF E O PERFIL
+        // ==========================================================================
+        document.getElementById('btn-deletar-conta').onclick = async () => {
+            const user = auth.currentUser;
+            if (!user) return;
+
+            if (confirm("Tem certeza que deseja excluir permanentemente sua conta? Esta ação não pode ser desfeita, liberará o seu CPF e excluirá sua loja vinculada (se houver).")) {
+                try {
+                    mostrarNotificacao("Verificando segurança da sessão...", "info");
+                    
+                    // 🚀 SOLUÇÃO DO PROBLEMA DA PÍLULA: Valida a idade do token antes de apagar o banco
+                    const tokenResult = await user.getIdTokenResult();
+                    const authTime = new Date(tokenResult.authTime).getTime();
+                    const currentTime = new Date().getTime();
+                    const diffMinutes = (currentTime - authTime) / 1000 / 60;
+
+                    // Se o login foi feito há mais de 5 minutos, o Auth vai rejeitar.
+                    // Barramos aqui para não deixar o usuário "órfão" sem dados no banco.
+                    if (diffMinutes > 5) {
+                        mostrarNotificacao("Por segurança, faça login novamente antes de excluir sua conta.", "error");
+                        setTimeout(async () => {
+                            await signOut(auth);
+                            window.location.href = "login.html";
+                        }, 2500);
+                        return;
+                    }
+
+                    mostrarNotificacao("Processando exclusão dos dados...", "info");
+                    
+                    // 1. Busca os dados do perfil uma última vez para extrair o CPF e Loja salvos
+                    const userRef = doc(db, "usuarios", user.uid);
+                    const userSnap = await getDoc(userRef);
+
+                    if (userSnap.exists()) {
+                        const userData = userSnap.data();
+                        
+                        // Se o usuário possuir uma loja atrelada, deleta o documento dela também
+                        if (userData.loja) {
+                            console.log("[Exclusão] Removendo estabelecimento vinculado...");
+                            await deleteDoc(doc(db, "lojas", userData.loja));
+                        }
+
+                        // Se houver um CPF, monta o ID com o prefixo correto e deleta a trava
+                        if (userData.cpfCliente) {
+                            const cpfLimpo = userData.cpfCliente.replace(/\D/g, "");
+                            const lockRef = doc(db, "usuarios", `cpf_${cpfLimpo}`);
+                            
+                            console.log("[Exclusão] Removendo trava de CPF...");
+                            await deleteDoc(lockRef);
+                        }
+                    }
+
+                    // 2. Remove o documento de perfil principal do usuário no Firestore
+                    console.log("[Exclusão] Removendo documento de usuário...");
+                    await deleteDoc(userRef);
+
+                    // 3. Agora sim, remove com segurança a credencial do Firebase Auth
+                    console.log("[Exclusão] Removendo credenciais do Firebase Auth...");
+                    await deleteUser(user);
+
+                    mostrarNotificacao("Sua conta e loja foram completamente excluídas.");
+                    setTimeout(() => window.location.href = "../index.html", 1500);
+
+                } catch (error) {
+                    console.error("Erro completo no fluxo de exclusão de conta:", error);
+                    mostrarNotificacao("Falha ao excluir conta. Tente novamente.", "error");
+                }
+            }
+        };
+    </script>
+</body>
+</html>

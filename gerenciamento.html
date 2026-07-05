@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel de Gerenciamento | NordGo</title>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <link rel="icon" type="image/png" href="../assets/images/favicon.png">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="../css/styles-gerenciamento.css">
+</head>
+<body>
+    <div id="toast-container" class="toast-container"></div>
+    
+    <header class="main-header">
+        <div class="header-container">
+            <div class="header-left">
+                <div class="pill-badge pill-back" onclick="window.location.href='../index.html'">
+                    <img src="../assets/images/voltar.png" alt="Voltar" class="back-icon-img">
+                    <span class="location-text">Voltar</span>
+                </div>
+            </div>
+            
+            <div class="header-center">
+                <div class="pill-badge pill-page-title">
+                    <span class="page-title-text">Painel Admin</span>
+                </div>
+            </div>
+            
+            <div class="header-right" id="user-area">
+                <div class="user-loading-placeholder"></div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container admin-screen">
+        <div class="admin-tabs">
+            <button class="tab-btn active" data-tab="tab-categorias">
+                <i class="fa-solid fa-tags"></i> Categorias
+            </button>
+            <button class="tab-btn" data-tab="tab-lojas">
+                <i class="fa-solid fa-store"></i> Lojas
+            </button>
+            <button class="tab-btn" data-tab="tab-cupons">
+                <i class="fa-solid fa-ticket"></i> Cupons
+            </button>
+            <button class="tab-btn" data-tab="tab-logistica">
+                <i class="fa-solid fa-earth-americas"></i> Cidades e Bairros
+            </button>
+            <button class="tab-btn" data-tab="tab-usuarios">
+                <i class="fa-solid fa-users"></i> Usuários
+            </button>
+        </div>
+
+        <section id="tab-categorias" class="tab-content active-content">
+            <div class="admin-grid-layout">
+                <div class="admin-card login-form">
+                    <h3><i class="fa-solid fa-plus"></i> Nova Categoria</h3>
+                    <div class="form-body-box">
+                        <input type="text" id="cat-nome" placeholder="Nome da Categoria (Ex: Hambúrgueres)">
+                        <button id="btn-salvar-categoria" class="btn-principal full-width btn-success">
+                            <i class="fa-solid fa-check"></i> Cadastrar Categoria
+                        </button>
+                    </div>
+                </div>
+                <div class="admin-card">
+                    <h3><i class="fa-solid fa-list"></i> Cadastradas</h3>
+                    <div id="lista-admin-categorias" class="admin-list-container">
+                        <p class="txt-loading">Carregando categorias...</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="tab-lojas" class="tab-content">
+            <div class="admin-card full-width">
+                <h3><i class="fa-solid fa-shop"></i> Controle de Estabelecimentos</h3>
+                <div class="table-responsive">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Nome da Loja</th>
+                                <th>Categoria</th>
+                                <th>Cidade</th>
+                                <th>Status</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabela-admin-lojas">
+                            <tr><td colspan="5" class="txt-center">Carregando lojas...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <section id="tab-cupons" class="tab-content">
+            <div class="admin-grid-layout">
+                <div class="admin-card login-form">
+                    <h3><i class="fa-solid fa-ticket"></i> Criar Cupom</h3>
+                    <div class="form-body-box">
+                        <label>Código do Cupom</label>
+                        <input type="text" id="cupom-codigo" placeholder="Ex: NORDGO10" class="input-uppercase">
+                        
+                        <label>Tipo de Desconto</label>
+                        <select id="cupom-tipo" class="select-admin">
+                            <option value="porcentagem">Desconto em Porcentagem (%)</option>
+                            <option value="fixo">Desconto em Valor Fixo (R$)</option>
+                        </select>
+                        <div class="form-row-inputs">
+                            <div class="form-group-block">
+                                <label>Valor do Desconto</label>
+                                <input type="number" id="cupom-valor" placeholder="Ex: 10">
+                                <label>Valor Mínimo Pedido (R$)</label>
+                                <input type="number" id="cupom-minimo" placeholder="Ex: 20" value="0">
+                            </div>
+                            <div class="form-group-block">
+                                <label>Limite Total de Usos</label>
+                                <input type="number" id="cupom-validade" placeholder="Ex: 100" value="0">
+                                <label>Tempo de Duração (Horas)</label>
+                                <input type="number" id="cupom-horas" placeholder="Ex: 24" value="24">
+                            </div>
+                        </div>
+                        
+                        <button id="btn-salvar-cupom" class="btn-principal full-width btn-success">
+                            <i class="fa-solid fa-plus"></i> Ativar Cupom
+                        </button>
+                    </div>
+                </div>
+                <div class="admin-card">
+                    <h3><i class="fa-solid fa-circle-check"></i> Cupons Ativos</h3>
+                    <div id="lista-admin-cupons" class="admin-list-container" style="display: flex; flex-direction: column; gap: 12px;">
+                        <p class="txt-loading">Carregando cupons...</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="tab-logistica" class="tab-content">
+            <div class="admin-grid-layout grid-two-columns">
+                
+                <div class="admin-card login-form">
+                    <h3><i class="fa-solid fa-city"></i> Adicionar Cidade</h3>
+                    <div class="form-body-box">
+                        <input type="text" id="cidade-nome" placeholder="Cidade (Ex: Arapiraca)">
+                        <input type="text" id="cidade-uf" placeholder="UF (Ex: AL)" maxlength="2" class="input-uppercase" style="margin-top: 0.625rem;">
+                        <button id="btn-salvar-cidade" class="btn-principal full-width btn-success" style="margin-top: 0.625rem;">
+                            <i class="fa-solid fa-plus"></i> Salvar Cidade
+                        </button>
+                    </div>
+                    
+                    <h4 class="sub-title-admin"><i class="fa-solid fa-globe"></i> Cidades Ativas</h4>
+                    <div id="lista-admin-cidades" class="admin-list-container container-scroll-list">
+                        <p class="txt-loading">Carregando cidades...</p>
+                    </div>
+                </div>
+
+                <div class="admin-card login-form">
+                    <h3><i class="fa-solid fa-map-pin"></i> Adicionar Bairro</h3>
+                    <div class="form-body-box">
+                        <select id="bairro-cidade-select" class="select-admin">
+                            <option value="">Selecione a Cidade</option>
+                        </select>
+                        <input type="text" id="bairro-nome" placeholder="Nome do Bairro (Ex: Cavaco)">
+                        <button id="btn-salvar-bairro" class="btn-principal full-width btn-success">
+                            <i class="fa-solid fa-link"></i> Vincular Bairro
+                        </button>
+                    </div>
+
+                    <h4 class="sub-title-admin"><i class="fa-solid fa-map"></i> Bairros Vinculados</h4>
+                    <div id="lista-admin-bairros" class="admin-list-container container-scroll-list">
+                        <p class="txt-loading">Carregando bairros...</p>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <section id="tab-usuarios" class="tab-content">
+            <div class="admin-card full-width">
+                <h3><i class="fa-solid fa-users-gear"></i> Controle de Usuários Cadastrados</h3>
+                <div class="table-responsive">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Nome</th>
+                                <th>E-mail</th>
+                                <th>Cargo</th>
+                                <th>Status</th>
+                                <th>Ações de Permissão</th>
+                                <th>Ações de Acesso</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabela-admin-usuarios">
+                            <tr><td colspan="6" class="txt-center">Carregando usuários...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script type="module">
+        import { auth, db, mostrarNotificacao } from '../js/firebase-config.js';
+        import { collection, getDocs, getDoc, setDoc, deleteDoc, doc, updateDoc, query, orderBy, addDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
+        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
+
+        // Mecanismo de troca de Abas Administrativas
+        const tabs = document.querySelectorAll('.tab-btn');
+        const contents = document.querySelectorAll('.tab-content');
+
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                tabs.forEach(t => t.classList.remove('active'));
+                contents.forEach(c => c.classList.remove('active-content'));
+                tab.classList.add('active');
+                document.getElementById(tab.getAttribute('data-tab')).classList.add('active-content');
+            });
+        });
+
+        // Monitor de Rota e Inicialização de Dados
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) { window.location.href = 'login.html'; return; }
+            
+            carregarCategorias();
+            carregarLojas();
+            carregarCupons();
+            carregarLogisticaGeral();
+            carregarUsuarios();
+        });
+
+        /* ============================================================
+           1. MÓDULO: CATEGORIAS
+           ============================================================ */
+        async function carregarCategorias() {
+            const container = document.getElementById('lista-admin-categorias');
+            try {
+                const snap = await getDocs(query(collection(db, "categorias"), orderBy("nome", "asc")));
+                container.innerHTML = "";
+                if(snap.empty) { container.innerHTML = `<p class="txt-vazio">Nenhuma categoria encontrada.</p>`; return; }
+
+                snap.forEach(docSnap => {
+                    const cat = docSnap.data();
+                    const item = document.createElement('div');
+                    item.className = 'admin-list-item';
+                    item.innerHTML = `<span>${cat.nome} <small class="txt-slug">(/${docSnap.id})</small></span><button class="btn-delete-item" data-id="${docSnap.id}"><i class="fa-solid fa-trash"></i></button>`;
+                    container.appendChild(item);
+                });
+
+                container.querySelectorAll('.btn-delete-item').forEach(btn => {
+                    btn.onclick = async (e) => {
+                        if(confirm("Excluir esta categoria?")) {
+                            await deleteDoc(doc(db, "categorias", e.currentTarget.getAttribute('data-id')));
+                            mostrarNotificacao("Categoria removida!"); carregarCategorias();
+                        }
+                    };
+                });
+            } catch (err) { container.innerHTML = "<p>Erro ao carregar.</p>"; }
+        }
+
+        document.getElementById('btn-salvar-categoria').onclick = async () => {
+            const input = document.getElementById('cat-nome');
+            const nomeValue = input.value.trim();
+            if(!nomeValue) { mostrarNotificacao("Informe o nome da categoria.", "error"); return; }
+
+            const slug = nomeValue.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/&/g, "e").replace(/[^a-z0-9\s-]/g, "").replace(/\s+/g, "-").replace(/-+/g, "-");
+
+            try {
+                await setDoc(doc(db, "categorias", slug), { nome: nomeValue, slug: slug, fotoArquivo: `default-${slug}.png`, criadoEm: new Date() });
+                mostrarNotificacao("Categoria adicionada!"); input.value = ""; carregarCategorias();
+            } catch (error) { mostrarNotificacao("Erro ao criar categoria.", "error"); }
+        };
+
+        /* ============================================================
+           2. MÓDULO: LOJAS (Aprovação / Bloqueio / Suspensão)
+           ============================================================ */
+        async function carregarLojas() {
+            const tbody = document.getElementById('tabela-admin-lojas');
+            try {
+                const snap = await getDocs(collection(db, "lojas"));
+                tbody.innerHTML = "";
+                if(snap.empty) { tbody.innerHTML = `<tr><td colspan="5" class="txt-center">Nenhuma loja registrada.</td></tr>`; return; }
+
+                snap.forEach(docSnap => {
+                    const loja = docSnap.data();
+                    const tr = document.createElement('tr');
+                    
+                    let statusClass = 'status-pendente';
+                    if (loja.status === 'aprovado') statusClass = 'status-aprovado';
+                    if (loja.status === 'suspenso') statusClass = 'status-suspenso';
+
+                    let actionBtn = '';
+                    if (loja.status === 'aprovado') {
+                        actionBtn = `<button class="btn-status-toggle btn-block" data-id="${docSnap.id}" data-status="suspenso"><i class="fa-solid fa-ban"></i> Suspender</button>`;
+                    } else {
+                        actionBtn = `<button class="btn-status-toggle btn-allow" data-id="${docSnap.id}" data-status="aprovado"><i class="fa-solid fa-check"></i> Aprovar</button>`;
+                    }
+
+                    const cidadeExibir = loja.cidadeLoja || "Não informada";
+
+                    tr.innerHTML = `
+                        <td><strong>${loja.nome}</strong></td>
+                        <td>${loja.categoria}</td>
+                        <td>${cidadeExibir}</td>
+                        <td><span class="badge-status ${statusClass}">${loja.status || 'pendente'}</span></td>
+                        <td>${actionBtn}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+
+                tbody.querySelectorAll('.btn-status-toggle').forEach(btn => {
+                    btn.onclick = async (e) => {
+                        const id = e.currentTarget.getAttribute('data-id');
+                        const novoStatus = e.currentTarget.getAttribute('data-status');
+                        await updateDoc(doc(db, "lojas", id), { status: novoStatus });
+                        mostrarNotificacao(`Status da loja atualizado!`); await carregarLojas();
+                    };
+                });
+            } catch (err) { tbody.innerHTML = "<tr><td colspan='5' class='txt-center'>Erro ao carregar lojas.</td></tr>"; }
+        }
+
+        /* ============================================================
+           3. MÓDULO: CUPONS (Detalhamento Avançado de Ativos)
+           ============================================================ */
+        async function carregarCupons() {
+            const container = document.getElementById('lista-admin-cupons');
+            try {
+                const snap = await getDocs(query(collection(db, "cupons"), orderBy("dataCriacao", "desc")));
+                container.innerHTML = "";
+                if(snap.empty) { container.innerHTML = `<p class="txt-vazio">Nenhum cupom ativo encontrado.</p>`; return; }
+
+                snap.forEach(docSnap => {
+                    const cupom = docSnap.data();
+                    const sufixo = cupom.tipo === 'porcentagem' ? '%' : ' R$';
+                    
+                    // Extração de metadados avançados salvos no banco
+                    const usoMinimo = cupom.usoMinimo || cupom.valorMinimo || 0;
+                    const usosAtuais = cupom.usosAtuais || 0;
+                    const limiteUsos = cupom.validade || cupom.limiteUsos || "∞";
+                    const escopo = cupom.escopo || "global";
+                    const nomeLojaOrigem = cupom.nomeLoja || "";
+
+                    // Tratamento dinâmico de expiração/prazos
+                    let txtExpiracaoMeta = "Sem prazo";
+                    let isExpiradoPorTempo = false;
+                    
+                    if (cupom.dataExpiracao) {
+                        const dataExpObj = new Date(cupom.dataExpiracao);
+                        txtExpiracaoMeta = dataExpObj.toLocaleString('pt-br', { dateStyle: 'short', timeStyle: 'short' });
+                        if (dataExpObj < new Date()) {
+                            isExpiradoPorTempo = true;
+                        }
+                    }
+
+                    const item = document.createElement('div');
+                    item.className = 'admin-list-item';
+                    
+                    // Estilização inline sutil para envelopar os metadados em blocos estruturados
+                    item.style.cssText = "display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #f8f9fa; border: 1px solid #e4e7eb; border-radius: 8px; width: 100%;";
+                    
+                    item.innerHTML = `
+                        <div style="display: flex; flex-direction: column; gap: 4px; width: 85%;">
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <strong style="color: #ff6400; font-size: 1rem; font-family: 'Poppins', sans-serif;">${cupom.codigo}</strong>
+                                <span style="background: #e1f5fe; color: #0288d1; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase;">
+                                    ${escopo === 'global' ? 'Global App' : `Loja: ${nomeLojaOrigem}`}
+                                </span>
+                                ${isExpiradoPorTempo ? '<span style="background: #ffe0e0; color: #ff4757; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 600;">Expirado</span>' : ''}
+                            </div>
+                            <div style="font-size: 0.825rem; color: #2f3542; line-height: 1.5;">
+                                <i class="fa-solid fa-tags" style="color: #a4b0be; width: 16px;"></i> <strong>Desconto:</strong> ${cupom.valor}${sufixo} <br>
+                                <i class="fa-solid fa-basket-shopping" style="color: #a4b0be; width: 16px;"></i> <strong>Pedido Mínimo:</strong> R$ ${parseFloat(usoMinimo).toFixed(2)} <br>
+                                <i class="fa-solid fa-chart-pie" style="color: #a4b0be; width: 16px;"></i> <strong>Uso Geral:</strong> ${usosAtuais} / ${limiteUsos} utilizações <br>
+                                <i class="fa-solid fa-clock" style="color: #a4b0be; width: 16px;"></i> <strong>Prazo:</strong> ${txtExpiracaoMeta}
+                            </div>
+                        </div>
+                        <button class="btn-delete-cupom" data-id="${docSnap.id}" style="background: #ffe0e0; color: #ff4757; border: none; padding: 8px 10px; border-radius: 6px; cursor: pointer; transition: 0.2s;"><i class="fa-solid fa-trash"></i></button>
+                    `;
+                    container.appendChild(item);
+                });
+
+                container.querySelectorAll('.btn-delete-cupom').forEach(btn => {
+                    btn.onclick = async (e) => {
+                        if(confirm("Excluir este cupom permanentemente?")) {
+                            await deleteDoc(doc(db, "cupons", e.currentTarget.getAttribute('data-id')));
+                            mostrarNotificacao("Cupom removido!"); carregarCupons();
+                        }
+                    };
+                });
+            } catch (err) { console.error(err); container.innerHTML = "<p>Erro ao carregar cupons ativos.</p>"; }
+        }
+
+        document.getElementById('btn-salvar-cupom').onclick = async () => {
+            const codigo = document.getElementById('cupom-codigo').value.trim().toUpperCase();
+            const tipo = document.getElementById('cupom-tipo').value;
+            const valor = document.getElementById('cupom-valor').value.trim();
+            const usoMinimo = document.getElementById('cupom-minimo').value.trim();
+            const limiteUsos = document.getElementById('cupom-validade').value.trim();
+            const horas = document.getElementById('cupom-horas').value.trim();
+
+            if(!codigo || !valor) { mostrarNotificacao("Preencha Código e Valor.", "error"); return; }
+
+            // Lógica: Calcula a data exata de expiração somando as horas
+            const dataCriacao = new Date();
+            const dataExpiracao = new Date(dataCriacao.getTime() + (Number(horas) * 60 * 60 * 1000));
+
+            try {
+                await addDoc(collection(db, "cupons"), {
+                    ativo: true, 
+                    codigo: codigo, 
+                    dataCriacao: dataCriacao.toISOString(), 
+                    dataExpiracao: dataExpiracao.toISOString(), // Salva a data limite
+                    escopo: "global", 
+                    tipo: tipo, 
+                    usoMinimo: Number(usoMinimo || 0), 
+                    usosAtuais: 0, 
+                    limiteUsos: Number(limiteUsos || 0),
+                    valor: Number(valor)
+                });
+                mostrarNotificacao(`Cupom criado! Expira em ${horas}h.`);
+                carregarCupons();
+            } catch (error) { mostrarNotificacao("Erro ao salvar.", "error"); }
+        };
+
+        /* ============================================================
+           4. MÓDULO: LOGÍSTICA GEOGRÁFICA (Cidade-UF composto)
+           ============================================================ */
+        async function carregarLogisticaGeral() {
+            const listaCidades = document.getElementById('lista-admin-cidades');
+            const listaBairros = document.getElementById('lista-admin-bairros');
+            const selectCidades = document.getElementById('bairro-cidade-select');
+
+            try {
+                const snapRegioes = await getDocs(collection(db, "regioes"));
+                listaCidades.innerHTML = ""; listaBairros.innerHTML = "";
+                selectCidades.innerHTML = `<option value="">Selecione a Cidade</option>`;
+
+                if(snapRegioes.empty) {
+                    listaCidades.innerHTML = `<p class="txt-vazio">Nenhuma cidade cadastrada.</p>`;
+                    listaBairros.innerHTML = `<p class="txt-vazio">Nenhum bairro cadastrado.</p>`;
+                    return;
+                }
+
+                snapRegioes.forEach(docSnap => {
+                    const docIdComposto = docSnap.id; 
+                    const dadosCidade = docSnap.data();
+                    
+                    const cityNome = dadosCidade.nome || docIdComposto.split('-')[0];
+                    const cityUf = dadosCidade.uf || docIdComposto.split('-')[1] || '';
+                    const listaDeBairrosDessaCidade = dadosCidade.bairros || [];
+
+                    const itemCidade = document.createElement('div');
+                    itemCidade.className = 'admin-list-item';
+                    itemCidade.innerHTML = `<span><strong>${cityNome} - ${cityUf}</strong></span><button class="btn-delete-cidade" data-id="${docIdComposto}"><i class="fa-solid fa-trash"></i></button>`;
+                    listaCidades.appendChild(itemCidade);
+
+                    const opt = document.createElement('option');
+                    opt.value = docIdComposto; opt.textContent = `${cityNome} - ${cityUf}`;
+                    selectCidades.appendChild(opt);
+
+                    listaDeBairrosDessaCidade.forEach(bairroNome => {
+                        const itemBairro = document.createElement('div');
+                        itemBairro.className = 'admin-list-item';
+                        itemBairro.innerHTML = `<span>${bairroNome} <small class="txt-city-ref">(${cityNome}-${cityUf})</small></span><button class="btn-delete-bairro" data-cidade="${docIdComposto}" data-bairro="${bairroNome}"><i class="fa-solid fa-trash"></i></button>`;
+                        listaBairros.appendChild(itemBairro);
+                    });
+                });
+
+                listaCidades.querySelectorAll('.btn-delete-cidade').forEach(btn => {
+                    btn.onclick = async (e) => {
+                        const idComposto = e.currentTarget.getAttribute('data-id');
+                        if(confirm(`Excluir a região de ${idComposto} e todos os bairros vinculados?`)) {
+                            await deleteDoc(doc(db, "regioes", idComposto));
+                            mostrarNotificacao("Região deletada!"); carregarLogisticaGeral();
+                        }
+                    };
+                });
+
+                listaBairros.querySelectorAll('.btn-delete-bairro').forEach(btn => {
+                    btn.onclick = async (e) => {
+                        const cid = e.currentTarget.getAttribute('data-cidade');
+                        const bai = e.currentTarget.getAttribute('data-bairro');
+                        if(confirm(`Remover o bairro "${bai}" de ${cid}?`)) {
+                            await updateDoc(doc(db, "regioes", cid), { bairros: arrayRemove(bai) });
+                            mostrarNotificacao("Bairro removido!"); carregarLogisticaGeral();
+                        }
+                    };
+                });
+            } catch (err) { console.error(err); }
+        }
+
+        document.getElementById('btn-salvar-cidade').onclick = async () => {
+            const inputNome = document.getElementById('cidade-nome');
+            const inputUf = document.getElementById('cidade-uf');
+            const nomeRaw = inputNome.value.trim();
+            const ufRaw = inputUf.value.trim().toUpperCase();
+
+            if(!nomeRaw || !ufRaw) { mostrarNotificacao("Preencha o Nome e a UF da cidade.", "error"); return; }
+            if(ufRaw.length !== 2) { mostrarNotificacao("A UF deve conter exatamente 2 letras.", "error"); return; }
+
+            const nomeCidade = nomeRaw.charAt(0).toUpperCase() + nomeRaw.slice(1);
+            const docIdComposto = `${nomeCidade}-${ufRaw}`;
+
+            try {
+                const docRef = doc(db, "regioes", docIdComposto);
+                const snapCheck = await getDoc(docRef);
+                if(snapCheck.exists()) { mostrarNotificacao("Esta Cidade-UF já está mapeada!", "error"); return; }
+
+                await setDoc(docRef, { nome: nomeCidade, uf: ufRaw, bairros: [] });
+                mostrarNotificacao("Região cadastrada com sucesso!");
+                inputNome.value = ""; inputUf.value = ""; carregarLogisticaGeral();
+            } catch (err) { mostrarNotificacao("Erro ao salvar cidade.", "error"); }
+        };
+
+        document.getElementById('btn-salvar-bairro').onclick = async () => {
+            const selectCid = document.getElementById('bairro-cidade-select');
+            const inputBairro = document.getElementById('bairro-nome');
+            const cidadeIdComposto = selectCid.value;
+            const bairroNomeRaw = inputBairro.value.trim();
+
+            if(!cidadeIdComposto || !bairroNomeRaw) { mostrarNotificacao("Selecione a cidade e digite o bairro.", "error"); return; }
+
+            const bairroNome = bairroNomeRaw.charAt(0).toUpperCase() + bairroNomeRaw.slice(1);
+            try {
+                await updateDoc(doc(db, "regioes", cidadeIdComposto), { bairros: arrayUnion(bairroNome) });
+                mostrarNotificacao(`Bairro vinculado!`); inputBairro.value = ""; carregarLogisticaGeral();
+            } catch (err) { mostrarNotificacao("Erro ao vincular bairro.", "error"); }
+        };
+
+        /* ============================================================
+           5. MÓDULO: GERENCIAMENTO DE USUÁRIOS
+           ============================================================ */
+        async function carregarUsuarios() {
+            const tbody = document.getElementById('tabela-admin-usuarios');
+            try {
+                const snap = await getDocs(collection(db, "usuarios"));
+                tbody.innerHTML = "";
+                
+                if (snap.empty) {
+                    tbody.innerHTML = `<tr><td colspan="6" class="txt-center">Nenhum usuário registrado no sistema.</td></tr>`;
+                    return;
+                }
+
+                snap.forEach(docSnap => {
+                    const usuario = docSnap.data();
+                    const tr = document.createElement('tr');
+                    const uid = docSnap.id;
+                    if (uid.startsWith('cpf_')) return;
+                    const ehOProprioAdminLogado = auth.currentUser && auth.currentUser.uid === uid;
+
+                    const classeCargo = usuario.isAdmin === true ? 'status-aprovado' : 'status-pendente';
+                    const textoCargo = usuario.isAdmin === true ? 'Admin' : 'Cliente';
+
+                    const statusUsuario = usuario.status || 'ativo'; 
+                    let classeStatus = 'status-aprovado';
+                    if (statusUsuario === 'suspenso') classeStatus = 'status-suspenso';
+
+                    let btnCargoHtml = '';
+                    if (usuario.isAdmin === true) {
+                        btnCargoHtml = `<button class="btn-status-toggle btn-block btn-cargo-toggle" data-id="${uid}" data-admin="false" ${ehOProprioAdminLogado ? 'disabled style="opacity:0.5; cursor:not-allowed;"' : ''}><i class="fa-solid fa-user-minus"></i> Revogar Admin</button>`;
+                    } else {
+                        btnCargoHtml = `<button class="btn-status-toggle btn-allow btn-cargo-toggle" data-id="${uid}" data-admin="true"><i class="fa-solid fa-user-shield"></i> Tornar Admin</button>`;
+                    }
+
+                    let btnAcessoHtml = '';
+                    if (statusUsuario === 'suspenso') {
+                        btnAcessoHtml = `<button class="btn-status-toggle btn-allow btn-acesso-toggle" data-id="${uid}" data-status="ativo"><i class="fa-solid fa-user-check"></i> Reativar Conta</button>`;
+                    } else {
+                        btnAcessoHtml = `<button class="btn-status-toggle btn-block btn-acesso-toggle" data-id="${uid}" data-status="suspenso" ${ehOProprioAdminLogado ? 'disabled style="opacity:0.5; cursor:not-allowed;"' : ''}><i class="fa-solid fa-user-slash"></i> Suspender</button>`;
+                    }
+
+                    tr.innerHTML = `
+                        <td><strong>${usuario.nome || 'Sem Nome'}</strong></td>
+                        <td>${usuario.email || 'Sem E-mail'}</td>
+                        <td><span class="badge-status ${classeCargo}">${textoCargo}</span></td>
+                        <td><span class="badge-status ${classeStatus}">${statusUsuario}</span></td>
+                        <td>${btnCargoHtml}</td>
+                        <td>${btnAcessoHtml}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+
+                tbody.querySelectorAll('.btn-cargo-toggle').forEach(btn => {
+                    btn.onclick = async (e) => {
+                        if (e.currentTarget.hasAttribute('disabled')) return;
+                        const id = e.currentTarget.getAttribute('data-id');
+                        const definirAdmin = e.currentTarget.getAttribute('data-admin') === 'true';
+                        
+                        if (confirm(`Deseja alterar as permissões administrativas deste usuário?`)) {
+                            await updateDoc(doc(db, "usuarios", id), { isAdmin: definirAdmin });
+                            mostrarNotificacao("Permissões de cargo atualizadas!");
+                            await carregarUsuarios();
+                        }
+                    };
+                });
+
+                tbody.querySelectorAll('.btn-acesso-toggle').forEach(btn => {
+                    btn.onclick = async (e) => {
+                        if (e.currentTarget.hasAttribute('disabled')) return;
+                        const id = e.currentTarget.getAttribute('data-id');
+                        const novoStatus = e.currentTarget.getAttribute('data-status');
+                        
+                        const mensagemConfirmacao = novoStatus === 'suspenso' 
+                            ? "Tem certeza de que deseja suspender o acesso deste usuário ao aplicativo?" 
+                            : "Deseja reativar o acesso deste usuário?";
+
+                        if (confirm(mensagemConfirmacao)) {
+                            await updateDoc(doc(db, "usuarios", id), { status: novoStatus });
+                            mostrarNotificacao(`Status de acesso modificado para ${novoStatus}!`);
+                            await carregarUsuarios();
+                        }
+                    };
+                });
+
+            } catch (err) {
+                console.error("Erro ao carregar lista de usuários:", err);
+                tbody.innerHTML = "<tr><td colspan='6' class='txt-center'>Erro crítico ao processar tabela de usuários.</td></tr>";
+            }
+        }
+    </script>
+</body>
+</html>
