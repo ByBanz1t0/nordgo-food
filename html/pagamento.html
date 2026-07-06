@@ -152,7 +152,7 @@
             <h2>Pagamento Confirmado!</h2>
             <p>Seu pagamento foi reconhecido com sucesso pelo nosso robô.</p>
             <div class="status-container sucesso">
-                <span>🎉 Pedido enviado para a cozinha!</span>
+                <span>🎉 Pedidos enviados para as cozinhas!</span>
             </div>
             <p class="info-aviso">Redirecionando você de volta para a página inicial...</p>
         </div>
@@ -160,7 +160,7 @@
 
     <script type="module">
         import { db } from '../js/firebase-config.js';
-        import { doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
+        import { collection, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
 
         // =========================================================================
         // ⚙️ CHAVE PIX ATUALIZADA (Telefone no formato internacional padrão BACEN)
@@ -168,10 +168,10 @@
         const MINHA_CHAVE_PIX = '+5582998116884'; 
 
         const urlParams = new URLSearchParams(window.location.search);
-        const pedidoId = urlParams.get('id');
+        const transacaoId = urlParams.get('transacaoId');
 
-        if (!pedidoId) {
-            alert("ID do pedido inválido ou ausente.");
+        if (!transacaoId) {
+            alert("Identificador de transação inválido ou ausente.");
             window.location.href = "../index.html";
         }
 
@@ -182,7 +182,6 @@
             const f = (id, conteúdo) => id + String(conteúdo.length).padStart(2, '0') + conteúdo;
             
             const merchantAccount = f('00', 'br.gov.bcb.pix') + f('01', chave);
-            // Linha com erro removida, pois o 'additionalData' não era utilizado aqui.
 
             const payloadBase = [
                 f('00', '01'),                      // Payload Format Indicator
@@ -191,9 +190,9 @@
                 f('53', '986'),                      // Transaction Currency (BRL)
                 f('54', valor.toFixed(2)),           // Transaction Amount
                 f('58', 'BR'),                       // Country Code
-                f('59', 'EZEQUIAS PEREIRA'),         // Menos de 25 caracteres e limpo
-                f('60', 'ARAPIRACA'),                // Maiúsculo e sem erros
-                f('62', f('05', txid)),              // Utiliza o txid padrão '***' com segurança
+                f('59', 'EZEQUIAS PEREIRA'),         // Nome do recebedor
+                f('60', 'ARAPIRACA'),                // Cidade
+                f('62', f('05', txid)),              // TXID padrão
                 '6304'                               // CRC16 Checksum Indicator
             ].join('');
 
@@ -224,21 +223,34 @@
             }).catch(err => console.error("Erro ao copiar", err));
         };
 
-        // --- ESCUTA EM TEMPO REAL DO FIRESTORE ---
-        const pedidoRef = doc(db, "pedidos", pedidoId);
+        // --- ESCUTA EM TEMPO REAL DE TODOS OS PEDIDOS DA TRANSAÇÃO ---
+        const q = query(collection(db, "pedidos"), where("transacaoId", "==", transacaoId));
 
-        const unsubscribe = onSnapshot(pedidoRef, (docSnap) => {
-            if (docSnap.exists()) {
-                const dadosPedido = docSnap.data();
-                const valorTotal = dadosPedido.total;
+        const unsubscribe = onSnapshot(q, (querySnapshot) => {
+            if (!querySnapshot.empty) {
+                let valorTotalGeral = 0;
+                let todosEmPreparo = true;
+
+                // Percorre todas as lojas/pedidos criados nesta transação
+                querySnapshot.forEach((docSnap) => {
+                    const dadosPedido = docSnap.data();
+                    valorTotalGeral += dadosPedido.total || 0;
+
+                    // Se pelo menos um pedido ainda não foi aprovado, continua aguardando
+                    if (dadosPedido.status !== 'preparo') {
+                        todosEmPreparo = false;
+                    }
+                });
                 
-                document.getElementById('display-valor').innerText = `R$ ${valorTotal.toFixed(2).replace('.', ',')}`;
+                // Atualiza a interface com a soma de todas as lojas
+                document.getElementById('display-valor').innerText = `R$ ${valorTotalGeral.toFixed(2).replace('.', ',')}`;
 
-                codigoPixCopiaColaGlobal = gerarPayloadPixEstatico(MINHA_CHAVE_PIX, valorTotal);
+                // Gera o PIX unificado
+                codigoPixCopiaColaGlobal = gerarPayloadPixEstatico(MINHA_CHAVE_PIX, valorTotalGeral);
                 document.getElementById('display-copia-cola').innerText = codigoPixCopiaColaGlobal;
 
-                // CORRIGIDO: Agora a tela reconhece o pagamento assim que ele entra em 'preparo'
-                if (dadosPedido.status === 'preparo') {
+                // Quando o robô aprovar todas as frentes da transação no DB mudarão para 'preparo'
+                if (todosEmPreparo) {
                     document.getElementById('bloco-processamento-pix').classList.add('hidden');
                     document.getElementById('bloco-sucesso-pix').classList.remove('hidden');
 
@@ -249,7 +261,7 @@
                     }, 4000);
                 }
             } else {
-                console.error("Pedido não localizado no banco.");
+                console.error("Nenhum pedido localizado para esta transação.");
             }
         }, (error) => {
             console.error("Erro no listener do Pix:", error);
