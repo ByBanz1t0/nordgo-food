@@ -475,21 +475,23 @@
         };
 
         // --- CONFIRMAÇÃO DO PEDIDO (INTEGRADO COM REDIRECIONAMENTO PIX) ---
+        // --- CONFIRMAÇÃO DO PEDIDO (CORRIGIDO PARA MULTI-LOJAS) ---
         btnFinalizarPedido.onclick = async () => {
             const formaPagamento = selectPagamento.value;
             if (!formaPagamento) { mostrarNotificacao("Por favor, selecione a forma de pagamento.", "error"); return; }
-
+        
             btnFinalizarPedido.disabled = true;
             btnFinalizarPedido.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Finalizando...';
-
-            let ultimoPedidoIdGerado = null;
-
+        
+            // 💡 SOLUÇÃO: Criar um identificador único para unificar os pedidos deste checkout
+            const transacaoId = `TX_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
+        
             try {
                 for (const lid in lojasAgrupadas) {
                     const itensDaLoja = lojasAgrupadas[lid];
                     const subtotalLoja = itensDaLoja.reduce((acc, i) => acc + (i.preco * i.quantidade), 0);
                     const tipoDeEnvioEscolhido = escolhasLogisticaPorLoja[lid];
-
+        
                     let freteDaLojaIndividual = 0;
                     if (tipoDeEnvioEscolhido === 'entrega') {
                         const configLoja = fretesLojas[lid];
@@ -498,22 +500,22 @@
                             freteDaLojaIndividual = configLoja.taxasBairros[bairroFormatado] !== undefined ? configLoja.taxasBairros[bairroFormatado] : configLoja.freteMinimoRetroativo;
                         }
                     }
-
+        
                     let descontoLojaIndividual = 0;
                     if (cuponsLocaisAtivos[lid]) {
                         const cp = cuponsLocaisAtivos[lid];
                         descontoLojaIndividual = cp.tipo === "porcentagem" ? (subtotalLoja * cp.valor / 100) : cp.valor;
                         await updateDoc(doc(db, "cupons", cp.id), { usosAtuais: increment(1), usuariosQueUsaram: arrayUnion(usuarioLogado.uid) });
                     }
-
+        
                     if (cupomAtivo) {
                         const subtotalGeralCalculo = itensCarrinho.reduce((acc, i) => acc + (i.preco * i.quantidade), 0);
                         const descontoGlobalTotal = cupomAtivo.tipo === "porcentagem" ? (subtotalGeralCalculo * cupomAtivo.valor / 100) : cupomAtivo.valor;
                         descontoLojaIndividual += (subtotalLoja / subtotalGeralCalculo) * descontoGlobalTotal;
                     }
-
+        
                     const totalFinalDaLoja = subtotalLoja + freteDaLojaIndividual - descontoLojaIndividual;
-
+        
                     const itensMapeadosSeguros = itensDaLoja.map(i => {
                         const realProdutoId = i.id.includes('_v_') ? i.id.split('_v_')[0] : i.id;
                         return {
@@ -524,9 +526,9 @@
                             quantidade: i.quantidade
                         };
                     });
-
-                    // Cria o documento e captura a referência gerada
-                    const docRef = await addDoc(collection(db, "pedidos"), {
+        
+                    // Cria o documento do pedido vinculando-o à transação unificada
+                    await addDoc(collection(db, "pedidos"), {
                         clientId: usuarioLogado.uid,
                         clientNome: nomeClienteLogado || usuarioLogado.displayName || "Cliente NordGo",
                         lojaId: lid,
@@ -535,36 +537,35 @@
                         subtotal: subtotalLoja,
                         frete: freteDaLojaIndividual,
                         desconto: descontoLojaIndividual,
-                        total: parseFloat(Math.max(0, totalFinalDaLoja).toFixed(2)), // Salva sempre como número arredondado
+                        total: parseFloat(Math.max(0, totalFinalDaLoja).toFixed(2)),
                         formaPagamento: formaPagamento,
                         troco: formaPagamento === 'Dinheiro' ? (document.getElementById('input-troco-valor').value.trim() || "Não precisa") : "Não se aplica",
                         tipoEntrega: tipoDeEnvioEscolhido,
                         enderecoEntrega: tipoDeEnvioEscolhido === 'entrega' ? enderecoCompletoObjetoSelecionado : "Retirada no Balcão",
                         status: "pendente",
+                        transacaoId: transacaoId, // 💡 Adicionado para agrupar os pedidos no DB
                         dataCriacao: serverTimestamp()
                     });
-
-                    ultimoPedidoIdGerado = docRef.id;
                 }
-
+        
                 if (cupomAtivo) {
                     await updateDoc(doc(db, "cupons", cupomAtivo.id), { usosAtuais: increment(1), usuariosQueUsaram: arrayUnion(usuarioLogado.uid) });
                 }
-
+        
                 // Limpa o estado do carrinho antigo do cliente
                 localStorage.removeItem('nordgo_carrinho');
                 localStorage.removeItem('nordgo_cupom_global');
                 localStorage.removeItem('nordgo_cupons_locais');
-
-                // 💡 LOGICA DE REDIRECIONAMENTO DINÂMICO
+        
+                // 💡 REDIRECIONAMENTO ENVIANDO O ID DA TRANSAÇÃO GERAL
                 if (formaPagamento === 'Pix') {
                     mostrarNotificacao("Pedido gerado! Redirecionando para a tela de pagamento...");
-                    setTimeout(() => window.location.href = `pagamento.html?id=${ultimoPedidoIdGerado}`, 1500);
+                    setTimeout(() => window.location.href = `pagamento.html?transacaoId=${transacaoId}`, 1500);
                 } else {
                     mostrarNotificacao("Parabéns! Seus pedidos foram encaminhados para as cozinhas.");
                     setTimeout(() => window.location.href = "../index.html", 1500);
                 }
-
+        
             } catch (err) {
                 console.error("Erro crítico ao salvar transação:", err);
                 mostrarNotificacao("Houve uma instabilidade ao salvar o pedido.", "error");
