@@ -1,0 +1,145 @@
+.body-pagamento {
+    background-color: #f9f9f9;
+    font-family: 'Poppins', sans-serif;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    margin: 0;
+    padding: 20px;
+}
+
+.card-pagamento {
+    background: #ffffff;
+    max-width: 480px;
+    width: 100%;
+    border-radius: 16px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+    padding: 30px;
+    text-align: center;
+    box-sizing: border-box;
+}
+
+.logo-pix {
+    color: #32bcad;
+    font-size: 48px;
+    margin-bottom: 15px;
+}
+
+.valor-pix {
+    font-size: 32px;
+    font-weight: 600;
+    color: #1a1a1a;
+    margin: 10px 0;
+}
+
+.box-qrcode {
+    margin: 20px auto;
+    background: #ffffff;
+    padding: 12px;
+    border-radius: 12px;
+    display: inline-block;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+    border: 1px solid #e2e8f0;
+}
+
+.qr-code-img {
+    width: 180px;
+    height: 180px;
+    display: block;
+}
+
+.box-chave {
+    background-color: #f4f6f8;
+    border: 1px dashed #32bcad;
+    padding: 15px;
+    border-radius: 10px;
+    margin: 20px 0;
+    cursor: pointer;
+    position: relative;
+    transition: background 0.2s;
+}
+
+.box-chave:hover {
+    background-color: #eef9f8;
+}
+
+.lbl-chave {
+    font-size: 11px;
+    text-transform: uppercase;
+    color: #718096;
+    display: block;
+    margin-bottom: 4px;
+}
+
+.txt-chave {
+    font-size: 13px;
+    font-weight: 600;
+    color: #2d3748;
+    word-break: break-all;
+    display: block;
+    max-height: 50px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.status-container {
+    margin-top: 25px;
+    padding: 15px;
+    border-radius: 10px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+}
+
+.status-container.aguardando {
+    background-color: #fffaf0;
+    color: #dd6b20;
+    border: 1px solid #fbd38d;
+}
+
+.status-container.sucesso {
+    background-color: #f0fff4;
+    color: #38a169;
+    border: 1px solid #9ae6b4;
+    display: block;
+}
+
+.spinner-pix {
+    border: 3px solid #feebc8;
+    border-top: 3px solid #dd6b20;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.info-aviso {
+    font-size: 12px;
+    color: #718096;
+    margin-top: 15px;
+    line-height: 1.5;
+}
+
+.sucesso-icon {
+    font-size: 45px;
+    color: #38a169;
+    margin-bottom: 10px;
+    animation: popUp 0.4s ease-out;
+}
+
+@keyframes popUp {
+    0% { transform: scale(0.5); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+.hidden { 
+    display: none !important; 
+}

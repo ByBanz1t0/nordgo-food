@@ -6,6 +6,51 @@
 }
 
 /* ============================================================
+   ESTRUTURA DO HERO, BANNER E LOGO DA LOJA (PROPORÇÃO 3:1)
+   ============================================================ */
+
+.loja-hero {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    margin-bottom: 1.5rem;
+}
+
+.loja-banner,
+#loja-img-fundo,
+.banner-preview-element {
+    width: 100%;
+    aspect-ratio: 5 / 1;
+    height: auto;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    border-radius: 12px;
+    background-color: #ff6400;
+    display: block;
+}
+
+.loja-logo-container {
+    width: 90px;
+    height: 90px;
+    margin: -45px auto 10px auto;
+    position: relative;
+    z-index: 5;
+}
+
+.loja-logo-circular {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    background: #ffffff;
+    border: 4px solid #ffffff;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    display: block;
+}
+
+/* ============================================================
    MODAL DE SELEÇÃO DE OPÇÕES E COMPLEMENTOS (PÁGINA DA LOJA)
    ============================================================ */
 
@@ -20,7 +65,7 @@
     -webkit-backdrop-filter: blur(8px);
     display: flex;
     justify-content: center;
-    align-items: flex-end; /* Abre de baixo para cima no mobile style app */
+    align-items: flex-end;
     opacity: 0;
     visibility: hidden;
     transition: all 0.3s ease;
@@ -36,7 +81,7 @@
     background: #ffffff;
     width: 100%;
     max-width: 550px;
-    border-radius: 24px 24px 0 0; /* Bordas arredondadas superiores tipo iFood */
+    border-radius: 24px 24px 0 0;
     max-height: 85vh;
     display: flex;
     flex-direction: column;
@@ -50,7 +95,6 @@
     transform: translateY(0);
 }
 
-/* Telas maiores ganham aspecto centralizado tradicional */
 @media (min-width: 600px) {
     .modal-overlay-public {
         align-items: center;
@@ -104,7 +148,6 @@
     color: #ffffff;
 }
 
-/* Área de Rolagem Interna das Customizações */
 .modal-public-body {
     padding: 20px;
     overflow-y: auto;
@@ -112,7 +155,6 @@
     background: #f8f9fa;
 }
 
-/* Bloco de cada grupo */
 .bloco-grupo-escolha {
     background: #ffffff;
     border: 1px solid #e4e7eb;
@@ -146,7 +188,6 @@
     margin-top: 2px;
 }
 
-/* Badges de Obrigatório / Opcional */
 .badge-obrigatorio-tag, .badge-opcional-tag {
     font-size: 0.7rem;
     font-weight: 600;
@@ -164,7 +205,6 @@
     flex-direction: column;
 }
 
-/* Linha de Opção */
 .linha-opcao-item-custom {
     border-bottom: 1px solid #f8f9fa;
 }
@@ -198,7 +238,7 @@
 .esquerda-label-bloco input[type="checkbox"] {
     width: 18px;
     height: 18px;
-    accent-color: #ff6400; /* Cores da NordGo nos seletores */
+    accent-color: #ff6400;
     cursor: pointer;
     margin: 0;
 }
@@ -222,7 +262,6 @@
     font-family: inherit;
 }
 
-/* Rodapé do Modal */
 .modal-public-footer {
     padding: 15px 20px;
     border-top: 1px solid #f1f2f6;
@@ -270,17 +309,15 @@
     background: #e03d4b;
 }
 
-/* Ícone de Sliders indicando customização nos cards */
 .card-produto-quadrado .btn-add-carrinho i.fa-sliders,
 .card-produto-horizontal .btn-add-carrinho i.fa-sliders {
     font-size: 0.9rem;
 }
 
 /* ============================================================
-   SISTEMA DE CUPONS DINÂMICOS DA LOJA (NORDGO CUPOONS)
+   SISTEMA DE CUPONS DINÂMICOS DA LOJA
    ============================================================ */
 
-/* Container mestre da seção de cupons */
 .secao-cupons-container {
     margin-top: 1.5rem; 
     padding: 0 1rem;
@@ -288,7 +325,6 @@
     box-sizing: border-box;
 }
 
-/* Título da seção de cupons */
 .titulo-cupons-loja {
     font-size: 1.1rem; 
     color: #2f3542; 
@@ -303,7 +339,6 @@
     color: #ff6400;
 }
 
-/* Esteira/Carrossel de rolagem horizontal */
 .lista-cupons-carrossel {
     display: flex; 
     gap: 0.75rem; 
@@ -312,13 +347,12 @@
     scrollbar-width: thin;
 }
 
-/* Card individual do cupom */
 .card-cupom-individual {
     background: #fff5f5;
-    border: 0.09375rem dashed #ff6400; /* Equivalente a 1.5px */
-    border-radius: 0.625rem; /* Equivalente a 10px */
-    padding: 0.625rem 0.875rem; /* Equivalente a 10px 14px */
-    min-width: 10.625rem; /* Equivalente a 170px */
+    border: 0.09375rem dashed #ff6400;
+    border-radius: 0.625rem;
+    padding: 0.625rem 0.875rem;
+    min-width: 10.625rem;
     display: flex;
     flex-direction: column;
     gap: 0.125rem;
@@ -334,7 +368,6 @@
     box-shadow: 0 0.375rem 0.875rem rgba(255, 71, 87, 0.08);
 }
 
-/* Elemento identificador superior do card */
 .card-cupom-individual span:first-of-type {
     font-size: 0.75rem; 
     font-weight: 600; 
@@ -343,7 +376,6 @@
     letter-spacing: 0.03125rem;
 }
 
-/* Código de resgate proeminente */
 .card-cupom-individual h4 {
     font-size: 1.1rem; 
     font-weight: 700; 
@@ -352,7 +384,6 @@
     text-transform: uppercase;
 }
 
-/* Container de rodapé interno do card */
 .card-cupom-individual div {
     display: flex; 
     justify-content: space-between; 
@@ -363,13 +394,136 @@
     color: #2f3542;
 }
 
-/* Tag informativa de pedido mínimo */
 .card-cupom-individual div span:last-of-type {
     font-size: 0.7rem; 
     color: #747d8c; 
     background: #e4e7eb; 
-    padding: 0.0625rem 0.375rem; /* Equivalente a 1px 6px */
+    padding: 0.0625rem 0.375rem;
     border-radius: 0.25rem;
     text-transform: none;
     letter-spacing: normal;
+}
+
+/* ==========================================================================
+   CONTADOR DE VENDAS E CARDS DE PRODUTOS
+   ========================================================================== */
+
+.card-produto-quadrado {
+    position: relative;
+}
+
+.badge-vendas {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: rgba(255, 100, 0, 0.95);
+    color: #ffffff;
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 4px 8px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    z-index: 3;
+    pointer-events: none;
+    transition: all 0.2s ease-in-out;
+}
+
+.badge-vendas i {
+    color: #fffa65; 
+    font-size: 0.75rem;
+    animation: pulseFogo 1.5s infinite alternate;
+}
+
+.card-produto-quadrado:hover .badge-vendas {
+    transform: scale(1.05);
+    background: rgb(255, 100, 0);
+}
+
+@keyframes pulseFogo {
+    0% { transform: scale(0.9); opacity: 0.8; }
+    100% { transform: scale(1.1); opacity: 1; }
+}
+
+.card-produto-quadrado .info-overlay {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    gap: 2px;
+    padding: 8px;
+    box-sizing: border-box;
+}
+
+.card-produto-quadrado .info-overlay h3 {
+    font-size: 0.75rem;
+    line-height: 1.2;
+    margin: 0 0 2px 0;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 4px;
+    word-break: break-word;
+}
+
+.card-produto-quadrado .badge-avaliacao-item {
+    font-size: 0.65rem !important;
+    padding: 1px 5px !important;
+    margin-left: 0 !important;
+    border-radius: 8px !important;
+    line-height: 1;
+}
+
+.card-produto-quadrado .badge-avaliacao-item i {
+    font-size: 0.6rem !important;
+}
+
+.card-produto-quadrado .preco-tag {
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.btn-toggle-desc {
+    background: none;
+    border: none;
+    color: #ff6400;
+    font-size: 0.78rem;
+    font-weight: 600;
+    padding: 0;
+    margin-top: 4px;
+    cursor: pointer;
+    display: inline-block;
+    transition: opacity 0.2s ease;
+}
+
+.btn-toggle-desc:hover {
+    text-decoration: underline;
+    opacity: 0.85;
+}
+
+.texto-descricao-modal {
+    font-size: 0.95rem;
+    color: #57606f;
+    line-height: 1.6;
+    margin: 0;
+    white-space: pre-wrap;
+}
+
+.btn-fechar-desc-footer {
+    width: 100%;
+    background: #f1f2f6;
+    color: #2f3542;
+    border: none;
+    padding: 12px;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.btn-fechar-desc-footer:hover {
+    background: #e4e7eb;
 }

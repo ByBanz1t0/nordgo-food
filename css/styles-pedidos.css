@@ -9,7 +9,7 @@ body {
 
 /* Container Principal da Página */
 .pedidos-container {
-    margin-top: 1rem;    /* 100px */
+    margin-top: 1rem;       /* 100px */
     padding-bottom: 3.75rem; /* 60px */
     max-width: 46.875rem;   /* 750px */
     margin-left: auto;
@@ -104,6 +104,81 @@ body {
     color: #ffffff;
 }
 
+/* ==========================================================================
+   BARRA DE PROGRESSO DO PEDIDO (STEPPER REALTIME)
+   ========================================================================== */
+.stepper-progress-wrapper {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    margin: 1.2rem 0;
+    padding: 0 0.5rem;
+}
+
+.stepper-line-bg {
+    position: absolute;
+    top: 1rem;
+    left: 1.8rem;
+    right: 1.8rem;
+    height: 0.2rem;
+    background: #e4e7eb;
+    z-index: 1;
+}
+
+.stepper-step {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex: 1;
+    text-align: center;
+}
+
+.step-circle {
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    background: #e4e7eb;
+    color: #a4b0be;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    border: 0.2rem solid #ffffff;
+    transition: all 0.3s ease;
+}
+
+.step-label {
+    font-size: 0.7rem;
+    color: #a4b0be;
+    margin-top: 0.4rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+/* Etapa Concluída (Verde) */
+.stepper-step.step-completed .step-circle {
+    background: #2ed573;
+    color: #ffffff;
+}
+
+.stepper-step.step-completed .step-label {
+    color: #2ed573;
+}
+
+/* Etapa Ativa / Em Andamento (Laranja) */
+.stepper-step.step-active .step-circle {
+    background: #ff6400;
+    color: #ffffff;
+    box-shadow: 0 0 0 0.25rem rgba(255, 100, 0, 0.2);
+}
+
+.stepper-step.step-active .step-label {
+    color: #ff6400;
+}
+
 /* --- CORPO DE ITENS --- */
 .pedido-corpo-itens {
     background: #f8f9fa;
@@ -159,4 +234,208 @@ body {
     font-size: 1.05rem;
     color: #2f3542;
     font-weight: 600;
+}
+
+/* --- MODAL DE AVALIAÇÃO --- */
+.modal-overlay-public {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+.modal-overlay-public.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.modal-content-public {
+    background: #ffffff;
+    width: 90%;
+    max-width: 450px;
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    position: relative;
+    transform: translateY(20px);
+    transition: transform 0.3s ease;
+}
+
+.modal-overlay-public.active .modal-content-public {
+    transform: translateY(0);
+}
+
+.modal-public-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 12px;
+}
+
+.modal-public-header h2 {
+    font-size: 1.2rem;
+    color: #2f3542;
+    margin: 0;
+}
+
+.modal-public-header p {
+    font-size: 0.85rem;
+    color: #747d8c;
+    margin: 4px 0 0 0;
+}
+
+.btn-fechar-modal-public {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: #a4b0be;
+    cursor: pointer;
+    line-height: 1;
+}
+
+.btn-fechar-modal-public:hover {
+    color: #2f3542;
+}
+
+.star-btn {
+    transition: color 0.2s ease, transform 0.1s ease;
+}
+
+.star-btn:hover {
+    transform: scale(1.15);
+}
+
+#btn-enviar-avaliacao {
+    width: 100%;
+    background: #2ed573;
+    color: #ffffff;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 25px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(46, 213, 115, 0.3);
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+#btn-enviar-avaliacao:hover {
+    background: #26af5f;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(46, 213, 115, 0.4);
+}
+
+#btn-enviar-avaliacao:active {
+    transform: translateY(0);
+}
+
+/* ============================================================
+   ESTILOS DO MODAL E SINALIZADORES DE REEMBOLSO
+   ============================================================ */
+
+.btn-solicitar-reembolso {
+    background: transparent;
+    color: #e74c3c;
+    border: 1px solid #e74c3c;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 0.8rem;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s ease;
+}
+
+.btn-solicitar-reembolso:hover {
+    background: #e74c3c;
+    color: #ffffff;
+}
+
+.form-group-reembolso {
+    margin-bottom: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.form-group-reembolso label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #2f3542;
+}
+
+.input-modal-reembolso {
+    width: 100%;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #dcdde1;
+    font-size: 0.88rem;
+    font-family: inherit;
+    background-color: #fff;
+    outline: none;
+    transition: border-color 0.2s ease;
+}
+
+.input-modal-reembolso:focus {
+    border-color: #e74c3c;
+}
+
+.textarea-reembolso {
+    resize: none;
+}
+
+.modal-footer-reembolso {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 1rem;
+    border-top: 1px solid #f1f2f6;
+}
+
+.btn-modal-secundario {
+    background: #f1f2f6;
+    color: #2f3542;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.btn-modal-secundario:hover {
+    background: #e4e5e9;
+}
+
+.btn-modal-reembolso-danger {
+    background: #e74c3c;
+    color: #ffffff;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.btn-modal-reembolso-danger:hover {
+    background: #c0392b;
 }

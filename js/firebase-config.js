@@ -1,7 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
 import { getFirestore, doc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
 import { getAuth, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
-// 1. Importar o serviço de Storage
 import { getStorage } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-storage.js";
 
 const firebaseConfig = {
@@ -17,12 +16,11 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
-// 2. Inicializar o Storage
 const storage = getStorage(app);
 const googleProvider = new GoogleAuthProvider();
 
 /**
- * REDIRECIONAMENTO INTELIGENTE PARA LOJISTAS (Módulo + Global)
+ * REDIRECIONAMENTO INTELIGENTE PARA LOJISTAS
  */
 export async function irParaMinhaLoja() {
     const user = auth.currentUser;
@@ -39,7 +37,6 @@ export async function irParaMinhaLoja() {
         if (userSnap.exists()) {
             const userData = userSnap.data();
             
-            // CORREÇÃO SEGURA: Só tenta rodar o .trim() se tiver certeza absoluta de que o dado existe e é uma string
             if (userData && typeof userData.loja === 'string' && userData.loja.trim() !== "") {
                 window.location.href = `${pathPrefix}perfil-loja.html`;
             } else {
@@ -53,11 +50,10 @@ export async function irParaMinhaLoja() {
     }
 }
 
-// Garante o mapeamento no objeto global window para chamadas inline antigas
 window.irParaMinhaLoja = irParaMinhaLoja;
 
 /**
- * MONITOR DE AUTENTICAÇÃO E CONSTRUÇÃO DO MENU (Com trava global antievasão)
+ * MONITOR DE AUTENTICAÇÃO E CONSTRUÇÃO DO MENU
  */
 onAuthStateChanged(auth, async (user) => {
     const isRoot = window.location.pathname.includes('index.html') || window.location.pathname.endsWith('/');
@@ -68,13 +64,12 @@ onAuthStateChanged(auth, async (user) => {
             const userDoc = await getDoc(doc(db, "usuarios", user.uid));
             const userData = userDoc.data();
             
-            // 🛡️ FIREWALL GLOBAL CRÍTICO: Se o status no banco for suspenso, desloga imediatamente em qualquer página!
+            // Trava de segurança para usuários suspensos
             if (userData?.status === "suspenso") {
                 mostrarNotificacao("Sua conta está suspensa. Contate o administrador.", "error");
-                localStorage.removeItem('nordgo_cep_usuario'); // Limpa a sessão geográfica residual
+                localStorage.removeItem('nordgo_cep_usuario');
                 await signOut(auth);
                 
-                // Evita loops infinitos de redirecionamento caso o usuário já esteja na tela de login
                 if (!window.location.pathname.includes('login.html')) {
                     setTimeout(() => {
                         window.location.href = `${pathPrefix}login.html`;
@@ -83,19 +78,23 @@ onAuthStateChanged(auth, async (user) => {
                 return;
             }
 
-            // Se o usuário passou no teste de segurança, o app renderiza a área do menu normalmente
             const headerRight = document.getElementById('user-area') || document.querySelector('.header-right');
             if (!headerRight) return;
 
             const nomeExibir = userData?.nome ? userData.nome.split(' ')[0] : "Usuário";
             const fotoPerfil = userData?.fotoUrl || (isRoot ? 'assets/images/default-user.png' : '../assets/images/default-user.png');
             
-            // Validação de segurança para renderizar o link administrativo apenas se for admin real
-            const linkAdminHtml = userData?.isAdmin === true 
-                ? `<a href="${pathPrefix}gerenciamento.html"><i class="fa-solid fa-sliders"></i> Painel Admin</a>` 
-                : '';
+            // VERIFICAÇÃO DE ACESSO: ADMIN OU SUPORTE
+            const ehAdmin = userData?.isAdmin === true || userData?.cargo === 'admin' || userData?.role === 'admin';
+            const ehSuporte = userData?.cargo === 'suporte' || userData?.role === 'suporte';
             
-            // MODIFICADO: Inserido o link dinâmico direcionando para "pedidos.html" com seu pathPrefix correspondente
+            let linkAdminHtml = '';
+            if (ehAdmin) {
+                linkAdminHtml = `<a href="${pathPrefix}gerenciamento.html"><i class="fa-solid fa-sliders"></i> Painel Admin</a>`;
+            } else if (ehSuporte) {
+                linkAdminHtml = `<a href="${pathPrefix}gerenciamento.html"><i class="fa-solid fa-headset"></i> Painel Suporte</a>`;
+            }
+            
             headerRight.innerHTML = `
                 <div class="user-menu-container">
                     <div class="pill-badge pill-user">
@@ -118,7 +117,6 @@ onAuthStateChanged(auth, async (user) => {
                 </div>
             `;
 
-            // Configura o botão de logout
             document.getElementById('btn-logout-global').onclick = async () => {
                 await signOut(auth);
                 window.location.href = isRoot ? 'index.html' : '../index.html';
@@ -140,7 +138,6 @@ onAuthStateChanged(auth, async (user) => {
     }
 });
 
-// DELEGAÇÃO DE EVENTOS: O clique esquerdo intercepta perfeitamente sem conflitos de URL
 document.addEventListener('click', function(e) {
     const botaoMinhaLoja = e.target.closest('#link-loja-global');
     
@@ -152,7 +149,7 @@ document.addEventListener('click', function(e) {
 });
 
 /**
- * UTILITÁRIO DE NOTIFICAÇÕES (TOASTS)
+ * NOTIFICAÇÕES (TOASTS)
  */
 export function mostrarNotificacao(mensagem, tipo = 'success') {
     let container = document.getElementById('toast-container');
@@ -173,5 +170,4 @@ export function mostrarNotificacao(mensagem, tipo = 'success') {
     }, 3000);
 }
 
-// Incluir storage nas exportações
 export { app, db, auth, storage, googleProvider };

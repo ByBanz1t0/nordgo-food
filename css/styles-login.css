@@ -46,6 +46,7 @@
 
 /* Formulários e Grid */
 .login-form input[type="email"],
+.login-form input[type="tel"],
 .login-form input[type="password"],
 .login-form input[type="text"] {
     width: 100%;

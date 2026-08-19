@@ -46,140 +46,86 @@
         </div>
 
         <div id="lista-pedidos-usuario">
-            <p style="text-align: center; color: #747d8c; margin-top: 2rem;">Carregando histórico de pedidos...</p>
+            <p class="pedidos-carregando-text">Carregando histórico de pedidos...</p>
         </div>
     </main>
 
-    <script type="module">
-        import { db, auth } from '../js/firebase-config.js';
-        import { collection, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
-        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
+    <!-- Modal de Avaliação -->
+    <div id="modal-avaliacao" class="modal-overlay-public">
+        <div class="modal-content-public animate-pop modal-avaliacao-content">
+            <div class="modal-public-header">
+                <div>
+                    <h2>Avaliar Pedido</h2>
+                    <p id="modal-aval-subtitulo">Conte como foi sua experiência</p>
+                </div>
+                <button class="btn-fechar-modal-public" id="btn-fechar-modal-aval">&times;</button>
+            </div>
 
-        const containerLista = document.getElementById('lista-pedidos-usuario');
-        const containerVazio = document.getElementById('pedidos-vazio');
-
-        // 🔥 FUNÇÃO AUXILIAR: Converte Timestamps do Firebase com segurança para datas nativas
-        const converterTimestamp = (campo) => {
-            if (!campo) return new Date(0);
-            if (typeof campo.toDate === 'function') return campo.toDate();
-            if (campo.seconds) return new Date(campo.seconds * 1000);
-            const d = new Date(campo);
-            return isNaN(d.getTime()) ? new Date(0) : d;
-        };
-
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                inicializarEscutaPedidos(user.uid);
-            } else {
-                window.location.href = 'login.html';
-            }
-        });
-
-        function inicializarEscutaPedidos(clientUid) {
-            const q = query(collection(db, "pedidos"), where("clientId", "==", clientUid));
-
-            onSnapshot(q, (snapshot) => {
-                if (snapshot.empty) {
-                    containerVazio.classList.remove('hidden');
-                    containerLista.innerHTML = "";
-                    return;
-                }
-
-                containerVazio.classList.add('hidden');
-                let dadosPedidos = [];
-
-                snapshot.forEach(docSnap => {
-                    const p = docSnap.data();
-                    p.id = docSnap.id;
-                    dadosPedidos.push(p);
-                });
-
-                // 🔥 CORREÇÃO: Ordenação segura lendo dataCriacao e convertendo o Timestamp (Mais novo no topo)
-                dadosPedidos.sort((a, b) => {
-                    return converterTimestamp(b.dataCriacao || b.dataPedido).getTime() - converterTimestamp(a.dataCriacao || a.dataPedido).getTime();
-                });
-
-                renderizarPedidos(dadosPedidos);
-            });
-        }
-
-        function renderizarPedidos(pedidos) {
-            containerLista.innerHTML = "";
-
-            pedidos.forEach(p => {
-                const card = document.createElement('div');
-                card.className = "card-pedido-cliente";
-
-                let corStatus = "#ffa502"; 
-                let textoStatus = "Aguardando Confirmação";
-                
-                if (p.status === "preparo") { corStatus = "#1e90ff"; textoStatus = "Na Cozinha / Em Preparo"; }
-                if (p.status === "entrega") { 
-                    corStatus = "#9b59b6"; 
-                    textoStatus = p.tipoEntrega === "retirada" ? "Pronto para Retirada!" : "Saiu para Entrega"; 
-                }
-                if (p.status === "concluido") { corStatus = "#2ed573"; textoStatus = "Entregue / Concluído"; }
-                if (p.status === "cancelado") { corStatus = "#ff6400"; textoStatus = "Pedido Recusado"; }
-
-                // 🔥 CORREÇÃO: Formatação robusta de Data e Hora (DD/MM/AAAA HH:MM)
-                const dataObjeto = converterTimestamp(p.dataCriacao || p.dataPedido);
-                let dataExibicao = dataObjeto.getTime() !== 0 
-                    ? dataObjeto.toLocaleString('pt-br', { dateStyle: 'short', timeStyle: 'short' }) 
-                    : "--/-- --:--";
-
-                let htmlItens = p.itens.map(i => `
-                    <div class="pedido-item-linha">
-                        <span><strong class="pedido-item-qtd">${i.quantidade}x</strong> ${i.nome}</span>
-                        <span>R$ ${(i.preco * i.quantidade).toFixed(2)}</span>
+            <div class="modal-public-body modal-avaliacao-body">
+                <div class="rating-stars-wrapper">
+                    <p class="rating-stars-label">Sua Nota:</p>
+                    <div class="stars-selector" id="stars-selector">
+                        <i class="fa-solid fa-star star-btn" data-value="1"></i>
+                        <i class="fa-solid fa-star star-btn" data-value="2"></i>
+                        <i class="fa-solid fa-star star-btn" data-value="3"></i>
+                        <i class="fa-solid fa-star star-btn" data-value="4"></i>
+                        <i class="fa-solid fa-star star-btn" data-value="5"></i>
                     </div>
-                `).join('');
+                </div>
 
-                let htmlFreteLinha = `
-                    <div class="pedido-item-linha" style="margin-top: 0.5rem; color: #747d8c;">
-                        <span><i class="fa-solid fa-truck"></i> Taxa de Entrega:</span>
-                        <span>${p.frete > 0 ? `R$ ${parseFloat(p.frete).toFixed(2)}` : 'Grátis'}</span>
-                    </div>
-                `;
+                <div class="comment-area-wrapper">
+                    <label for="txt-comentario-aval" class="comment-area-label">Comentário (opcional):</label>
+                    <textarea id="txt-comentario-aval" 
+                              maxlength="100" 
+                              rows="3" 
+                              placeholder="Escreva sua opinião sobre os produtos ou a entrega (máx. 100 caracteres)..." 
+                              class="comment-area-textarea"></textarea>
+                    <small id="char-counter" class="char-counter-text">0 / 100</small>
+                </div>
+            </div>
 
-                let htmlDescontoLinha = "";
-                if (p.desconto && parseFloat(p.desconto) > 0) {
-                    htmlDescontoLinha = `
-                        <div class="pedido-item-linha" style="color: #2ed573; font-weight: 600; font-size: 0.85rem; margin-top: 0.25rem;">
-                            <span><i class="fa-solid fa-ticket"></i> Desconto Aplicado:</span>
-                            <span>- R$ ${parseFloat(p.desconto).toFixed(2)}</span>
-                        </div>
-                    `;
-                }
+            <div class="modal-public-footer">
+                <button id="btn-enviar-avaliacao" class="btn-adicionar-customizado btn-full-width">
+                    <i class="fa-solid fa-paper-plane"></i> Enviar Avaliação
+                </button>
+            </div>
+        </div>
+    </div>
 
-                let htmlCancelamento = p.status === "cancelado" && p.motivoCancelamento ? `
-                    <div class="box-cancelamento">
-                        <i class="fa-solid fa-circle-exclamation"></i>
-                        <div><strong>Motivo:</strong> "${p.motivoCancelamento}"</div>
-                    </div>
-                ` : "";
+    <!-- Modal de Solicitação de Reembolso -->
+    <div id="modal-solicitar-reembolso" class="modal-overlay-public">
+        <div class="modal-content-public animate-pop modal-reembolso-content">
+            <div class="modal-public-header">
+                <div>
+                    <h2><i class="fa-solid fa-rotate-left modal-reembolso-icon"></i> Solicitar Reembolso</h2>
+                    <p id="txt-reembolso-subtitulo">Informe o motivo da solicitação</p>
+                </div>
+                <button class="btn-fechar-modal-public" id="btn-fechar-modal-reembolso">&times;</button>
+            </div>
 
-                card.innerHTML = `
-                    <div class="pedido-header">
-                        <div>
-                            <h3 class="pedido-loja-titulo"><i class="fa-solid fa-store pedido-loja-icon"></i> ${p.nomeLoja}</h3>
-                            <div class="pedido-meta"><i class="fa-regular fa-clock"></i> ${dataExibicao} • ID: ...${p.id.slice(-6).toUpperCase()}</div>
-                        </div>
-                        <span class="badge-status" style="background: ${corStatus}">${textoStatus}</span>
-                    </div>
-                    <div class="pedido-corpo-itens">
-                        ${htmlItens}
-                        ${htmlFreteLinha}
-                        ${htmlDescontoLinha}
-                    </div>
-                    ${htmlCancelamento}
-                    <div class="pedido-footer">
-                        <span>Pagamento: <strong>${p.formaPagamento}</strong></span>
-                        <span class="pedido-total-texto">Total: R$ ${p.total.toFixed(2)}</span>
-                    </div>
-                `;
-                containerLista.appendChild(card);
-            });
-        }
-    </script>
+            <div class="modal-public-body modal-reembolso-body">
+                <div class="form-group-reembolso">
+                    <label for="select-motivo-reembolso">Motivo Principal:</label>
+                    <select id="select-motivo-reembolso" class="input-modal-reembolso">
+                        <option value="">Carregando motivos...</option>
+                    </select>
+                </div>
+
+                <div class="form-group-reembolso">
+                    <label for="txt-detalhes-reembolso">Detalhes do ocorrido (opcional):</label>
+                    <textarea id="txt-detalhes-reembolso" rows="3" class="input-modal-reembolso textarea-reembolso" placeholder="Descreva brevemente o que aconteceu..."></textarea>
+                </div>
+            </div>
+
+            <div class="modal-public-footer modal-footer-reembolso">
+                <button id="btn-cancelar-reembolso-modal" class="btn-modal-secundario">Cancelar</button>
+                <button id="btn-confirmar-envio-reembolso" class="btn-modal-reembolso-danger">Enviar Solicitação</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts Modulares -->
+    <script type="module" src="../js/firebase-config.js"></script>
+    <script type="module" src="../js/pedidos.js"></script>
 </body>
 </html>

@@ -27,7 +27,7 @@
     width: 22.5rem !important; /* Barra lateral fixa em 360px */
     position: sticky !important;
     top: 5rem; 
-    min-height: calc(100vh - 8rem); 
+    height: calc(100vh - 5.5rem); 
     background: #ffffff;
     border: 0.0625rem solid #e4e7eb;
     border-radius: 0.75rem;
@@ -36,6 +36,7 @@
     display: flex;
     flex-direction: column;
     box-sizing: border-box;
+    overflow: hidden;
 }
 
 .header-pedidos-fixo {
@@ -90,6 +91,25 @@
     overflow-y: auto !important; 
     flex: 1;
     padding-right: 0.25rem;
+    scrollbar-width: thin;
+}
+
+.lista-pedidos-fixo-scroll::-webkit-scrollbar {
+    width: 6px;
+}
+
+.lista-pedidos-fixo-scroll::-webkit-scrollbar-track {
+    background: #f1f2f6;
+    border-radius: 10px;
+}
+
+.lista-pedidos-fixo-scroll::-webkit-scrollbar-thumb {
+    background: #ff6400; 
+    border-radius: 10px;
+}
+
+.lista-pedidos-fixo-scroll::-webkit-scrollbar-thumb:hover {
+    background: #e03d4b;
 }
 
 .lista-pedidos-fixo-scroll p {
@@ -231,7 +251,7 @@
     opacity: 0;
     visibility: hidden;
     transition: all 0.3s ease;
-    z-index: 9999;
+    z-index: 1000;
 }
 
 .modal-overlay.active {
@@ -241,16 +261,20 @@
 
 .modal-content {
     background: #fff;
-    width: 95%;
+    width: calc(100% - 2rem);
     max-width: 34.375rem;
-    max-height: 90vh;
-    border-radius: 1.5625rem;
+    max-height: calc(100vh - 2rem);
+    border-radius: 1.25rem;
     padding: 1.875rem;
     position: relative;
-    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden !important;
     transform: scale(0.9);
     transition: all 0.3s ease;
     box-shadow: 0 1.25rem 3.125rem rgba(0,0,0,0.2);
+    box-sizing: border-box;
+    margin: 1rem;
 }
 
 .modal-overlay.active .modal-content {
@@ -264,6 +288,32 @@
     margin-bottom: 1.5rem;
     padding-bottom: 1rem;
     border-bottom: 0.0625rem solid #f1f1f1;
+    flex-shrink: 0;
+}
+
+.modal-body {
+    flex: 1;
+    overflow-y: auto !important;
+    padding-right: 0.5rem;
+    box-sizing: border-box;
+}
+
+.modal-body::-webkit-scrollbar {
+    width: 6px;
+}
+
+.modal-body::-webkit-scrollbar-track {
+    background: #f1f2f6;
+    border-radius: 10px;
+}
+
+.modal-body::-webkit-scrollbar-thumb {
+    background: #ff6400;
+    border-radius: 10px;
+}
+
+.modal-body::-webkit-scrollbar-thumb:hover {
+    background: #e03d4b;
 }
 
 .modal-body .input-group {
@@ -313,7 +363,7 @@
 }
 
 .input-file-hidden {
-    display: none;
+    display: none !important;
 }
 
 #preview-logo, 
@@ -349,6 +399,7 @@
     border: 0.0625rem solid #f0f0f0;
     box-sizing: border-box;
     transition: all 0.2s ease;
+    position: relative;
 }
 
 .card-dash:hover { 
@@ -373,6 +424,46 @@
     color: #747d8c; 
     font-size: 0.9rem; 
     line-height: 1.4;
+}
+
+/* ============================================================
+   CARD DESTAQUE: GESTÃO AVANÇADA (PDV & MESAS)
+   ============================================================ */
+
+.card-destaque-gestao {
+    background: linear-gradient(145deg, #ffffff 0%, #fffbf8 100%) !important;
+    border: 0.125rem solid #ff6400 !important;
+    box-shadow: 0 0.25rem 0.875rem rgba(255, 100, 0, 0.1) !important;
+}
+
+.card-destaque-gestao:hover {
+    background: #ffffff !important;
+    border-color: #e05800 !important;
+    transform: translateY(-0.1875rem);
+    box-shadow: 0 0.5rem 1.25rem rgba(255, 100, 0, 0.18) !important;
+}
+
+.card-destaque-gestao .badge-card-destaque {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+    background: linear-gradient(135deg, #ff6400, #ff8c42);
+    color: #ffffff;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.03125rem;
+    padding: 0.2rem 0.5rem;
+    border-radius: 1rem;
+    text-transform: uppercase;
+}
+
+.card-destaque-gestao .icone-gestao-animado {
+    color: #ff6400 !important;
+    transition: transform 0.2s ease;
+}
+
+.card-destaque-gestao:hover .icone-gestao-animado {
+    transform: scale(1.08);
 }
 
 .produtos-admin-list {
@@ -512,22 +603,31 @@
     transition: 0.3s;
 }
 
+/* ============================================================
+   BANNER DA LOJA (CORRIGIDO: ALTURA FIXA E PREVIEW)
+   ============================================================ */
+
 .banner-preview-container {
     width: 100%;
-    margin-bottom: 1rem;
+    margin-bottom: 1.25rem;
 }
 
 .wrapper-banner-input {
     position: relative;
     display: block;
     width: 100%;
-    height: 10rem; 
+    height: 10rem; /* 160px de altura garantida */
     border-radius: 0.75rem;
     overflow: hidden;
     cursor: pointer;
     box-shadow: 0 0.1875rem 0.625rem rgba(0, 0, 0, 0.05);
-    background-color: #fcfcfc;
-    border: 0.125rem dashed #e8e8e8;
+    background-color: #f1f2f6;
+    border: 0.125rem dashed #ced6e0;
+    transition: border-color 0.2s ease;
+}
+
+.wrapper-banner-input:hover {
+    border-color: #ff6400;
 }
 
 .banner-preview-element {
@@ -536,24 +636,26 @@
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
+    background-color: #f1f2f6;
+    display: block;
     transition: filter 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
 .overlay-banner-input-upload {
     position: absolute;
     inset: 0;
-    background: rgba(0, 0, 0, 0.45);
+    background: rgba(0, 0, 0, 0.38);
     color: #ffffff;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
-    opacity: 0;
-    transition: opacity 0.3s ease;
+    opacity: 0.85; /* Visível para orientar o lojista */
+    transition: opacity 0.3s ease, background 0.3s ease;
 }
 
-.overlay-banner-input-upload i { font-size: 1.5rem; }
+.overlay-banner-input-upload i { font-size: 1.6rem; }
 .overlay-banner-input-upload span {
     font-size: 0.8rem;
     font-weight: 600;
@@ -561,11 +663,17 @@
     letter-spacing: 0.05rem;
 }
 
-.wrapper-banner-input:hover .overlay-banner-input-upload { opacity: 1; }
-.wrapper-banner-input:hover .banner-preview-element { filter: blur(0.0625rem); }
+.wrapper-banner-input:hover .overlay-banner-input-upload { 
+    opacity: 1; 
+    background: rgba(0, 0, 0, 0.55);
+}
+
+.wrapper-banner-input:hover .banner-preview-element { 
+    filter: brightness(0.85); 
+}
 
 /* ============================================================
-   ESTILOS DO MODAL DE HORÁRIOS (BLINDADO CONTRA QUEBRAS)
+   ESTILOS DO MODAL DE HORÁRIOS
    ============================================================ */
 
 .modal-content-horarios {
@@ -574,7 +682,7 @@
 
 .select-status-master {
     width: 100% !important;
-    height: 2.8125rem; /* 45px */
+    height: 2.8125rem;
     border-radius: 0.75rem;
     border: 0.09375rem solid #e4e7eb;
     padding: 0 0.75rem;
@@ -624,12 +732,11 @@
     flex-direction: row !important;
     align-items: center !important;
     gap: 0.625rem;
-    flex: 0 0 9.375rem !important; /* Fixa o bloco em 150px */
+    flex: 0 0 9.375rem !important;
     width: 9.375rem !important;
     min-width: 9.375rem !important;
 }
 
-/* Fix do Checkbox gigante das laterais */
 .checkbox-dia-toggle {
     width: 20px !important;
     height: 20px !important;
@@ -669,10 +776,9 @@
     white-space: nowrap;
 }
 
-/* Fix das dimensões do time-picker */
 .input-time-picker {
-    height: 2.375rem !important; /* 38px */
-    width: 5.625rem !important; /* 90px */
+    height: 2.375rem !important;
+    width: 5.625rem !important;
     min-width: 5.625rem !important;
     max-width: 5.625rem !important;
     padding: 0 0.375rem !important;
@@ -697,18 +803,6 @@
 
 .modal-content-logistica {
     max-width: 58rem !important; 
-    max-height: 92vh !important; 
-    display: flex;
-    flex-direction: column;
-    overflow: hidden !important; 
-}
-
-.modal-content-logistica .modal-body {
-    display: flex;
-    flex-direction: column;
-    overflow-y: auto !important; 
-    flex: 1;
-    padding-right: 0.625rem;
 }
 
 .logistica-config-topo {
@@ -766,8 +860,6 @@
     display: flex;
     flex-direction: column;
     gap: 0.9375rem; 
-    max-height: none !important; 
-    overflow: visible !important; 
     margin-top: 0.9375rem; 
     flex: 1;
 }
@@ -879,7 +971,7 @@
     box-shadow: 0 0.625rem 1.5625rem rgba(0, 0, 0, 0.12);
     max-height: 12.5rem; 
     overflow-y: auto !important;
-    z-index: 1000; 
+    z-index: 1100; 
     display: none; 
     margin-top: 0.3125rem; 
     padding: 0.3125rem; 
@@ -903,54 +995,157 @@
 .dropdown-cidades-lista .checkbox-cidade-item:hover { background: #f8f9fa !important; }
 .dropdown-cidades-lista .checkbox-cidade-item label { font-size: 0.9rem; font-weight: 500; color: #2f3542; cursor: pointer; flex: 1; text-align: left; }
 
-/* --- INTERFACES Z-INDEXES --- */
-#modal-motivo-cancelamento { z-index: 2000 !important; }
-.toast-container { z-index: 3000 !important; }
-
 /* ============================================================
-   AJUSTE DE ALTURA FIXA E ROLAGEM DO PAINEL DE PEDIDOS
+   HIERARQUIA DE CAMADAS Z-INDEX
    ============================================================ */
 
-/* 1. O painel lateral (aside) agora fica travado no tamanho da tela */
-.painel-pedidos-fixo {
-    height: calc(100vh - 5.5rem); /* Limita o painel ao tamanho da tela tirando o cabeçalho */
-    position: sticky;
-    top: 4.5rem; /* Mantém ele fixo no topo se o resto da página rolar */
+#modal-motivo-cancelamento { z-index: 1200 !important; }
+#modal-pagar-repasse-pix { z-index: 1300 !important; }
+
+#toast-container,
+.toast-container { 
+    z-index: 10000 !important; 
+    position: fixed;
+}
+
+/* ============================================================
+   CARDS E BOTÕES DOS PEDIDOS NO PAINEL LATERAL
+   ============================================================ */
+
+.card-pedido-item {
+    background: #ffffff;
+    border: 1px solid #e4e7eb;
+    border-radius: 12px;
+    padding: 15px;
     display: flex;
-    flex-direction: column; /* Organiza o cabeçalho de pedidos em cima e a lista embaixo */
-    overflow: hidden; /* Impede o painel inteiro de vazar */
+    flex-direction: column;
+    gap: 10px;
+    flex-shrink: 0;
+    margin-bottom: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.02);
 }
 
-/* 2. O cabeçalho dos pedidos e abas continuam fixos no topo do painel */
-.header-pedidos-fixo {
-    flex-shrink: 0; /* Impede o cabeçalho de amassar ou sumir */
+.card-pedido-header-linha {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #e4e7eb;
+    padding-bottom: 6px;
 }
 
-/* 3. A área interna de listagem de pedidos ganha a barra de rolagem isolada */
-.lista-pedidos-fixo-scroll {
-    flex: 1; /* Força a lista a ocupar todo o espaço restante do painel */
-    overflow-y: auto; /* Ativa o scroll vertical inteligente apenas aqui dentro */
-    padding-right: 6px; /* Pequeno espaçamento para os cards não colarem no scrollbar */
-    scrollbar-width: thin; /* Deixa o scroll fino em navegadores Firefox */
+.card-pedido-id-txt {
+    font-size: 0.8rem;
+    color: #747d8c;
 }
 
-/* 4. Customização estética para o scrollbar ficar fino e no padrão da NordGo (Webkit) */
-.lista-pedidos-fixo-scroll::-webkit-scrollbar {
-    width: 6px;
+.card-pedido-cliente-nome {
+    color: #2f3542;
+    margin-top: 2px;
+    font-size: 0.9rem;
 }
 
-.lista-pedidos-fixo-scroll::-webkit-scrollbar-track {
-    background: #f1f2f6;
-    border-radius: 10px;
+.badge-status-materia {
+    color: white;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
 }
 
-.lista-pedidos-fixo-scroll::-webkit-scrollbar-thumb {
-    background: #ff6400; /* Laranja da NordGo */
-    border-radius: 10px;
+.card-pedido-corpo-conteudo {
+    font-size: 0.85rem;
+    color: #57606f;
+    line-height: 1.4;
 }
 
-.lista-pedidos-fixo-scroll::-webkit-scrollbar-thumb:hover {
-    background: #e03d4b;
+.box-itens-detalhe {
+    background: #f8f9fa;
+    border: 1px solid #e4e7eb;
+    padding: 8px;
+    border-radius: 6px;
+    margin-bottom: 6px;
+}
+
+.item-qtd {
+    font-weight: 600;
+    color: #2f3542;
+}
+
+.txt-entrega-detalhe {
+    margin-bottom: 2px;
+}
+
+.texto-retirada {
+    color: #1e90ff;
+    font-weight: 600;
+}
+
+.tag-pago-sucesso {
+    color: #2ed573;
+    font-weight: bold;
+}
+
+.box-motivo-recusa {
+    margin-top: 4px;
+    padding: 6px;
+    background: #fff5f5;
+    border-radius: 6px;
+    color: #ff6400;
+    font-size: 0.8rem;
+}
+
+.card-pedido-footer-linha {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid #e4e7eb;
+    padding-top: 8px;
+    margin-top: 2px;
+}
+
+.txt-valor-total-pedido {
+    font-size: 0.95rem;
+    color: #2f3542;
+    font-weight: 600;
+}
+
+.wrapper-botoes-acoes {
+    display: flex;
+    gap: 6px;
+}
+
+/* BOTÕES DE AÇÃO DOS PEDIDOS */
+.btn-aceitar-ped {
+    background: #1e90ff !important;
+    padding: 6px 10px !important;
+    font-size: 0.75rem !important;
+}
+
+.btn-aguardando-pix-ped {
+    background: #ff6400 !important;
+    padding: 6px 10px !important;
+    font-size: 0.75rem !important;
+    cursor: default;
+    opacity: 0.9;
+}
+
+.btn-recusar-ped {
+    background: #e74c3c !important;
+    padding: 6px 10px !important;
+    font-size: 0.75rem !important;
+}
+
+.btn-despachar-ped {
+    background: #9b59b6 !important;
+    padding: 6px 10px !important;
+    font-size: 0.75rem !important;
+}
+
+.btn-finalizar-ped {
+    background: #2ed573 !important;
+    padding: 6px 10px !important;
+    font-size: 0.75rem !important;
 }
 
 /* ============================================================
@@ -987,9 +1182,9 @@
    REGRAS DE RESPONSIVIDADE OPERACIONAL (MEDIA QUERIES)
    ============================================================ */
 
-@media (max-width: 64rem) { /* Tablets e Ecrãs de até 1024px */
+@media (max-width: 64rem) {
     .dashboard-layout-wrapper {
-        flex-direction: column; /* Joga os pedidos para baixo */
+        flex-direction: column;
         padding: 0 0.5rem;
     }
 
@@ -1000,7 +1195,7 @@
     }
 
     .grid-metricas-operacionais {
-        grid-template-columns: repeat(2, 1fr); /* Transforma o grid em 2x2 */
+        grid-template-columns: repeat(2, 1fr);
     }
 
     .bloco-acoes-exportacao {
@@ -1014,23 +1209,23 @@
     }
 
     .tabela-repasses-scroll-wrapper table {
-        min-width: 37.5rem; /* Força scroll horizontal na tabela mobile */
+        min-width: 37.5rem;
     }
 }
 
-@media (max-width: 48rem) { /* Até 768px */
+@media (max-width: 48rem) {
     .logistica-config-topo {
         grid-template-columns: 1fr; 
         gap: 0.75rem;
         align-items: stretch;
     }
 
-    .modal-content-logistica {
-        width: 100%;
-        height: 100%;
-        max-height: 100vh !important;
-        border-radius: 0;
-        padding: 0.9375rem;
+    .modal-content {
+        width: calc(100% - 2rem);
+        max-height: calc(100vh - 2rem) !important;
+        border-radius: 1.25rem;
+        padding: 1rem;
+        margin: 1rem;
     }
 
     .grade-bairros-logistica {
@@ -1039,9 +1234,9 @@
     }
 }
 
-@media (max-width: 30rem) { /* Até 480px (Smartphones pequenos) */
+@media (max-width: 30rem) {
     .grid-metricas-operacionais {
-        grid-template-columns: 1fr; /* 1 card de métrica por linha */
+        grid-template-columns: 1fr;
     }
     
     .header-card-grafico {
@@ -1055,7 +1250,7 @@
     }
 
     .corpo-canvas-wrapper {
-        height: 11.25rem; /* Poupa espaço vertical do gráfico */
+        height: 11.25rem;
     }
 
     .dia-horario-row {
@@ -1076,7 +1271,7 @@
     }
     
     .input-time-picker {
-        width: 6.25rem !important; /* 100px */
+        width: 6.25rem !important;
         max-width: 6.25rem !important;
     }
 }

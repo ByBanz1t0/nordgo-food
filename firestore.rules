@@ -1,0 +1,126 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // [FUNÇÃO AUXILIAR] Valida se o usuário logado é Admin
+    function isAdmin() {
+      return request.auth != null && 
+        exists(/databases/$(database)/documents/usuarios/$(request.auth.uid)) &&
+        (get(/databases/$(database)/documents/usuarios/$(request.auth.uid)).data.isAdmin == true ||
+         get(/databases/$(database)/documents/usuarios/$(request.auth.uid)).data.cargo == 'admin' ||
+         get(/databases/$(database)/documents/usuarios/$(request.auth.uid)).data.role == 'admin');
+    }
+
+    // [FUNÇÃO AUXILIAR] Valida se o usuário logado é Suporte ou Admin
+    function isSuporteOuAdmin() {
+      return request.auth != null && 
+        exists(/databases/$(database)/documents/usuarios/$(request.auth.uid)) &&
+        (isAdmin() || 
+         get(/databases/$(database)/documents/usuarios/$(request.auth.uid)).data.cargo == 'suporte' ||
+         get(/databases/$(database)/documents/usuarios/$(request.auth.uid)).data.role == 'suporte');
+    }
+
+    // [FUNÇÃO AUXILIAR] Verifica se a loja consultada pertence ao usuário logado
+    function isLojaDoUsuario(lojaId) {
+      return request.auth != null &&
+        exists(/databases/$(database)/documents/usuarios/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/usuarios/$(request.auth.uid)).data.loja == lojaId;
+    }
+
+    // 1. Coleção de Usuários
+    match /usuarios/{userId} {
+      allow get: if (request.auth != null && request.auth.uid == userId) || isSuporteOuAdmin();
+      allow list: if isSuporteOuAdmin();
+      allow create: if request.auth != null && request.auth.uid == userId;
+      // Admin altera tudo; Usuário altera seu próprio perfil; Suporte altera APENAS o status (suspensão/reativação)
+      allow update: if isAdmin() || 
+                       (request.auth != null && request.auth.uid == userId) ||
+                       (isSuporteOuAdmin() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status']));
+      allow delete: if isAdmin() || (request.auth != null && request.auth.uid == userId);
+    }
+
+    // 1.1 Coleção Isolada de Trava de CPFs
+    match /cpfs_cadastrados/{cpfId} {
+      allow get: if true; 
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isAdmin() || (request.auth != null && resource.data.userId == request.auth.uid);
+    }
+
+    // 2. Coleção de Categorias (Suporte/Admin criam e editam; Apenas Admin pode deletar)
+    match /categorias/{categoriaId} {
+      allow read: if true; 
+      allow create, update: if isSuporteOuAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // 3. Coleção de Lojas e Subcoleções de Gestão (Suporte pode aprovar/suspender)
+    match /lojas/{lojaId} {
+      allow read: if true; 
+      allow create: if request.auth != null && request.resource.data.donoUid == request.auth.uid;
+      allow update: if isSuporteOuAdmin() || isLojaDoUsuario(lojaId) || (request.auth != null && resource.data.donoUid == request.auth.uid);
+      allow delete: if isAdmin() || (request.auth != null && resource.data.donoUid == request.auth.uid);
+
+      // --- SUBCOLEÇÕES DO NORDGO GESTÃO ---
+      match /{subcolecao}/{docId} {
+        allow read, write: if isAdmin() || isLojaDoUsuario(lojaId);
+      }
+    }
+
+    // 4. Coleção de Produtos
+    match /produtos/{produtoId} {
+      allow read: if true;
+      allow create: if request.auth != null && isLojaDoUsuario(request.resource.data.lojaId);
+      allow update, delete: if isSuporteOuAdmin() || (request.auth != null && isLojaDoUsuario(resource.data.lojaId)); 
+    }
+
+    // 5. Coleção de Cupons (Restrito a Admin e Lojistas para seus próprios cupons)
+    match /cupons/{cupomId} {
+      allow read: if true;
+      allow create: if isAdmin() || (
+        request.resource.data.escopo == "loja" && 
+        isLojaDoUsuario(request.resource.data.lojaId)
+      );
+      allow delete: if isAdmin() || isLojaDoUsuario(resource.data.lojaId);
+      allow update: if isAdmin() || (
+        request.auth != null 
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['usosAtuais', 'usuariosQueUsaram'])
+        && request.resource.data.usosAtuais == resource.data.usosAtuais + 1
+      );
+    }
+
+    // 6. Coleção de Pedidos
+    match /pedidos/{pedidoId} {
+      allow create: if request.auth != null;
+      allow read: if request.auth != null && (
+        resource.data.clientId == request.auth.uid || 
+        isLojaDoUsuario(resource.data.lojaId) || 
+        isSuporteOuAdmin()
+      );
+      allow update: if isAdmin() || (
+        request.auth != null && (
+          (isLojaDoUsuario(resource.data.lojaId) && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'motivoCancelamento', 'statusPagamento', 'solicitacaoEstornoPendente'])) ||
+          (resource.data.clientId == request.auth.uid && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['avaliado']))
+        )
+      );
+    }
+
+    // 7. Coleção de Regiões (Suporte e Admin têm permissão total para Cidades e Bairros)
+    match /regioes/{regiaoId} {
+      allow read: if true;
+      allow create, update, delete: if isSuporteOuAdmin();
+    }
+
+    // 8. Coleção de Avaliações
+    match /avaliacoes/{avaliacaoId} {
+      allow read: if true;
+      allow create: if request.auth != null && request.resource.data.clienteUid == request.auth.uid;
+      allow delete: if isAdmin();
+    }
+
+    // 9. Coleção de Configurações da Plataforma (Restrito a Admin)
+    match /configuracoes/{configId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+  }
+}
